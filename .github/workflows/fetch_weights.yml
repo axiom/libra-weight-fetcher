@@ -2,7 +2,11 @@ name: Fetch and Append Data to SQLite (Bun)
 
 on:
   schedule:
-    - cron: '18 22 * * *' # Runs once a day at midnight (UTC)
+    - cron: '35 8 * * *' # Run once per day
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+permissions:
+  contents: write  # We want to push updates to the db
 
 jobs:
   fetch-data:
