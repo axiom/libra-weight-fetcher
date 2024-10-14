@@ -22,12 +22,12 @@ jobs:
     - name: Fetch CSV data from API and update SQLite DB
       env:
         API_TOKEN: ${{ secrets.API_TOKEN }}
-      run: bun run ./fetch-weight.ts
+      run: bun run ./fetch-weights.ts
 
     - name: Commit changes
       run: |
         git config --local user.name "github-actions[bot]"
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git add data.db
-        git commit -m "Append new data to SQLite database"
+        git add -u weights.db
+        git commit -m "Add new weight data to database"
         git push
