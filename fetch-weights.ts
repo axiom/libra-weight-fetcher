@@ -78,10 +78,6 @@ try {
 
   console.log(data);
 
-  for (const weight of data.values) {
-    console.table(weight);
-  }
-
   // Insert rows into the database
   const insertQuery = `
     INSERT OR REPLACE INTO weights (date, epoch, weight, weight_trend, body_fat, body_fat_trend)
