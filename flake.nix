@@ -15,7 +15,7 @@
         default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
             bun
-            sqlite
+            sqlite-interactive
           ];
         };
       });
