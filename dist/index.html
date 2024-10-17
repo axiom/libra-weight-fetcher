@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Line goes down</title>
+	<meta charset="utf-8"/>
+	<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"
+	        integrity="sha256-6EJwvQzVvfYP78JtAMKjkcsugfTSanqe4WGFpUdzo88=" crossorigin="anonymous"></script>
+
+	<style>
+		html, body {
+			background-color: #201e12;
+			color: wheat;
+			margin: 0;
+			padding: 0;
+			width: 100vw;
+			height: 100vh;
+		}
+
+		body {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		#main {
+			height: 100%;
+			width: 100%;
+		}
+	</style>
+</head>
+
+<body>
+<div id="main"></div>
+
+<script>
+    const f = async () => {
+        const weights = await fetch("weights.json").then(res => res.json());
+        const data = weights.map((w) => [w.date, w.weight, w.trend, w.weight < w.trend])
+
+	    const start = new Date(data[0][0]);
+        const end = new Date(data[data.length - 1][0]);
+        const zoomStart = new Date("2024-01-01");
+
+        // Calculate the percentage on the line start to end that zoomStart sits at.
+	    const zoomStartPercent = (zoomStart.valueOf() - start.valueOf()) / (end.valueOf() - start.valueOf());
+
+        const chartDom = document.getElementById('main');
+        const myChart = echarts.init(chartDom, 'dark');
+
+        const option = {
+	        darkMode: true,
+            dataset: {
+                source: data,
+                dimensions: [
+                    {name: 'date', displayName: 'Datum', type: 'time'},
+                    {
+                        name: 'weight',
+                        displayName: 'Vikt',
+                        type: 'float'
+                    },
+                    {
+                        name: 'trend',
+                        displayName: 'Trend',
+                        type: 'float'
+                    },
+                ]
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                }
+            },
+            legend: {},
+            xAxis: {
+                type: 'time',
+            },
+            yAxis: {
+                type: 'value',
+                min: (value) => value.min - 1,
+                // min: 80,
+                max: (value) => value.max + 1,
+            },
+            series: [
+                {
+                    type: 'line',
+                    showSymbol: false,
+                    encode: {
+                        y: 'trend'
+                    },
+	                lineStyle: {
+                        width: 4,
+                    },
+                    markLine: {
+                        lineStyle: {
+                            type: 'solid',
+                            // color: '#cacaca',
+                            color: ({ dataIndex }) => data[dataIndex][3] ? '#0f0' : '#f00',
+                            width: 2,
+                            opacity: 0.3,
+                        },
+                        symbol: 'none',
+                        data: data.map((point) => {
+                            return [{
+                                xAxis: point[0],
+                                yAxis: point[1]
+                            }, {
+                                xAxis: point[0],
+                                yAxis: point[2]
+                            }];
+                        })
+                    }
+                },
+                {
+                    type: 'scatter',
+                    encode: {
+                        y: 'weight'
+                    },
+	                symbol: 'diamond',
+	                itemStyle: {
+                        color: ({ dataIndex }) => data[dataIndex][3] ? '#0f0' : '#f00',
+                    },
+                    markPoint: {
+                        data: [
+                            { type: 'max', name: 'Max' },
+                            { type: 'min', name: 'Min' }
+                        ]
+                    },
+                },
+            ],
+            dataZoom: [
+                {
+                    type: 'slider',
+                    start: 100 * zoomStartPercent,
+                    end: 100,
+                }
+            ]
+        };
+
+        option && myChart.setOption(option);
+    };
+
+    f();
+</script>
+</body>
+
+</html>
