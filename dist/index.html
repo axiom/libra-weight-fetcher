@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Line goes down</title>
+	<title>🐖📉🤞</title>
 	<meta charset="utf-8"/>
 	<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"
 	        integrity="sha256-6EJwvQzVvfYP78JtAMKjkcsugfTSanqe4WGFpUdzo88=" crossorigin="anonymous"></script>
@@ -9,7 +9,7 @@
 	<style>
 		html, body {
 			background-color: #201e12;
-			color: wheat;
+			color: #ff8b00;
 			margin: 0;
 			padding: 0;
 			width: 100vw;
@@ -18,8 +18,21 @@
 
 		body {
 			display: flex;
+			flex-direction: column;
 			justify-content: center;
 			align-items: center;
+		}
+
+		#trend {
+			color: rgba(135, 135, 135, 0.13);
+			font-size: 20em;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			text-align: center;
+			margin: 0;
+			padding: 0;
 		}
 
 		#main {
@@ -30,6 +43,8 @@
 </head>
 
 <body>
+<h1 id="trend"></h1>
+
 <div id="main"></div>
 
 <script>
@@ -37,18 +52,25 @@
         const weights = await fetch("weights.json").then(res => res.json());
         const data = weights.map((w) => [w.date, w.weight, w.trend, w.weight < w.trend])
 
-	    const start = new Date(data[0][0]);
-        const end = new Date(data[data.length - 1][0]);
-        const zoomStart = new Date("2024-01-01");
+	    // Figure out from where to start the data zoom.
+        const daysAgo = 90;
+        const zoomStart = new Date().setDate(new Date().getDate() - daysAgo);
 
-        // Calculate the percentage on the line start to end that zoomStart sits at.
-	    const zoomStartPercent = (zoomStart.valueOf() - start.valueOf()) / (end.valueOf() - start.valueOf());
+        const currentWeight = Math.round(data[data.length - 1][2]).toString();
+        const currentTrendDom = document.getElementById('trend');
+        currentTrendDom.innerText = `${currentWeight} kg`;
 
         const chartDom = document.getElementById('main');
         const myChart = echarts.init(chartDom, 'dark');
 
         const option = {
 	        darkMode: true,
+	        backgroundColor: 'transparent',
+	        grid: {
+                left: '2%',
+                right: '2%',
+		        bottom: 120,
+	        },
             dataset: {
                 source: data,
                 dimensions: [
@@ -67,15 +89,25 @@
             },
             tooltip: {
                 trigger: 'axis',
-                axisPointer: {
-                    type: 'cross',
-                }
+	            valueFormatter: (value) => `${value.toFixed(1)} kg`,
+	            order: 'valueDesc',
             },
-            legend: {},
+            dataZoom: [
+                {
+                    type: 'slider',
+	                startValue: zoomStart,
+	                height: 75,
+	                bottom: 15,
+                }
+            ],
             xAxis: {
                 type: 'time',
+	            axisLine: {
+                    show: false,
+	            },
             },
             yAxis: {
+                show: false,
                 type: 'value',
                 min: (value) => value.min - 1,
                 // min: 80,
@@ -120,7 +152,12 @@
 	                itemStyle: {
                         color: ({ dataIndex }) => data[dataIndex][3] ? '#0f0' : '#f00',
                     },
-                    markPoint: {
+                    markLine: {
+	                    silent: true,
+	                    symbol: 'none',
+                        lineStyle: {
+                            color: 'rgb(200,156,39)',
+                        },
                         data: [
                             { type: 'max', name: 'Max' },
                             { type: 'min', name: 'Min' }
@@ -128,13 +165,6 @@
                     },
                 },
             ],
-            dataZoom: [
-                {
-                    type: 'slider',
-                    start: 100 * zoomStartPercent,
-                    end: 100,
-                }
-            ]
         };
 
         option && myChart.setOption(option);
