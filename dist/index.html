@@ -1,176 +1,177 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>🐖📉🤞</title>
-	<meta charset="utf-8"/>
-	<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"
-	        integrity="sha256-6EJwvQzVvfYP78JtAMKjkcsugfTSanqe4WGFpUdzo88=" crossorigin="anonymous"></script>
+  <title>🐖📉🤞</title>
+  <meta charset="utf-8"/>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"
+      integrity="sha256-6EJwvQzVvfYP78JtAMKjkcsugfTSanqe4WGFpUdzo88=" crossorigin="anonymous"></script>
 
-	<style>
-		html, body {
-			background-color: #201e12;
-			color: #ff8b00;
-			margin: 0;
-			padding: 0;
-			width: 100vw;
-			height: 100vh;
-		}
+  <style>
+    html, body {
+      background-color: #201e12;
+      color: #ff8b00;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-		body {
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-		}
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
 
-		#trend {
-			color: rgba(135, 135, 135, 0.13);
-			font-size: 20em;
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			text-align: center;
-			margin: 0;
-			padding: 0;
-		}
+    #trend {
+      color: rgba(135, 135, 135, 0.13);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      font-size: min(80vh, 40vw);
+      margin: 0;
+    }
 
-		#main {
-			height: 100%;
-			width: 100%;
-		}
-	</style>
+    #main {
+      height: 95%;
+      width: 100%;
+    }
+  </style>
 </head>
 
 <body>
+
 <h1 id="trend"></h1>
 
 <div id="main"></div>
 
 <script>
-    const f = async () => {
-        const weights = await fetch("weights.json").then(res => res.json());
-        const data = weights.map((w) => [w.date, w.weight, w.trend, w.weight < w.trend])
+  const f = async () => {
+    const weights = await fetch("weights.json").then(res => res.json());
+    const data = weights.map((w) => [w.date, w.weight, w.trend, w.weight < w.trend])
 
-	    // Figure out from where to start the data zoom.
-        const daysAgo = 90;
-        const zoomStart = new Date().setDate(new Date().getDate() - daysAgo);
+    // Figure out from where to start the data zoom.
+    const startWithNumPoints = 90;
+    const zoomStart = new Date(data[data.length - 1 - startWithNumPoints][0]);
 
-        const currentWeight = Math.round(data[data.length - 1][2]).toString();
-        const currentTrendDom = document.getElementById('trend');
-        currentTrendDom.innerText = `${currentWeight} kg`;
+    const currentWeight = Math.round(data[data.length - 1][2]).toString();
+    const currentTrendDom = document.getElementById('trend');
+    currentTrendDom.innerText = currentWeight;
 
-        const chartDom = document.getElementById('main');
-        const myChart = echarts.init(chartDom, 'dark');
+    const chartDom = document.getElementById('main');
+    const myChart = echarts.init(chartDom, 'dark');
 
-        const option = {
-	        darkMode: true,
-	        backgroundColor: 'transparent',
-	        grid: {
-                left: '2%',
-                right: '2%',
-		        bottom: 120,
-	        },
-            dataset: {
-                source: data,
-                dimensions: [
-                    {name: 'date', displayName: 'Datum', type: 'time'},
-                    {
-                        name: 'weight',
-                        displayName: 'Vikt',
-                        type: 'float'
-                    },
-                    {
-                        name: 'trend',
-                        displayName: 'Trend',
-                        type: 'float'
-                    },
-                ]
+    const option = {
+      darkMode: true,
+      backgroundColor: 'transparent',
+      grid: {
+        left: '2%',
+        right: '2%',
+        bottom: 120,
+      },
+      dataset: {
+        source: data,
+        dimensions: [
+          {name: 'date', displayName: 'Datum', type: 'time'},
+          {
+            name: 'weight',
+            displayName: 'Vikt',
+            type: 'float'
+          },
+          {
+            name: 'trend',
+            displayName: 'Trend',
+            type: 'float'
+          },
+        ]
+      },
+      tooltip: {
+        trigger: 'axis',
+        valueFormatter: (value) => `${value.toFixed(1)} kg`,
+        order: 'valueDesc',
+      },
+      dataZoom: [
+        {
+          type: 'slider',
+          startValue: zoomStart,
+          height: 75,
+          bottom: 15,
+        }
+      ],
+      xAxis: {
+        type: 'time',
+        axisLine: {
+          show: false,
+        },
+      },
+      yAxis: {
+        show: false,
+        type: 'value',
+        min: (value) => value.min - 1,
+        max: (value) => value.max + 1,
+      },
+      series: [
+        {
+          type: 'line',
+          showSymbol: false,
+          encode: {
+            y: 'trend'
+          },
+          lineStyle: {
+            width: 4,
+          },
+          markLine: {
+            lineStyle: {
+              type: 'solid',
+              color: ({ dataIndex }) => data[dataIndex][3] ? '#0f0' : '#f00',
+              width: 2,
+              opacity: 0.3,
             },
-            tooltip: {
-                trigger: 'axis',
-	            valueFormatter: (value) => `${value.toFixed(1)} kg`,
-	            order: 'valueDesc',
+            symbol: 'none',
+            data: data.map((point) => {
+              return [{
+                xAxis: point[0],
+                yAxis: point[1]
+              }, {
+                xAxis: point[0],
+                yAxis: point[2]
+              }];
+            })
+          }
+        },
+        {
+          type: 'scatter',
+          encode: {
+            y: 'weight'
+          },
+          symbol: 'diamond',
+          itemStyle: {
+            color: ({ dataIndex }) => data[dataIndex][3] ? '#0f0' : '#f00',
+          },
+          markLine: {
+            silent: true,
+            symbol: 'none',
+            lineStyle: {
+              color: 'rgb(200,156,39)',
             },
-            dataZoom: [
-                {
-                    type: 'slider',
-	                startValue: zoomStart,
-	                height: 75,
-	                bottom: 15,
-                }
-            ],
-            xAxis: {
-                type: 'time',
-	            axisLine: {
-                    show: false,
-	            },
-            },
-            yAxis: {
-                show: false,
-                type: 'value',
-                min: (value) => value.min - 1,
-                // min: 80,
-                max: (value) => value.max + 1,
-            },
-            series: [
-                {
-                    type: 'line',
-                    showSymbol: false,
-                    encode: {
-                        y: 'trend'
-                    },
-	                lineStyle: {
-                        width: 4,
-                    },
-                    markLine: {
-                        lineStyle: {
-                            type: 'solid',
-                            // color: '#cacaca',
-                            color: ({ dataIndex }) => data[dataIndex][3] ? '#0f0' : '#f00',
-                            width: 2,
-                            opacity: 0.3,
-                        },
-                        symbol: 'none',
-                        data: data.map((point) => {
-                            return [{
-                                xAxis: point[0],
-                                yAxis: point[1]
-                            }, {
-                                xAxis: point[0],
-                                yAxis: point[2]
-                            }];
-                        })
-                    }
-                },
-                {
-                    type: 'scatter',
-                    encode: {
-                        y: 'weight'
-                    },
-	                symbol: 'diamond',
-	                itemStyle: {
-                        color: ({ dataIndex }) => data[dataIndex][3] ? '#0f0' : '#f00',
-                    },
-                    markLine: {
-	                    silent: true,
-	                    symbol: 'none',
-                        lineStyle: {
-                            color: 'rgb(200,156,39)',
-                        },
-                        data: [
-                            { type: 'max', name: 'Max' },
-                            { type: 'min', name: 'Min' }
-                        ]
-                    },
-                },
-            ],
-        };
-
-        option && myChart.setOption(option);
+            data: [
+              { type: 'max', name: 'Max' },
+              { type: 'min', name: 'Min' }
+            ]
+          },
+        },
+      ],
     };
 
-    f();
+    option && myChart.setOption(option);
+  };
+
+  f();
 </script>
 </body>
 
