@@ -69,13 +69,12 @@
           data[data.length - 1 - startWithNumPoints][0],
         );
 
-        const currentWeight = Math.round(data[data.length - 1][2]).toString();
-        const trendingDown =
-          data[data.length - 1][1] < data[data.length - 1][2];
+        // Dynamically display most recent weight info
+        const latestWeight = data[data.length - 1];
+        const currentWeight = Math.round(latestWeight[2]).toString();
         const currentTrendDom = document.getElementById("trend");
         currentTrendDom.innerText = currentWeight;
-
-        const trendToken = trendingDown ? "🔻" : "🔺";
+        const trendToken = latestWeight[3] ? "🔻" : "🔺";
         document.title = `${document.title} ${trendToken} ${currentWeight}kg ${trendToken}`;
 
         const chartDom = document.getElementById("main");
