@@ -60,8 +60,12 @@
     const zoomStart = new Date(data[data.length - 1 - startWithNumPoints][0]);
 
     const currentWeight = Math.round(data[data.length - 1][2]).toString();
+    const trendingDown = data[data.length - 1][1] < data[data.length - 1][2];
     const currentTrendDom = document.getElementById('trend');
     currentTrendDom.innerText = currentWeight;
+
+    const trendToken = trendingDown ? '🔻' : '🔺';
+    document.title = `${document.title} ${trendToken} ${currentWeight}kg ${trendToken}`;
 
     const chartDom = document.getElementById('main');
     const myChart = echarts.init(chartDom, 'dark');
