@@ -67,8 +67,12 @@
           w.weight < w.trend,
         ]);
 
+        // Support specifying number of weight points in the search query.
+        const q = new URL(globalThis.location.href).searchParams;
+        const w = q.get("w") ?? 90;
+
         // Figure out from where to start the data zoom.
-        const startWithNumPoints = 90;
+        const startWithNumPoints = w;
         const zoomStart = new Date(
           data[data.length - 1 - startWithNumPoints][0],
         );
