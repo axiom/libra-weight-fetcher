@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <title>🐼</title>
     <link
@@ -14,10 +14,22 @@
     ></script>
 
     <style>
+      :root {
+        --bg-color: #fefcf7;
+        --fg-color: #ff8b00;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-color: #201e12;
+          --fg-color: #ff8b00;
+        }
+      }
+
       html,
       body {
-        background-color: #201e12;
-        color: #ff8b00;
+        background-color: var(--bg-color);
+        color: var(--fg-color);
         margin: 0;
         padding: 0;
         width: 100vw;
@@ -42,7 +54,6 @@
         margin: 0;
         padding: 0;
         font-size: min(80vh, 40vw);
-        margin: 0;
       }
 
       #main {
@@ -58,7 +69,7 @@
     <div id="main"></div>
 
     <script>
-      const f = async () => {
+      const init = async () => {
         const weights = await fetch("weights.json").then((res) => res.json());
         const data = weights.map((w) => [
           w.date,
@@ -69,12 +80,11 @@
 
         // Support specifying number of weight points in the search query.
         const q = new URL(globalThis.location.href).searchParams;
-        const w = q.get("w") ?? 90;
+        const startingWeightMeasurements = q.get("w") ?? 90;
 
         // Figure out from where to start the data zoom.
-        const startWithNumPoints = w;
         const zoomStart = new Date(
-          data[data.length - 1 - startWithNumPoints][0],
+          data[data.length - 1 - startingWeightMeasurements][0],
         );
 
         // Dynamically display most recent weight info
@@ -85,11 +95,30 @@
         const trendToken = latestWeight[3] ? "📉" : "📈";
         document.title = `${document.title} ${trendToken} ${currentWeight}kg ${trendToken}`;
 
+        // Figure out if the browser prefers dark mode.
+        const darkMode =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+
         const chartDom = document.getElementById("main");
-        const myChart = echarts.init(chartDom, "dark");
+        const myChart = echarts.init(chartDom, darkMode ? "dark" : "light");
+        const colors = {
+          true: {
+            sinker: "#f52c2c",
+            floater: "#26ee2c",
+            line: "#2a72c3",
+            markLine: "#9d9292",
+          },
+          false: {
+            sinker: "#e31616",
+            floater: "#03db2e",
+            line: "#5566a8",
+            markLine: "#68451e",
+          },
+        }[darkMode];
 
         const option = {
-          darkMode: true,
+          darkMode: darkMode,
           backgroundColor: "transparent",
           grid: {
             left: "2%",
@@ -146,16 +175,17 @@
               },
               lineStyle: {
                 width: 4,
+                color: colors.line,
               },
               markLine: {
                 lineStyle: {
                   type: "solid",
-                  color: ({ dataIndex }) =>
-                    data[dataIndex][3] ? "#0f0" : "#f00",
-                  width: 2,
+                  color: colors.markLine,
                   opacity: 0.3,
+                  width: 2,
                 },
                 symbol: "none",
+                silent: true,
                 data: data.map((point) => {
                   return [
                     {
@@ -178,13 +208,13 @@
               symbol: "diamond",
               itemStyle: {
                 color: ({ dataIndex }) =>
-                  data[dataIndex][3] ? "#0f0" : "#f00",
+                  data[dataIndex][3] ? colors.floater : colors.sinker,
               },
               markLine: {
                 silent: true,
                 symbol: "none",
                 lineStyle: {
-                  color: "rgb(200,156,39)",
+                  color: colors.markLine,
                 },
                 data: [
                   { type: "max", name: "Max" },
@@ -198,7 +228,7 @@
         option && myChart.setOption(option);
       };
 
-      f();
+      init();
     </script>
   </body>
 </html>
