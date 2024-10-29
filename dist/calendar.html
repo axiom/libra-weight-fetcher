@@ -94,6 +94,8 @@
         const myChart = echarts.init(chartDom, darkMode ? "dark" : "light");
 
         const option = {
+          darkMode: darkMode,
+          backgroundColor: "transparent",
           visualMap: {
             show: false,
             min: -maxDiff,
@@ -101,7 +103,9 @@
             calculable: true,
             realtime: true,
             inRange: {
-              color: ["#3ad603", "#a7d852", "#ffffff", "#d89352", "#f42f2f"],
+              color: darkMode
+                ? ["#3ad603", "#a7d852", "#2d2d2d", "#d87a52", "#f42f2f"]
+                : ["#3ad603", "#a7d852", "#ffffff", "#d87652", "#f42f2f"],
             },
           },
           tooltip: {
@@ -117,6 +121,10 @@
             dayLabel: {
               firstDay: 1,
               nameMap: "SMTOTFL".split(new RegExp("")),
+            },
+            itemStyle: {
+              color: darkMode ? "#00000033" : "#ffffff33",
+              borderColor: darkMode ? "#00000033" : "#00000033",
             },
           })),
           series: years.map((year, i) => ({
