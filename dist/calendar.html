@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>🐼</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐖</text></svg>"
+    />
+    <meta charset="utf-8" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"
+      integrity="sha256-6EJwvQzVvfYP78JtAMKjkcsugfTSanqe4WGFpUdzo88="
+      crossorigin="anonymous"
+    ></script>
+
+    <style>
+      :root {
+        --bg-color: #fefcf7;
+        --fg-color: #ff8b00;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-color: #201e12;
+          --fg-color: #ff8b00;
+        }
+      }
+
+      html,
+      body {
+        background-color: var(--bg-color);
+        color: var(--fg-color);
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 95vh;
+      }
+
+      #trend {
+        color: rgba(135, 135, 135, 0.13);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        font-size: min(80vh, 40vw);
+      }
+
+      #main {
+        height: 1100px;
+        width: 1200px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1 id="trend"></h1>
+
+    <div id="main"></div>
+
+    <script>
+      const init = async () => {
+        const weights = await fetch("weights.json").then((res) => res.json());
+        let maxDiff = 0;
+        const distinctYears = new Set();
+        const data = weights.map((w) => {
+          maxDiff = Math.max(maxDiff, Math.abs(w.weight - w.trend));
+          distinctYears.add(new Date(w.date).getFullYear().toString());
+
+          return [w.date, w.weight, w.trend, w.weight - w.trend];
+        });
+        const years = [...distinctYears].sort().reverse().slice(0, 5);
+
+        // Dynamically display most recent weight info
+        const latestWeight = data[data.length - 1];
+        const currentWeight = Math.round(latestWeight[2]).toString();
+        const currentTrendDom = document.getElementById("trend");
+        currentTrendDom.innerText = currentWeight;
+        const trendToken = latestWeight[3] ? "📉" : "📈";
+        document.title = `${document.title} ${trendToken} ${currentWeight}kg ${trendToken}`;
+
+        // Figure out if the browser prefers dark mode.
+        const darkMode =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+        const chartDom = document.getElementById("main");
+        const myChart = echarts.init(chartDom, darkMode ? "dark" : "light");
+
+        const option = {
+          visualMap: {
+            show: false,
+            min: -maxDiff,
+            max: maxDiff,
+            calculable: true,
+            realtime: true,
+            inRange: {
+              color: ["#3ad603", "#a7d852", "#ffffff", "#d89352", "#f42f2f"],
+            },
+          },
+          tooltip: {
+            formatter: ({ data }) => {
+              const d = new Date(data[0]);
+              const diff = data[3].toFixed(1);
+              return `${d.toDateString()}: ${diff} kg`;
+            },
+          },
+          calendar: years.map((year, i) => ({
+            range: year,
+            top: 80 + i * 180,
+            dayLabel: {
+              firstDay: 1,
+              nameMap: "SMTOTFL".split(new RegExp("")),
+            },
+          })),
+          series: years.map((year, i) => ({
+            type: "heatmap",
+            coordinateSystem: "calendar",
+            calendarIndex: i,
+            data: data.filter((point) => point[0].startsWith(year)),
+          })),
+        };
+
+        option && myChart.setOption(option);
+      };
+
+      init();
+    </script>
+  </body>
+</html>
