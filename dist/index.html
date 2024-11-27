@@ -106,6 +106,22 @@
         const trendToken = latestWeight[3] ? "📉" : "📈";
         document.title = `${document.title} ${trendToken} ${currentWeight}kg ${trendToken}`;
 
+        const now = new Date(data[data.length - 1][0]);
+        now.setHours(6, 0, 0, 0);
+        const startWeight = 123;
+        const startDate = new Date("2024-10-29");
+        const targetWeight = 88;
+        const targetDate = new Date("2025-06-08");
+
+        const targetProgress = (now - startDate) / (targetDate - startDate);
+        const dailyTargetWeight =
+          startWeight - targetProgress * (startWeight - targetWeight);
+        const zoomStartProgress =
+          (zoomStart - startDate) / (targetDate - startDate);
+        const zoomStartWeight =
+          startWeight - zoomStartProgress * (startWeight - targetWeight);
+        console.log(now, dailyTargetWeight);
+
         // Figure out if the browser prefers dark mode.
         const darkMode =
           window.matchMedia &&
@@ -230,6 +246,15 @@
                 data: [
                   { type: "max", name: "Max" },
                   { type: "min", name: "Min" },
+                  [
+                    {
+                      lineStyle: { color: "red" },
+                      coord: [zoomStart, zoomStartWeight],
+                    },
+                    {
+                      coord: [now, dailyTargetWeight],
+                    },
+                  ],
                 ],
               },
             },
