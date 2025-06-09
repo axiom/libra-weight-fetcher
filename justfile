@@ -9,3 +9,4 @@ write-json:
 
 format:
 	bunx prettier -w fetch-weights.ts write-json.ts dist/index.html dist/calendar.html
+	nix fmt
