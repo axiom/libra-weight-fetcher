@@ -6,3 +6,6 @@ fetch-weights:
 
 write-json:
 	bun ./write-json.ts
+
+format:
+	bunx prettier -w fetch-weights.ts write-json.ts dist/index.html dist/calendar.html
