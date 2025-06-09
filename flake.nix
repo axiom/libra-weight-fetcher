@@ -16,6 +16,8 @@
           nativeBuildInputs = with pkgs; [
             bun
             sqlite-interactive
+	    caddy
+	    just
           ];
         };
       });
