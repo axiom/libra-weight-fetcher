@@ -2,6 +2,7 @@ import * as echarts from "echarts";
 import rawWeights from "../weights.json";
 import { targetWeightConfig } from "./config";
 import { getDarkMode, updateTrend, type WeightEntry } from "./shared";
+import { medianSmoothing } from "./smoothing";
 import "./shared.css";
 import "./index.css";
 
@@ -63,12 +64,18 @@ export const computeZoomStart = (
   return zoomStart;
 };
 
+const smoother = medianSmoothing;
+
 const init = (chartDom: HTMLElement) => {
-  const data: [string, number, number, boolean][] = weights.map((w) => [
+  const smoothedWeights = smoother(
+    weights.map((w) => w.weight),
+    7,
+  );
+  const data: [string, number, number, boolean][] = weights.map((w, i) => [
     w.date,
     w.weight,
-    w.trend,
-    w.weight < w.trend,
+    smoothedWeights[i]!,
+    w.weight < smoothedWeights[i]!,
   ]);
 
   const chartData: [string, number, number][] = data.map((d) => [
