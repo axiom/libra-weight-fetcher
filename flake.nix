@@ -22,10 +22,10 @@
         { pkgs }:
         {
           default = pkgs.mkShell {
-            nativeBuildInputs = with pkgs; [
+            packages = with pkgs; [
               bun
+              biome
               sqlite-interactive
-              caddy
               just
             ];
           };
