@@ -4,10 +4,6 @@ export interface WeightEntry {
   trend: number;
 }
 
-export const fetchWeights = async (url: string = "weights.json"): Promise<WeightEntry[]> => {
-  return await fetch(url).then((res) => res.json());
-};
-
 export const updateTrend = (latestWeight: [string, number, number], isFalling: boolean) => {
   const currentWeight = Math.round(latestWeight[2]).toString();
   const currentTrendDom = document.getElementById("trend");

@@ -1,7 +1,10 @@
 import * as echarts from 'echarts';
-import { fetchWeights, updateTrend, getDarkMode, WeightEntry } from './shared';
+import { updateTrend, getDarkMode, WeightEntry } from './shared';
+import rawWeights from '../weights.json';
 import './shared.css';
 import './calendar.css';
+
+const weights = rawWeights as WeightEntry[];
 
 /**
  * Computes the maximum absolute difference between weight and trend.
@@ -25,8 +28,7 @@ export const extractRecentYears = (weights: WeightEntry[], maxYears: number = 5)
   return [...distinctYears].sort().reverse().slice(0, maxYears);
 };
 
-const init = async () => {
-  const weights = await fetchWeights();
+const init = () => {
   const maxDiff = computeMaxDiff(weights);
   const years = extractRecentYears(weights, 5);
   

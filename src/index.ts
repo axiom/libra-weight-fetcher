@@ -1,8 +1,11 @@
-import * as echarts from 'echarts';
-import { fetchWeights, updateTrend, getDarkMode } from './shared';
-import { targetWeightConfig } from './config';
-import './shared.css';
-import './index.css';
+import * as echarts from "echarts";
+import { updateTrend, getDarkMode, WeightEntry } from "./shared";
+import { targetWeightConfig } from "./config";
+import rawWeights from "../weights.json";
+import "./shared.css";
+import "./index.css";
+
+const weights = rawWeights as WeightEntry[];
 
 /**
  * Computes the progress (0.0 to 1.0) towards the target weight.
@@ -10,8 +13,15 @@ import './index.css';
  * @param startDate Start date of the weight loss journey.
  * @param targetDate Target date to reach the goal.
  */
-export const computeTargetProgress = (now: Date, startDate: Date, targetDate: Date): number => {
-  return (now.getTime() - startDate.getTime()) / (targetDate.getTime() - startDate.getTime());
+export const computeTargetProgress = (
+  now: Date,
+  startDate: Date,
+  targetDate: Date,
+): number => {
+  return (
+    (now.getTime() - startDate.getTime()) /
+    (targetDate.getTime() - startDate.getTime())
+  );
 };
 
 /**
@@ -20,7 +30,11 @@ export const computeTargetProgress = (now: Date, startDate: Date, targetDate: Da
  * @param targetWeight Target weight.
  * @param progress Progress between 0.0 and 1.0.
  */
-export const computeTargetWeight = (startWeight: number, targetWeight: number, progress: number): number => {
+export const computeTargetWeight = (
+  startWeight: number,
+  targetWeight: number,
+  progress: number,
+): number => {
   return startWeight - progress * (startWeight - targetWeight);
 };
 
@@ -30,7 +44,11 @@ export const computeTargetWeight = (startWeight: number, targetWeight: number, p
  * @param n Number of weight measurements to show.
  * @param q URL search parameters for overrides.
  */
-export const computeZoomStart = (data: [string, any, any, any][], n: number, q: URLSearchParams): Date => {
+export const computeZoomStart = (
+  data: [string, any, any, any][],
+  n: number,
+  q: URLSearchParams,
+): Date => {
   let zoomStart = new Date(data[data.length - n]![0]);
 
   if (q.has("d")) {
@@ -45,8 +63,7 @@ export const computeZoomStart = (data: [string, any, any, any][], n: number, q: 
   return zoomStart;
 };
 
-const init = async () => {
-  const weights = await fetchWeights();
+const init = (chartDom: HTMLElement) => {
   const data: [string, number, number, boolean][] = weights.map((w) => [
     w.date,
     w.weight,
@@ -66,24 +83,35 @@ const init = async () => {
 
   const now = new Date(data[data.length - 1]![0]);
   now.setHours(6, 0, 0, 0);
-  
+
   const startWeight = targetWeightConfig.startWeight;
   const startDate = new Date(targetWeightConfig.startDate);
   const targetWeight = targetWeightConfig.targetWeight;
   const targetDate = new Date(targetWeightConfig.targetDate);
 
   const targetProgress = computeTargetProgress(now, startDate, targetDate);
-  const dailyTargetWeight = computeTargetWeight(startWeight, targetWeight, targetProgress);
+  const dailyTargetWeight = computeTargetWeight(
+    startWeight,
+    targetWeight,
+    targetProgress,
+  );
 
-  const zoomStartProgress = computeTargetProgress(zoomStart, startDate, targetDate);
-  const zoomStartWeight = computeTargetWeight(startWeight, targetWeight, zoomStartProgress);
+  const zoomStartProgress = computeTargetProgress(
+    zoomStart,
+    startDate,
+    targetDate,
+  );
+  const zoomStartWeight = computeTargetWeight(
+    startWeight,
+    targetWeight,
+    zoomStartProgress,
+  );
 
   // Figure out if the browser prefers dark mode.
   const darkMode = getDarkMode();
 
-  const chartDom = document.getElementById("main")!;
   const myChart = echarts.init(chartDom, darkMode ? "dark" : "light");
-  
+
   const colors: any = {
     true: {
       sinker: "#f52c2c",
@@ -219,6 +247,7 @@ const init = async () => {
   option && myChart.setOption(option);
 };
 
-if (typeof document !== 'undefined') {
-  init();
+if (typeof document !== "undefined") {
+  const chartDom = document.getElementById("main")!;
+  init(chartDom);
 }

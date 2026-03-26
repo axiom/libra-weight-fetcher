@@ -29,7 +29,7 @@ try {
     });
   }
 
-  Bun.write("public/weights.json", JSON.stringify(weights, null, 2));
+  Bun.write("weights.json", JSON.stringify(weights, null, 2));
 } catch (error) {
   console.error("Error occurred:", error);
 }
