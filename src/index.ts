@@ -4,6 +4,47 @@ import { targetWeightConfig } from './config';
 import './shared.css';
 import './index.css';
 
+/**
+ * Computes the progress (0.0 to 1.0) towards the target weight.
+ * @param now Current date.
+ * @param startDate Start date of the weight loss journey.
+ * @param targetDate Target date to reach the goal.
+ */
+export const computeTargetProgress = (now: Date, startDate: Date, targetDate: Date): number => {
+  return (now.getTime() - startDate.getTime()) / (targetDate.getTime() - startDate.getTime());
+};
+
+/**
+ * Computes the target weight at a specific progress.
+ * @param startWeight Starting weight.
+ * @param targetWeight Target weight.
+ * @param progress Progress between 0.0 and 1.0.
+ */
+export const computeTargetWeight = (startWeight: number, targetWeight: number, progress: number): number => {
+  return startWeight - progress * (startWeight - targetWeight);
+};
+
+/**
+ * Computes the date from which to start the data zoom.
+ * @param data Weight entries.
+ * @param n Number of weight measurements to show.
+ * @param q URL search parameters for overrides.
+ */
+export const computeZoomStart = (data: [string, any, any, any][], n: number, q: URLSearchParams): Date => {
+  let zoomStart = new Date(data[data.length - n]![0]);
+
+  if (q.has("d")) {
+    const zoomDays = parseInt(q.get("d")!);
+    if (Number.isFinite(zoomDays)) {
+      const zoomDate = new Date();
+      zoomDate.setDate(zoomDate.getDate() - zoomDays);
+      zoomStart = zoomDate;
+    }
+  }
+
+  return zoomStart;
+};
+
 const init = async () => {
   const weights = await fetchWeights();
   const data: [string, number, number, boolean][] = weights.map((w) => [
@@ -17,19 +58,7 @@ const init = async () => {
   const q = new URL(globalThis.location.href).searchParams;
   const startingWeightMeasurements = parseInt(q.get("w") ?? "90");
 
-  // Figure out from where to start the data zoom.
-  let zoomStart = new Date(data[data.length - startingWeightMeasurements]![0]);
-
-  // Prioritize number of days if specified over number of weight
-  // measurements.
-  if (q.has("d")) {
-    const zoomDays = parseInt(q.get("d")!);
-    if (Number.isFinite(zoomDays)) {
-      const zoomDate = new Date();
-      zoomDate.setDate(zoomDate.getDate() - zoomDays);
-      zoomStart = zoomDate;
-    }
-  }
+  const zoomStart = computeZoomStart(data, startingWeightMeasurements, q);
 
   // Dynamically display most recent weight info
   const latestWeight = data[data.length - 1]!;
@@ -43,12 +72,11 @@ const init = async () => {
   const targetWeight = targetWeightConfig.targetWeight;
   const targetDate = new Date(targetWeightConfig.targetDate);
 
-  const targetProgress = (now.getTime() - startDate.getTime()) / (targetDate.getTime() - startDate.getTime());
-  const dailyTargetWeight =
-    startWeight - targetProgress * (startWeight - targetWeight);
-  const zoomStartProgress = (zoomStart.getTime() - startDate.getTime()) / (targetDate.getTime() - startDate.getTime());
-  const zoomStartWeight =
-    startWeight - zoomStartProgress * (startWeight - targetWeight);
+  const targetProgress = computeTargetProgress(now, startDate, targetDate);
+  const dailyTargetWeight = computeTargetWeight(startWeight, targetWeight, targetProgress);
+
+  const zoomStartProgress = computeTargetProgress(zoomStart, startDate, targetDate);
+  const zoomStartWeight = computeTargetWeight(startWeight, targetWeight, zoomStartProgress);
 
   // Figure out if the browser prefers dark mode.
   const darkMode = getDarkMode();
@@ -191,4 +219,6 @@ const init = async () => {
   option && myChart.setOption(option);
 };
 
-init();
+if (typeof document !== 'undefined') {
+  init();
+}

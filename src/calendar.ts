@@ -1,19 +1,41 @@
 import * as echarts from 'echarts';
-import { fetchWeights, updateTrend, getDarkMode } from './shared';
+import { fetchWeights, updateTrend, getDarkMode, WeightEntry } from './shared';
 import './shared.css';
 import './calendar.css';
 
+/**
+ * Computes the maximum absolute difference between weight and trend.
+ */
+export const computeMaxDiff = (weights: WeightEntry[]): number => {
+  let maxDiff = 0;
+  for (const w of weights) {
+    maxDiff = Math.max(maxDiff, Math.abs(w.weight - w.trend));
+  }
+  return maxDiff;
+};
+
+/**
+ * Extracts the most recent distinct years from the weight entries.
+ */
+export const extractRecentYears = (weights: WeightEntry[], maxYears: number = 5): string[] => {
+  const distinctYears = new Set<string>();
+  for (const w of weights) {
+    distinctYears.add(new Date(w.date).getFullYear().toString());
+  }
+  return [...distinctYears].sort().reverse().slice(0, maxYears);
+};
+
 const init = async () => {
   const weights = await fetchWeights();
-  let maxDiff = 0;
-  const distinctYears = new Set<string>();
-  const data: [string, number, number, number][] = weights.map((w) => {
-    maxDiff = Math.max(maxDiff, Math.abs(w.weight - w.trend));
-    distinctYears.add(new Date(w.date).getFullYear().toString());
-
-    return [w.date, w.weight, w.trend, w.weight - w.trend];
-  });
-  const years = [...distinctYears].sort().reverse().slice(0, 5);
+  const maxDiff = computeMaxDiff(weights);
+  const years = extractRecentYears(weights, 5);
+  
+  const data: [string, number, number, number][] = weights.map((w) => [
+    w.date,
+    w.weight,
+    w.trend,
+    w.weight - w.trend,
+  ]);
 
   // Dynamically display most recent weight info
   const latestWeight = data[data.length - 1]!;
@@ -71,4 +93,6 @@ const init = async () => {
   option && myChart.setOption(option);
 };
 
-init();
+if (typeof document !== 'undefined') {
+  init();
+}
