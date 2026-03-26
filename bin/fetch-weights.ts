@@ -7,7 +7,7 @@ const dbFile = "weights.db";
 
 const weightUrl = (since: Date | undefined): string => {
   const search =
-    since != undefined ? `?modified_since=${since.toISOString()}` : "";
+    since !== undefined ? `?modified_since=${since.toISOString()}` : "";
   return `${apiUrl}/values/weight${search}`;
 };
 
@@ -49,7 +49,7 @@ const fetchData = async (since: Date): Promise<WeightResponse> => {
 };
 
 class Since {
-  epoch: number;
+  epoch!: number;
 
   get date() {
     return new Date(this.epoch);
@@ -72,7 +72,8 @@ try {
   `);
 
   const query = db.query(`select max(epoch) as epoch from weights;`).as(Since);
-  const since = query.get().date;
+  const sinceEpoch = query.get();
+  const since = sinceEpoch ? sinceEpoch.date : new Date(0);
 
   const data = await fetchData(since);
 

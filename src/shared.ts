@@ -4,7 +4,10 @@ export interface WeightEntry {
   trend: number;
 }
 
-export const updateTrend = (latestWeight: [string, number, number], isFalling: boolean) => {
+export const updateTrend = (
+  latestWeight: [string, number, number],
+  isFalling: boolean,
+) => {
   const currentWeight = Math.round(latestWeight[2]).toString();
   const currentTrendDom = document.getElementById("trend");
   if (currentTrendDom) {
@@ -15,8 +18,5 @@ export const updateTrend = (latestWeight: [string, number, number], isFalling: b
 };
 
 export const getDarkMode = () => {
-  return (
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  );
+  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
 };

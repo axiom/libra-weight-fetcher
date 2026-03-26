@@ -3,10 +3,10 @@ import { Database } from "bun:sqlite";
 const dbFile = "weights.db";
 
 class Weight {
-  date: string;
-  epoch: number;
-  weight: number;
-  weight_trend: number;
+  date!: string;
+  epoch!: number;
+  weight!: number;
+  weight_trend!: number;
 }
 
 interface WeightValue {

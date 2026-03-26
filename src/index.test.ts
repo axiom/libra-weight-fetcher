@@ -1,5 +1,9 @@
-import { expect, test, describe } from "bun:test";
-import { computeTargetProgress, computeTargetWeight, computeZoomStart } from "./index";
+import { describe, expect, test } from "bun:test";
+import {
+  computeTargetProgress,
+  computeTargetWeight,
+  computeZoomStart,
+} from "./index";
 
 describe("index.ts", () => {
   describe("computeTargetProgress", () => {
@@ -46,7 +50,9 @@ describe("index.ts", () => {
 
     test("returns date of nth element from end", () => {
       const q = new URLSearchParams();
-      expect(computeZoomStart(data, 2, q).toISOString()).toContain("2024-01-02");
+      expect(computeZoomStart(data, 2, q).toISOString()).toContain(
+        "2024-01-02",
+      );
     });
 
     test("respects 'd' query parameter", () => {
@@ -54,7 +60,7 @@ describe("index.ts", () => {
       const now = new Date();
       const tenDaysAgo = new Date();
       tenDaysAgo.setDate(now.getDate() - 10);
-      
+
       const result = computeZoomStart(data, 2, q);
       expect(result.getDate()).toBe(tenDaysAgo.getDate());
       expect(result.getMonth()).toBe(tenDaysAgo.getMonth());

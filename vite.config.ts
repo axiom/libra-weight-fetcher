@@ -1,16 +1,16 @@
-import { defineConfig } from 'vite';
-import { resolve } from 'path';
+import { resolve } from "node:path";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  root: 'src',
-  base: './',
+  root: "src",
+  base: "./",
   build: {
-    outDir: '../dist',
+    outDir: "../dist",
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'src/index.html'),
-        calendar: resolve(__dirname, 'src/calendar.html'),
+        main: resolve(__dirname, "src/index.html"),
+        calendar: resolve(__dirname, "src/calendar.html"),
       },
     },
   },

@@ -1,11 +1,11 @@
 import * as echarts from "echarts";
-import { updateTrend, getDarkMode, WeightEntry } from "./shared";
-import { targetWeightConfig } from "./config";
 import rawWeights from "../weights.json";
+import { targetWeightConfig } from "./config";
+import { getDarkMode, updateTrend, type WeightEntry } from "./shared";
 import "./shared.css";
 import "./index.css";
 
-const weights = rawWeights as WeightEntry[];
+const weights = rawWeights satisfies WeightEntry[];
 
 /**
  * Computes the progress (0.0 to 1.0) towards the target weight.
@@ -45,14 +45,14 @@ export const computeTargetWeight = (
  * @param q URL search parameters for overrides.
  */
 export const computeZoomStart = (
-  data: [string, any, any, any][],
+  data: [string, number, number, boolean][],
   n: number,
   q: URLSearchParams,
 ): Date => {
-  let zoomStart = new Date(data[data.length - n]![0]);
+  let zoomStart = new Date(data[data.length - n]?.[0] ?? new Date());
 
   if (q.has("d")) {
-    const zoomDays = parseInt(q.get("d")!);
+    const zoomDays = parseInt(q.get("d") ?? "", 10);
     if (Number.isFinite(zoomDays)) {
       const zoomDate = new Date();
       zoomDate.setDate(zoomDate.getDate() - zoomDays);
@@ -71,18 +71,26 @@ const init = (chartDom: HTMLElement) => {
     w.weight < w.trend,
   ]);
 
-  // Support specifying number of weight points in the search query.
-  const q = new URL(globalThis.location.href).searchParams;
-  const startingWeightMeasurements = parseInt(q.get("w") ?? "90");
+  const chartData: [string, number, number][] = data.map((d) => [
+    d[0],
+    d[1],
+    d[2],
+  ]);
 
-  const zoomStart = computeZoomStart(data, startingWeightMeasurements, q);
+  const latestWeight = data[data.length - 1];
+  if (latestWeight) {
+    updateTrend(
+      [latestWeight[0], latestWeight[1], latestWeight[2]],
+      latestWeight[3],
+    );
+  }
 
-  // Dynamically display most recent weight info
-  const latestWeight = data[data.length - 1]!;
-  updateTrend(latestWeight, latestWeight[3]);
-
-  const now = new Date(data[data.length - 1]![0]);
+  const now = new Date(data[data.length - 1]?.[0]);
   now.setHours(6, 0, 0, 0);
+
+  const q = new URL(globalThis.location.href).searchParams;
+  const startingWeightMeasurements = parseInt(q.get("w") ?? "90", 10);
+  const zoomStart = computeZoomStart(data, startingWeightMeasurements, q);
 
   const startWeight = targetWeightConfig.startWeight;
   const startDate = new Date(targetWeightConfig.startDate);
@@ -112,22 +120,21 @@ const init = (chartDom: HTMLElement) => {
 
   const myChart = echarts.init(chartDom, darkMode ? "dark" : "light");
 
-  const colors: any = {
-    true: {
-      sinker: "#f52c2c",
-      floater: "#26ee2c",
-      line: "#2a72c3",
-      markLine: "#9d9292",
-    },
-    false: {
-      sinker: "#e31616",
-      floater: "#03db2e",
-      line: "#5566a8",
-      markLine: "#68451e",
-    },
-  }[darkMode.toString()];
+  const colors = darkMode
+    ? ({
+        sinker: "#f52c2c",
+        floater: "#26ee2c",
+        line: "#2a72c3",
+        markLine: "#9d9292",
+      } as const)
+    : ({
+        sinker: "#e31616",
+        floater: "#03db2e",
+        line: "#5566a8",
+        markLine: "#68451e",
+      } as const);
 
-  const option: echarts.EChartsOption = {
+  const option = {
     darkMode: darkMode,
     backgroundColor: "transparent",
     grid: {
@@ -136,24 +143,16 @@ const init = (chartDom: HTMLElement) => {
       bottom: 120,
     },
     dataset: {
-      source: data,
+      source: chartData,
       dimensions: [
         { name: "date", displayName: "Datum", type: "time" },
-        {
-          name: "weight",
-          displayName: "Vikt",
-          type: "float",
-        },
-        {
-          name: "trend",
-          displayName: "Trend",
-          type: "float",
-        },
+        { name: "weight", displayName: "Vikt", type: "float" },
+        { name: "trend", displayName: "Trend", type: "float" },
       ],
     },
     tooltip: {
       trigger: "axis",
-      valueFormatter: (value: any) => `${value.toFixed(1)} kg`,
+      valueFormatter: (value: number) => `${value.toFixed(1)} kg`,
       order: "valueDesc",
     },
     dataZoom: [
@@ -173,8 +172,8 @@ const init = (chartDom: HTMLElement) => {
     yAxis: {
       show: false,
       type: "value",
-      min: (value) => value.min - 1,
-      max: (value) => value.max + 1,
+      min: (value: { min: number }) => value.min - 1,
+      max: (value: { max: number }) => value.max + 1,
     },
     series: [
       {
@@ -196,18 +195,10 @@ const init = (chartDom: HTMLElement) => {
           },
           symbol: "none",
           silent: true,
-          data: data.map((point) => {
-            return [
-              {
-                xAxis: point[0],
-                yAxis: point[1],
-              },
-              {
-                xAxis: point[0],
-                yAxis: point[2],
-              },
-            ];
-          }) as any,
+          data: data.map((point) => [
+            { coord: [point[0], point[1]] },
+            { coord: [point[0], point[2]] },
+          ]),
         },
       },
       {
@@ -217,8 +208,8 @@ const init = (chartDom: HTMLElement) => {
         },
         symbol: "diamond",
         itemStyle: {
-          color: ({ dataIndex }: any) =>
-            data[dataIndex]![3] ? colors.floater : colors.sinker,
+          color: ({ dataIndex }: { dataIndex: number }) =>
+            data[dataIndex]?.[3] ? colors.floater : colors.sinker,
         },
         markLine: {
           silent: true,
@@ -244,10 +235,11 @@ const init = (chartDom: HTMLElement) => {
     ],
   };
 
-  option && myChart.setOption(option);
+  (option satisfies unknown) &&
+    myChart.setOption(option satisfies Parameters<typeof myChart.setOption>[0]);
 };
 
-if (typeof document !== "undefined") {
-  const chartDom = document.getElementById("main")!;
+const chartDom = document?.getElementById?.("main");
+if (chartDom) {
   init(chartDom);
 }

@@ -1,10 +1,10 @@
-import * as echarts from 'echarts';
-import { updateTrend, getDarkMode, WeightEntry } from './shared';
-import rawWeights from '../weights.json';
-import './shared.css';
-import './calendar.css';
+import * as echarts from "echarts";
+import rawWeights from "../weights.json";
+import { getDarkMode, updateTrend, type WeightEntry } from "./shared";
+import "./calendar.css";
+import "./shared.css";
 
-const weights = rawWeights as WeightEntry[];
+const weights = rawWeights satisfies WeightEntry[];
 
 /**
  * Computes the maximum absolute difference between weight and trend.
@@ -20,7 +20,10 @@ export const computeMaxDiff = (weights: WeightEntry[]): number => {
 /**
  * Extracts the most recent distinct years from the weight entries.
  */
-export const extractRecentYears = (weights: WeightEntry[], maxYears: number = 5): string[] => {
+export const extractRecentYears = (
+  weights: WeightEntry[],
+  maxYears: number = 5,
+): string[] => {
   const distinctYears = new Set<string>();
   for (const w of weights) {
     distinctYears.add(new Date(w.date).getFullYear().toString());
@@ -31,7 +34,7 @@ export const extractRecentYears = (weights: WeightEntry[], maxYears: number = 5)
 const init = () => {
   const maxDiff = computeMaxDiff(weights);
   const years = extractRecentYears(weights, 5);
-  
+
   const data: [string, number, number, number][] = weights.map((w) => [
     w.date,
     w.weight,
@@ -39,14 +42,19 @@ const init = () => {
     w.weight - w.trend,
   ]);
 
-  // Dynamically display most recent weight info
-  const latestWeight = data[data.length - 1]!;
-  updateTrend([latestWeight[0], latestWeight[1], latestWeight[2]], latestWeight[1] < latestWeight[2]);
+  const latestWeight = data[data.length - 1];
+  if (latestWeight) {
+    updateTrend(
+      [latestWeight[0], latestWeight[1], latestWeight[2]],
+      latestWeight[1] < latestWeight[2],
+    );
+  }
 
   // Figure out if the browser prefers dark mode.
   const darkMode = getDarkMode();
 
-  const chartDom = document.getElementById("main")!;
+  const chartDom = document.getElementById("main");
+  if (!chartDom) return;
   const myChart = echarts.init(chartDom, darkMode ? "dark" : "light");
 
   const option: echarts.EChartsOption = {
@@ -65,11 +73,17 @@ const init = () => {
       },
     },
     tooltip: {
-      formatter: (params: any) => {
-        const data = params.data as [string, number, number, number];
-        const d = new Date(data[0]);
-        const diff = data[3].toFixed(1);
-        return `${d.toDateString()}: ${diff} kg`;
+      formatter: <T extends { data?: unknown }>(params: T | T[]) => {
+        const paramArray = Array.isArray(params) ? params : [params];
+        for (const p of paramArray) {
+          const data = p.data;
+          if (data && Array.isArray(data) && data.length >= 4) {
+            const d = new Date(data[0]);
+            const diff = data[3].toFixed(1);
+            return `${d.toDateString()}: ${diff} kg`;
+          }
+        }
+        return "";
       },
     },
     calendar: years.map((year, i) => ({
@@ -95,6 +109,6 @@ const init = () => {
   option && myChart.setOption(option);
 };
 
-if (typeof document !== 'undefined') {
+if (typeof document !== "undefined") {
   init();
 }
