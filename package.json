@@ -1,0 +1,21 @@
+{
+  "name": "libra-weight-fetcher",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "fetch": "bun run bin/fetch-weights.ts",
+    "write-json": "bun run bin/write-json.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.11",
+    "vite": "^8.0.3"
+  },
+  "peerDependencies": {
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "echarts": "^6.0.0"
+  }
+}

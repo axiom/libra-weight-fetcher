@@ -19,18 +19,21 @@ jobs:
     - name: Set up Bun
       uses: oven-sh/setup-bun@v2
 
+    - name: Install dependencies
+      run: bun install
+
     - name: Fetch CSV data from API and update SQLite DB
       env:
         API_TOKEN: ${{ secrets.API_TOKEN }}
-      run: bun run ./fetch-weights.ts
+      run: bun run bin/fetch-weights.ts
 
     - name: Write out weights to JSON file
-      run: bun run ./write-json.ts
+      run: bun run bin/write-json.ts
 
     - name: Commit changes
       run: |
         git config --local user.name "github-actions[bot]"
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git add -u weights.db dist/weights.json
-        git commit -m "Add new weight data to database"
+        git add weights.db
+        git commit -m "Add new weight data to database" || echo "No changes to commit"
         git push

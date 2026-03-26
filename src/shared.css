@@ -1,0 +1,38 @@
+:root {
+  --bg-color: #fefcf7;
+  --fg-color: #ff8b00;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #201e12;
+    --fg-color: #ff8b00;
+  }
+}
+
+html,
+body {
+  background-color: var(--bg-color);
+  color: var(--fg-color);
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#trend {
+  color: rgba(135, 135, 135, 0.13);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  font-size: min(80vh, 40vw);
+}

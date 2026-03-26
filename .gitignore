@@ -1,2 +1,5 @@
 .direnv
 .idea
+node_modules/
+dist/
+public/weights.json
