@@ -1,24 +1,28 @@
 import * as echarts from "echarts";
-import rawWeights from "../weights.json";
-import { targetWeightConfig } from "./config";
-import { getDarkMode, updateTrend, type WeightEntry } from "./shared";
+import { createEffect, onMount } from "solid-js";
+import { targetWeightConfig } from "../config";
+import type { WeightEntry } from "../shared";
 import {
   composeSmoothers,
   createHoltSmoothing,
   createSavitzkyGolaySmoothing,
-} from "./smoothing";
-import "./shared.css";
-import "./index.css";
+} from "../smoothing";
+import { type SmoothingType, settings } from "../stores/settings";
+import rawWeights from "../weights.json";
 
 const weights = rawWeights satisfies WeightEntry[];
 
-/**
- * Computes the progress (0.0 to 1.0) towards the target weight.
- * @param now Current date.
- * @param startDate Start date of the weight loss journey.
- * @param targetDate Target date to reach the goal.
- */
-export const computeTargetProgress = (
+const getSmoother = (type: SmoothingType) => {
+  switch (type) {
+    case "savitzky-golay":
+      return createSavitzkyGolaySmoothing({ windowSize: 14, order: 2 });
+    case "holt":
+    default:
+      return createHoltSmoothing(0.2, 0.02);
+  }
+};
+
+const computeTargetProgress = (
   now: Date,
   startDate: Date,
   targetDate: Date,
@@ -29,13 +33,7 @@ export const computeTargetProgress = (
   );
 };
 
-/**
- * Computes the target weight at a specific progress.
- * @param startWeight Starting weight.
- * @param targetWeight Target weight.
- * @param progress Progress between 0.0 and 1.0.
- */
-export const computeTargetWeight = (
+const computeTargetWeight = (
   startWeight: number,
   targetWeight: number,
   progress: number,
@@ -43,60 +41,33 @@ export const computeTargetWeight = (
   return startWeight - progress * (startWeight - targetWeight);
 };
 
-/**
- * Computes the date from which to start the data zoom.
- * @param data Weight entries.
- * @param n Number of weight measurements to show.
- * @param q URL search parameters for overrides.
- */
-export const computeZoomStart = (
+const computeZoomStart = (
   data: [string, number, number, boolean][],
   n: number,
-  q: URLSearchParams,
 ): Date => {
-  let zoomStart = new Date(data[data.length - n]?.[0] ?? new Date());
-
-  if (q.has("d")) {
-    const zoomDays = parseInt(q.get("d") ?? "", 10);
-    if (Number.isFinite(zoomDays)) {
-      const zoomDate = new Date();
-      zoomDate.setDate(zoomDate.getDate() - zoomDays);
-      zoomStart = zoomDate;
-    }
-  }
-
-  return zoomStart;
+  return new Date(data[data.length - n]?.[0] ?? new Date());
 };
 
-const smoother = composeSmoothers(
-  // createTrimmedMeanSmoother(3, 1),
-  // createEmaSmoothing(0.3),
-  createHoltSmoothing(0.2, 0.02),
-  // createMedianSmoother(7),
-  // createWmaSmoother(7),
-  createSavitzkyGolaySmoothing({ windowSize: 14, order: 2 }),
-  // createHoltWintersSmoothing(),
-  // createLoessSmoother({ bandwidth: 0.005 }),
-);
-
-export const prepareChartData = (
-  weights: WeightEntry[],
+const prepareChartData = (
+  w: WeightEntry[],
+  smootherType: SmoothingType,
 ): [string, number, number, boolean][] => {
-  const smoothedWeights = smoother(weights.map((w) => w.weight));
-  return weights.map((w, i) => {
+  const smoother = getSmoother(smootherType);
+  const smoothedWeights = smoother(w.map((entry) => entry.weight));
+  return w.map((entry, i) => {
     const smoothed = smoothedWeights[i];
     return [
-      w.date,
-      w.weight,
-      smoothed ?? w.weight,
-      w.weight < (smoothed ?? w.weight),
+      entry.date,
+      entry.weight,
+      smoothed ?? entry.weight,
+      entry.weight < (smoothed ?? entry.weight),
     ];
   });
 };
 
-export const buildChartOptions = (
+const buildChartOptions = (
   data: [string, number, number, boolean][],
-  q: URLSearchParams,
+  days: number,
   darkMode: boolean,
 ) => {
   const chartData: [string, number, number][] = data.map((d) => [
@@ -108,8 +79,7 @@ export const buildChartOptions = (
   const now = new Date(data[data.length - 1]?.[0]);
   now.setHours(6, 0, 0, 0);
 
-  const startingWeightMeasurements = parseInt(q.get("w") ?? "90", 10);
-  const zoomStart = computeZoomStart(data, startingWeightMeasurements, q);
+  const zoomStart = computeZoomStart(data, days);
 
   const startWeight = targetWeightConfig.startWeight;
   const startDate = new Date(targetWeightConfig.startDate);
@@ -250,29 +220,69 @@ export const buildChartOptions = (
   };
 };
 
-const init = (chartDom: HTMLElement) => {
-  const data = prepareChartData(weights);
+export default function Chart() {
+  let chartContainer: HTMLDivElement | undefined;
+  let chart: echarts.ECharts | undefined;
 
-  const latestWeight = data[data.length - 1];
-  if (latestWeight) {
-    updateTrend(
-      [latestWeight[0], latestWeight[1], latestWeight[2]],
-      latestWeight[3],
+  const getDarkMode = () => {
+    return (
+      window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false
     );
-  }
+  };
 
-  const q = new URL(globalThis.location.href).searchParams;
-  const darkMode = getDarkMode();
+  onMount(() => {
+    if (!chartContainer) return;
 
-  const myChart = echarts.init(chartDom, darkMode ? "dark" : "light");
+    const darkMode = getDarkMode();
+    const currentSettings = settings();
 
-  const option = buildChartOptions(data, q, darkMode);
+    chart = echarts.init(chartContainer, darkMode ? "dark" : "light");
 
-  (option satisfies unknown) &&
-    myChart.setOption(option satisfies Parameters<typeof myChart.setOption>[0]);
-};
+    const data = prepareChartData(weights, currentSettings.smoothing);
+    const option = buildChartOptions(data, currentSettings.days, darkMode);
+    chart.setOption(option);
 
-const chartDom = globalThis.document?.getElementById?.("main");
-if (chartDom) {
-  init(chartDom);
+    const latestWeight = data[data.length - 1];
+    if (latestWeight) {
+      updateTrend(
+        [latestWeight[0], latestWeight[1], latestWeight[2]],
+        latestWeight[3],
+      );
+    }
+  });
+
+  createEffect(() => {
+    const currentSettings = settings();
+    if (!chart) return;
+
+    const darkMode = getDarkMode();
+    const data = prepareChartData(weights, currentSettings.smoothing);
+    const option = buildChartOptions(data, currentSettings.days, darkMode);
+    chart.setOption(option);
+
+    const latestWeight = data[data.length - 1];
+    if (latestWeight) {
+      updateTrend(
+        [latestWeight[0], latestWeight[1], latestWeight[2]],
+        latestWeight[3],
+      );
+    }
+  });
+
+  return (
+    <div ref={chartContainer} style={{ width: "100%", height: "600px" }} />
+  );
 }
+
+const updateTrend = (
+  latestWeight: [string, number, number],
+  isFalling: boolean,
+) => {
+  const currentWeight = Math.round(latestWeight[2]).toString();
+  const currentTrendDom = document.getElementById("trend");
+  if (currentTrendDom) {
+    currentTrendDom.innerText = currentWeight;
+  }
+  const trendToken = isFalling ? "📉" : "📈";
+  document.title = `🐼 ${trendToken} ${currentWeight}kg ${trendToken}`;
+};

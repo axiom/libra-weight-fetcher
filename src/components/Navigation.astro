@@ -1,0 +1,56 @@
+---
+const currentPath = Astro.url.pathname;
+const queryString = Astro.url.search;
+
+const navItems = [
+  { href: `/chart${queryString}`, label: "Chart", path: "/chart" },
+  { href: `/calendar${queryString}`, label: "Calendar", path: "/calendar" },
+];
+---
+
+<nav>
+  <ul>
+    {navItems.map((item) => (
+      <li>
+        <a 
+          href={item.href}
+          data-current={currentPath === item.path || currentPath === item.path + '/'}
+        >
+          {item.label}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  nav {
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--text-color);
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 0;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+
+  a:hover {
+    border-bottom-color: var(--text-color);
+  }
+
+  a[data-current="true"] {
+    border-bottom-color: var(--text-color);
+  }
+</style>

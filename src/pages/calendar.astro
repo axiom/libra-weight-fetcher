@@ -1,0 +1,9 @@
+---
+import Calendar from "../components/Calendar";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout>
+  <h1 id="trend"></h1>
+  <Calendar client:only="solid-js" />
+</Layout>

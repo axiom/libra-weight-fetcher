@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
-    // Environment setup & latest features
-    "lib": ["ESNext", "DOM"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -9,7 +8,11 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js"
   },
-  "include": ["src/**/*.ts", "bin/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "bin/**/*.ts"]
 }
