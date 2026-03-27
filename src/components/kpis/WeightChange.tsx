@@ -31,41 +31,36 @@ export default function WeightChange(props: Props) {
         {props.label}
       </div>
       <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-        {change() !== null ? (
-          <>
-            {(() => {
-              const c = change()!;
-              return (
-                <>
-                  <span
-                    class={
-                      c < 0
-                        ? "text-green-500"
-                        : c > 0
-                          ? "text-red-500"
-                          : "text-gray-400"
-                    }
-                  >
-                    {c > 0 ? "📈" : c < 0 ? "📉" : "➡️"}
-                  </span>
-                  <span
-                    class={
-                      c < 0
-                        ? "text-green-500"
-                        : c > 0
-                          ? "text-red-500"
-                          : "text-gray-400 ml-1"
-                    }
-                  >
-                    {Math.abs(c).toFixed(1)} kg
-                  </span>
-                </>
-              );
-            })()}
-          </>
-        ) : (
-          "N/A"
-        )}
+        {(() => {
+          const c = change();
+          if (c === null) return "N/A";
+          return (
+            <>
+              <span
+                class={
+                  c < 0
+                    ? "text-green-500"
+                    : c > 0
+                      ? "text-red-500"
+                      : "text-gray-400"
+                }
+              >
+                {c > 0 ? "📈" : c < 0 ? "📉" : "➡️"}
+              </span>
+              <span
+                class={
+                  c < 0
+                    ? "text-green-500"
+                    : c > 0
+                      ? "text-red-500"
+                      : "text-gray-400 ml-1"
+                }
+              >
+                {Math.abs(c).toFixed(1)} kg
+              </span>
+            </>
+          );
+        })()}
       </div>
     </div>
   );

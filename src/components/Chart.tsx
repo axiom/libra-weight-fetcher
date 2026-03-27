@@ -10,7 +10,6 @@ import {
 import { targetWeightConfig } from "../config";
 import type { WeightEntry } from "../shared";
 import {
-  composeSmoothers,
   createEmaSmoothing,
   createHoltSmoothing,
   createHoltWintersSmoothing,
@@ -31,8 +30,9 @@ import rawWeights from "../weights.json";
 const weights = rawWeights satisfies WeightEntry[];
 
 const getLatestWeightDate = (): string => {
-  if (weights.length === 0) return new Date().toISOString().split("T")[0];
-  return weights[weights.length - 1]!.date;
+  const last = weights.at(-1);
+  if (last === undefined) return new Date().toISOString().split("T")[0] ?? "";
+  return last.date;
 };
 
 const getSmoother = (type: SmoothingType, opts: SmoothingOptions) => {
@@ -109,7 +109,7 @@ const buildChartOptions = (
 
   const zoomStart = getZoomStart(zoomEndDate, dataDays);
 
-  const firstWeightTime = new Date(weights[0]!.date).getTime();
+  const firstWeightTime = new Date(weights[0]?.date ?? "").getTime();
   const lastWeightTime = new Date(actualLatestDate).getTime();
   const { startPercent, endPercent } = zoomPercentsFromSettings(
     endDate,
@@ -321,8 +321,8 @@ export default function Chart() {
         endPct = p.end;
       } else return;
 
-      const fullStartTime = new Date(weights[0]!.date).getTime();
-      const fullEndTime = new Date(weights[weights.length - 1]!.date).getTime();
+      const fullStartTime = new Date(weights[0]?.date ?? "").getTime();
+      const fullEndTime = new Date(weights.at(-1)?.date ?? "").getTime();
       const { endDate, dataDays } = zoomParamsFromSlider(
         startPct,
         endPct,

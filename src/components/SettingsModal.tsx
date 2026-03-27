@@ -149,7 +149,8 @@ export default function SettingsModal() {
     updateSetting("smoothing", value);
   };
 
-  const currentAlgo = () => algorithms.find((a) => a.id === localSmoothing())!;
+  const currentAlgo = () =>
+    algorithms.find((a) => a.id === localSmoothing()) ?? algorithms[0];
 
   return (
     <>
@@ -224,7 +225,7 @@ export default function SettingsModal() {
                 step="1"
                 value={localDateRange()}
                 onInput={(e) => {
-                  const value = parseInt(e.currentTarget.value) || 90;
+                  const value = parseInt(e.currentTarget.value, 10) || 90;
                   setLocalDateRange(value);
                   updateSetting("dataDays", value);
                 }}
@@ -250,7 +251,7 @@ export default function SettingsModal() {
                   onInput={(e) =>
                     updateOption(
                       "windowSize",
-                      parseInt(e.currentTarget.value) || 7,
+                      parseInt(e.currentTarget.value, 10) || 7,
                     )
                   }
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -328,7 +329,7 @@ export default function SettingsModal() {
                   onInput={(e) =>
                     updateOption(
                       "trimCount",
-                      parseInt(e.currentTarget.value) || 1,
+                      parseInt(e.currentTarget.value, 10) || 1,
                     )
                   }
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -352,7 +353,10 @@ export default function SettingsModal() {
                   step="1"
                   value={localOptions().order ?? 2}
                   onInput={(e) =>
-                    updateOption("order", parseInt(e.currentTarget.value) || 2)
+                    updateOption(
+                      "order",
+                      parseInt(e.currentTarget.value, 10) || 2,
+                    )
                   }
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />

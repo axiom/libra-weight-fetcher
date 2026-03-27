@@ -55,7 +55,7 @@ export const zoomParamsFromSlider = (
   const startMs = percentToTimestamp(startPct, fullStartMs, fullEndMs);
   const endMs = percentToTimestamp(endPct, fullStartMs, fullEndMs);
 
-  const endDate = new Date(endMs).toISOString().split("T")[0]!;
+  const endDate = new Date(endMs).toISOString().split("T")[0] ?? "";
   const dataDays = Math.max(
     7,
     Math.round((endMs - startMs) / (1000 * 60 * 60 * 24)),
