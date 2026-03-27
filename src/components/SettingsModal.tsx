@@ -1,4 +1,4 @@
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, For, Index, Show } from "solid-js";
 import {
   type NumericFieldDefinition,
   smootherById,
@@ -51,7 +51,6 @@ export default function SettingsModal() {
     settings().dataDays,
   );
   const [expandedIndex, setExpandedIndex] = createSignal(0);
-  const [dragIndex, setDragIndex] = createSignal<number | null>(null);
   const [smootherToAdd, setSmootherToAdd] =
     createSignal<SmoothingType>(FALLBACK_SMOOTHER);
 
@@ -152,6 +151,10 @@ export default function SettingsModal() {
     }
 
     updateChain(chain, nextExpanded);
+  };
+
+  const moveSmoother = (index: number, direction: -1 | 1) => {
+    reorderSmoothers(index, index + direction);
   };
 
   const updateNumericOption = (
@@ -362,49 +365,24 @@ export default function SettingsModal() {
               </div>
 
               <ul class="space-y-2">
-                <For each={localSmoothing()}>
+                <Index each={localSmoothing()}>
                   {(smoother, index) => {
-                    const definition = () => smootherById.get(smoother);
-                    const isExpanded = () => expandedIndex() === index();
+                    const definition = () => smootherById.get(smoother());
+                    const isExpanded = () => expandedIndex() === index;
                     const hasSharedParameters = () =>
-                      countInstances(smoother) > 1;
-                    const isDragTarget = () => dragIndex() === index();
+                      countInstances(smoother()) > 1;
 
                     return (
-                      <li
-                        draggable
-                        onDragStart={() => setDragIndex(index())}
-                        onDragEnd={() => setDragIndex(null)}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          const from = dragIndex();
-                          if (from === null) return;
-                          reorderSmoothers(from, index());
-                          setDragIndex(null);
-                        }}
-                        class={`border rounded-md transition-colors ${
-                          isDragTarget()
-                            ? "border-orange-400"
-                            : "border-gray-300 dark:border-gray-600"
-                        }`}
-                      >
+                      <li class="border rounded-md border-gray-300 dark:border-gray-600">
                         <div class="flex items-center gap-2 p-2">
-                          <span
-                            class="text-gray-400 dark:text-gray-500 cursor-move select-none px-1"
-                            title="Drag to reorder"
-                          >
-                            ::
-                          </span>
-
                           <button
                             type="button"
-                            onClick={() => setExpandedIndex(index())}
+                            onClick={() => setExpandedIndex(index)}
                             class="flex-1 text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
                           >
                             <div class="flex items-center gap-2">
                               <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {index() + 1}. {definition()?.name ?? smoother}
+                                {index + 1}. {definition()?.name ?? smoother()}
                               </span>
                               <Show when={hasSharedParameters()}>
                                 <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
@@ -417,14 +395,43 @@ export default function SettingsModal() {
                             </p>
                           </button>
 
+                          <div class="flex flex-col gap-1">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveSmoother(index, -1);
+                              }}
+                              disabled={index === 0}
+                              class="px-2 py-0.5 text-xs rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800"
+                              aria-label={`Move ${definition()?.name ?? smoother()} up`}
+                              title="Move up"
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveSmoother(index, 1);
+                              }}
+                              disabled={index === localSmoothing().length - 1}
+                              class="px-2 py-0.5 text-xs rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800"
+                              aria-label={`Move ${definition()?.name ?? smoother()} down`}
+                              title="Move down"
+                            >
+                              ↓
+                            </button>
+                          </div>
+
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              removeSmoother(index());
+                              removeSmoother(index);
                             }}
                             class="px-2 py-1 text-sm rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-300"
-                            aria-label={`Remove ${definition()?.name ?? smoother}`}
+                            aria-label={`Remove ${definition()?.name ?? smoother()}`}
                             title="Remove smoother"
                           >
                             Remove
@@ -433,13 +440,13 @@ export default function SettingsModal() {
 
                         <Show when={isExpanded()}>
                           <div class="px-3 pb-3 pt-1 border-t border-gray-200 dark:border-gray-700 space-y-3">
-                            {renderOptions(smoother, index())}
+                            {renderOptions(smoother(), index)}
                           </div>
                         </Show>
                       </li>
                     );
                   }}
-                </For>
+                </Index>
               </ul>
             </div>
           </div>
