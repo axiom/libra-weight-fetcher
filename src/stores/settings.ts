@@ -99,24 +99,36 @@ const defaultSettings: Settings = {
 
 const STORAGE_KEY = "libra-weight-fetcher-settings";
 
+const allowedSmoothers = new Set(
+  Object.keys(defaultSmoothingOptions) as SmoothingType[],
+);
+
+const parseSmoothingChain = (value: unknown): SmoothingType[] => {
+  const raw = Array.isArray(value)
+    ? value.join(",")
+    : typeof value === "string"
+      ? value
+      : "";
+
+  return raw
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry): entry is SmoothingType =>
+      allowedSmoothers.has(entry as SmoothingType),
+    );
+};
+
 function getInitialSettings(): Settings {
   const params =
     typeof window !== "undefined"
       ? new URL(window.location.href).searchParams
       : new URLSearchParams();
 
-  const allowedSmoothers = new Set(
-    Object.keys(defaultSmoothingOptions) as SmoothingType[],
-  );
-  const rawSmoothing = params.get("smoothing") ?? "";
-  const smoothing = rawSmoothing
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter((entry): entry is SmoothingType =>
-      allowedSmoothers.has(entry as SmoothingType),
-    );
-  const smoothingChain =
-    smoothing.length > 0 ? smoothing : [...defaultSettings.smoothing];
+  const smoothingFromUrl = parseSmoothingChain(params.get("smoothing"));
+  let smoothingChain =
+    smoothingFromUrl.length > 0
+      ? smoothingFromUrl
+      : [...defaultSettings.smoothing];
   const weightMeasurements =
     parseInt(params.get("w") ?? "", 10) || defaultSettings.weightMeasurements;
   const endDate = params.get("end");
@@ -149,6 +161,12 @@ function getInitialSettings(): Settings {
             ),
           } as SmoothingOptions;
         }
+        if (smoothingFromUrl.length === 0) {
+          const smoothingFromStorage = parseSmoothingChain(parsed.smoothing);
+          if (smoothingFromStorage.length > 0) {
+            smoothingChain = smoothingFromStorage;
+          }
+        }
         // Only use localStorage dataDays if not in URL
         if (!dataDaysParam && typeof parsed.dataDays === "number") {
           dataDays = parsed.dataDays;
@@ -175,14 +193,18 @@ if (typeof window !== "undefined") {
   setSettings(getInitialSettings());
 }
 
-const saveToStorage = (smoothingOptions: SmoothingOptions) => {
+const saveToStorage = (updates: {
+  smoothing?: SmoothingType[];
+  smoothingOptions?: SmoothingOptions;
+  dataDays?: number;
+}) => {
   if (typeof window === "undefined") return;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     const current = stored ? JSON.parse(stored) : {};
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ ...current, smoothingOptions }),
+      JSON.stringify({ ...current, ...updates }),
     );
   } catch {
     // ignore storage errors
@@ -198,14 +220,7 @@ export const useSettings = () => {
 };
 
 const saveDateRangeToStorage = (dataDays: number) => {
-  if (typeof window === "undefined") return;
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const current = stored ? JSON.parse(stored) : {};
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, dataDays }));
-  } catch {
-    // ignore storage errors
-  }
+  saveToStorage({ dataDays });
 };
 
 export const updateSetting = <K extends keyof Settings>(
@@ -216,7 +231,9 @@ export const updateSetting = <K extends keyof Settings>(
     const next = { ...prev, [key]: value };
 
     if (key === "smoothingOptions") {
-      saveToStorage(value as SmoothingOptions);
+      saveToStorage({ smoothingOptions: value as SmoothingOptions });
+    } else if (key === "smoothing") {
+      saveToStorage({ smoothing: value as SmoothingType[] });
     } else if (key === "dataDays") {
       saveDateRangeToStorage(value as number);
     }
@@ -248,7 +265,10 @@ export const updateSettings = (updates: Partial<Settings>) => {
     const next = { ...prev, ...updates };
 
     if (updates.smoothingOptions) {
-      saveToStorage(updates.smoothingOptions);
+      saveToStorage({ smoothingOptions: updates.smoothingOptions });
+    }
+    if (updates.smoothing !== undefined) {
+      saveToStorage({ smoothing: updates.smoothing });
     }
     if (updates.dataDays !== undefined) {
       saveDateRangeToStorage(updates.dataDays);

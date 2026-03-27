@@ -240,6 +240,16 @@ export default function SettingsModal() {
   const countInstances = (smoother: SmoothingType) =>
     localSmoothing().filter((entry) => entry === smoother).length;
 
+  const parseFloatOr = (value: string, fallback: number) => {
+    const parsed = Number.parseFloat(value);
+    return Number.isNaN(parsed) ? fallback : parsed;
+  };
+
+  const parseIntOr = (value: string, fallback: number) => {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+  };
+
   const renderOptions = (smoother: SmoothingType, index: number) => {
     const id = (name: string) => `${name}-${index}`;
 
@@ -266,7 +276,7 @@ export default function SettingsModal() {
               updateOption(
                 smoother,
                 "windowSize",
-                parseInt(e.currentTarget.value, 10) || 7,
+                parseIntOr(e.currentTarget.value, 7),
               )
             }
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -283,14 +293,14 @@ export default function SettingsModal() {
               for={id("alpha")}
               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Alpha (0-1, higher = faster response)
+              Alpha (0.02-0.60, higher = faster response)
             </label>
             <input
               type="number"
               id={id("alpha")}
-              min="0"
-              max="1"
-              step="0.05"
+              min="0.02"
+              max="0.60"
+              step="0.01"
               value={
                 (localOptions()[smoother] as { alpha?: number }).alpha ?? 0.2
               }
@@ -298,7 +308,7 @@ export default function SettingsModal() {
                 updateOption(
                   smoother,
                   "alpha",
-                  parseFloat(e.currentTarget.value) || 0.2,
+                  parseFloatOr(e.currentTarget.value, 0.2),
                 )
               }
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -316,15 +326,15 @@ export default function SettingsModal() {
               <input
                 type="number"
                 id={id("beta")}
-                min="0"
-                max="1"
-                step="0.01"
+                min="0.001"
+                max="0.20"
+                step="0.005"
                 value={localOptions().holt.beta}
                 onInput={(e) =>
                   updateOption(
                     "holt",
                     "beta",
-                    parseFloat(e.currentTarget.value) || 0.02,
+                    parseFloatOr(e.currentTarget.value, 0.02),
                   )
                 }
                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -356,7 +366,7 @@ export default function SettingsModal() {
                 updateOption(
                   "trimmed-mean",
                   "windowSize",
-                  parseInt(e.currentTarget.value, 10) || 7,
+                  parseIntOr(e.currentTarget.value, 7),
                 )
               }
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -380,7 +390,7 @@ export default function SettingsModal() {
                 updateOption(
                   "trimmed-mean",
                   "trimCount",
-                  parseInt(e.currentTarget.value, 10) || 1,
+                  parseIntOr(e.currentTarget.value, 1),
                 )
               }
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -411,7 +421,7 @@ export default function SettingsModal() {
                 updateOption(
                   "savitzky-golay",
                   "windowSize",
-                  parseInt(e.currentTarget.value, 10) || 7,
+                  parseIntOr(e.currentTarget.value, 7),
                 )
               }
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -435,7 +445,7 @@ export default function SettingsModal() {
                 updateOption(
                   "savitzky-golay",
                   "order",
-                  parseInt(e.currentTarget.value, 10) || 2,
+                  parseIntOr(e.currentTarget.value, 2),
                 )
               }
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -452,20 +462,20 @@ export default function SettingsModal() {
             for={id("bandwidth")}
             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
           >
-            Bandwidth (0.1-1.0, fraction of data)
+            Bandwidth (0.02-1.0, fraction of data)
           </label>
           <input
             type="number"
             id={id("bandwidth")}
-            min="0.1"
+            min="0.02"
             max="1"
-            step="0.05"
+            step="0.01"
             value={localOptions().loess.bandwidth}
             onInput={(e) =>
               updateOption(
                 "loess",
                 "bandwidth",
-                parseFloat(e.currentTarget.value) || 0.3,
+                parseFloatOr(e.currentTarget.value, 0.3),
               )
             }
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -491,15 +501,15 @@ export default function SettingsModal() {
               <input
                 type="number"
                 id={id("weeklyAlpha")}
-                min="0"
-                max="1"
-                step="0.05"
+                min="0.02"
+                max="0.60"
+                step="0.01"
                 value={localOptions()["holt-winters"].weeklyAlpha}
                 onInput={(e) =>
                   updateOption(
                     "holt-winters",
                     "weeklyAlpha",
-                    parseFloat(e.currentTarget.value) || 0.2,
+                    parseFloatOr(e.currentTarget.value, 0.2),
                   )
                 }
                 class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -515,15 +525,15 @@ export default function SettingsModal() {
               <input
                 type="number"
                 id={id("weeklyBeta")}
-                min="0"
-                max="1"
-                step="0.01"
+                min="0.001"
+                max="0.20"
+                step="0.005"
                 value={localOptions()["holt-winters"].weeklyBeta}
                 onInput={(e) =>
                   updateOption(
                     "holt-winters",
                     "weeklyBeta",
-                    parseFloat(e.currentTarget.value) || 0.05,
+                    parseFloatOr(e.currentTarget.value, 0.05),
                   )
                 }
                 class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -539,15 +549,15 @@ export default function SettingsModal() {
               <input
                 type="number"
                 id={id("weeklyGamma")}
-                min="0"
-                max="1"
-                step="0.01"
+                min="0.001"
+                max="0.30"
+                step="0.005"
                 value={localOptions()["holt-winters"].weeklyGamma}
                 onInput={(e) =>
                   updateOption(
                     "holt-winters",
                     "weeklyGamma",
-                    parseFloat(e.currentTarget.value) || 0.1,
+                    parseFloatOr(e.currentTarget.value, 0.1),
                   )
                 }
                 class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -568,15 +578,15 @@ export default function SettingsModal() {
               <input
                 type="number"
                 id={id("yearlyAlpha")}
-                min="0"
-                max="1"
-                step="0.05"
+                min="0.01"
+                max="0.30"
+                step="0.01"
                 value={localOptions()["holt-winters"].yearlyAlpha}
                 onInput={(e) =>
                   updateOption(
                     "holt-winters",
                     "yearlyAlpha",
-                    parseFloat(e.currentTarget.value) || 0.1,
+                    parseFloatOr(e.currentTarget.value, 0.1),
                   )
                 }
                 class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -592,15 +602,15 @@ export default function SettingsModal() {
               <input
                 type="number"
                 id={id("yearlyBeta")}
-                min="0"
-                max="1"
-                step="0.01"
+                min="0.001"
+                max="0.10"
+                step="0.002"
                 value={localOptions()["holt-winters"].yearlyBeta}
                 onInput={(e) =>
                   updateOption(
                     "holt-winters",
                     "yearlyBeta",
-                    parseFloat(e.currentTarget.value) || 0.05,
+                    parseFloatOr(e.currentTarget.value, 0.05),
                   )
                 }
                 class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -616,15 +626,15 @@ export default function SettingsModal() {
               <input
                 type="number"
                 id={id("yearlyGamma")}
-                min="0"
-                max="1"
-                step="0.01"
+                min="0.001"
+                max="0.15"
+                step="0.002"
                 value={localOptions()["holt-winters"].yearlyGamma}
                 onInput={(e) =>
                   updateOption(
                     "holt-winters",
                     "yearlyGamma",
-                    parseFloat(e.currentTarget.value) || 0.05,
+                    parseFloatOr(e.currentTarget.value, 0.05),
                   )
                 }
                 class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
