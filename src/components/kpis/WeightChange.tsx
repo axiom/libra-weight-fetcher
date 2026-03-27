@@ -39,18 +39,19 @@ export default function WeightChange(props: Props) {
               <span
                 class={
                   c < 0
-                    ? "text-green-500"
+                    ? "text-green-600"
                     : c > 0
                       ? "text-red-500"
                       : "text-gray-400"
                 }
               >
-                {c > 0 ? "📈" : c < 0 ? "📉" : "➡️"}
+                {c > 0 ? "📈" : c < 0 ? "📉" : "➡️"}{" "}
+                {c > 0 ? "+" : c < 0 ? "-" : ""}
               </span>
               <span
                 class={
                   c < 0
-                    ? "text-green-500"
+                    ? "text-green-600"
                     : c > 0
                       ? "text-red-500"
                       : "text-gray-400 ml-1"
