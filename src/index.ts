@@ -79,9 +79,11 @@ const smoother = composeSmoothers(
   // createLoessSmoother({ bandwidth: 0.005 }),
 );
 
-const init = (chartDom: HTMLElement) => {
+export const prepareChartData = (
+  weights: WeightEntry[],
+): [string, number, number, boolean][] => {
   const smoothedWeights = smoother(weights.map((w) => w.weight));
-  const data: [string, number, number, boolean][] = weights.map((w, i) => {
+  return weights.map((w, i) => {
     const smoothed = smoothedWeights[i];
     return [
       w.date,
@@ -90,25 +92,22 @@ const init = (chartDom: HTMLElement) => {
       w.weight < (smoothed ?? w.weight),
     ];
   });
+};
 
+export const buildChartOptions = (
+  data: [string, number, number, boolean][],
+  q: URLSearchParams,
+  darkMode: boolean,
+) => {
   const chartData: [string, number, number][] = data.map((d) => [
     d[0],
     d[1],
     d[2],
   ]);
 
-  const latestWeight = data[data.length - 1];
-  if (latestWeight) {
-    updateTrend(
-      [latestWeight[0], latestWeight[1], latestWeight[2]],
-      latestWeight[3],
-    );
-  }
-
   const now = new Date(data[data.length - 1]?.[0]);
   now.setHours(6, 0, 0, 0);
 
-  const q = new URL(globalThis.location.href).searchParams;
   const startingWeightMeasurements = parseInt(q.get("w") ?? "90", 10);
   const zoomStart = computeZoomStart(data, startingWeightMeasurements, q);
 
@@ -135,11 +134,6 @@ const init = (chartDom: HTMLElement) => {
     zoomStartProgress,
   );
 
-  // Figure out if the browser prefers dark mode.
-  const darkMode = getDarkMode();
-
-  const myChart = echarts.init(chartDom, darkMode ? "dark" : "light");
-
   const colors = darkMode
     ? ({
         sinker: "#f52c2c",
@@ -154,7 +148,7 @@ const init = (chartDom: HTMLElement) => {
         markLine: "#68451e",
       } as const);
 
-  const option = {
+  return {
     darkMode: darkMode,
     backgroundColor: "transparent",
     grid: {
@@ -254,12 +248,31 @@ const init = (chartDom: HTMLElement) => {
       },
     ],
   };
+};
+
+const init = (chartDom: HTMLElement) => {
+  const data = prepareChartData(weights);
+
+  const latestWeight = data[data.length - 1];
+  if (latestWeight) {
+    updateTrend(
+      [latestWeight[0], latestWeight[1], latestWeight[2]],
+      latestWeight[3],
+    );
+  }
+
+  const q = new URL(globalThis.location.href).searchParams;
+  const darkMode = getDarkMode();
+
+  const myChart = echarts.init(chartDom, darkMode ? "dark" : "light");
+
+  const option = buildChartOptions(data, q, darkMode);
 
   (option satisfies unknown) &&
     myChart.setOption(option satisfies Parameters<typeof myChart.setOption>[0]);
 };
 
-const chartDom = document?.getElementById?.("main");
+const chartDom = globalThis.document?.getElementById?.("main");
 if (chartDom) {
   init(chartDom);
 }

@@ -12,6 +12,7 @@ write-json:
 
 check:
     tsgo
+    bun run test
     biome check bin src *.json *.ts
 
 format:
