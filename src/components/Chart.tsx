@@ -4,19 +4,55 @@ import { targetWeightConfig } from "../config";
 import type { WeightEntry } from "../shared";
 import {
   composeSmoothers,
+  createEmaSmoothing,
   createHoltSmoothing,
+  createHoltWintersSmoothing,
+  createLoessSmoother,
+  createMedianSmoother,
   createSavitzkyGolaySmoothing,
+  createTrimmedMeanSmoother,
+  createWmaSmoother,
 } from "../smoothing";
-import { type SmoothingType, settings } from "../stores/settings";
+import {
+  type SmoothingOptions,
+  type SmoothingType,
+  settings,
+} from "../stores/settings";
 import rawWeights from "../weights.json";
 
 const weights = rawWeights satisfies WeightEntry[];
 
-const getSmoother = (type: SmoothingType) => {
+const getSmoother = (type: SmoothingType, opts: SmoothingOptions) => {
+  const windowSize = opts.windowSize ?? 7;
+  const oddWindow = windowSize % 2 === 0 ? windowSize + 1 : windowSize;
+
   switch (type) {
-    case "savitzky-golay":
-      return createSavitzkyGolaySmoothing({ windowSize: 14, order: 2 });
+    case "median":
+      return createMedianSmoother(oddWindow);
+    case "ema":
+      return createEmaSmoothing(opts.alpha ?? 0.2);
+    case "wma":
+      return createWmaSmoother(oddWindow);
     case "holt":
+      return createHoltSmoothing(opts.alpha ?? 0.2, opts.beta ?? 0.02);
+    case "trimmed-mean":
+      return createTrimmedMeanSmoother(oddWindow, opts.trimCount ?? 1);
+    case "savitzky-golay":
+      return createSavitzkyGolaySmoothing({
+        windowSize: oddWindow,
+        order: opts.order ?? 2,
+      });
+    case "loess":
+      return createLoessSmoother({ bandwidth: opts.bandwidth ?? 0.3 });
+    case "holt-winters":
+      return createHoltWintersSmoothing({
+        weeklyAlpha: opts.weeklyAlpha ?? 0.2,
+        weeklyBeta: opts.weeklyBeta ?? 0.05,
+        weeklyGamma: opts.weeklyGamma ?? 0.1,
+        yearlyAlpha: opts.yearlyAlpha ?? 0.1,
+        yearlyBeta: opts.yearlyBeta ?? 0.05,
+        yearlyGamma: opts.yearlyGamma ?? 0.05,
+      });
     default:
       return createHoltSmoothing(0.2, 0.02);
   }
@@ -51,8 +87,9 @@ const computeZoomStart = (
 const prepareChartData = (
   w: WeightEntry[],
   smootherType: SmoothingType,
+  smoothingOptions: SmoothingOptions,
 ): [string, number, number, boolean][] => {
-  const smoother = getSmoother(smootherType);
+  const smoother = getSmoother(smootherType, smoothingOptions);
   const smoothedWeights = smoother(w.map((entry) => entry.weight));
   return w.map((entry, i) => {
     const smoothed = smoothedWeights[i];
@@ -238,7 +275,11 @@ export default function Chart() {
 
     chart = echarts.init(chartContainer, darkMode ? "dark" : "light");
 
-    const data = prepareChartData(weights, currentSettings.smoothing);
+    const data = prepareChartData(
+      weights,
+      currentSettings.smoothing,
+      currentSettings.smoothingOptions,
+    );
     const option = buildChartOptions(data, currentSettings.days, darkMode);
     chart.setOption(option);
 
@@ -256,7 +297,11 @@ export default function Chart() {
     if (!chart) return;
 
     const darkMode = getDarkMode();
-    const data = prepareChartData(weights, currentSettings.smoothing);
+    const data = prepareChartData(
+      weights,
+      currentSettings.smoothing,
+      currentSettings.smoothingOptions,
+    );
     const option = buildChartOptions(data, currentSettings.days, darkMode);
     chart.setOption(option);
 
