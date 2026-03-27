@@ -44,3 +44,15 @@ export const createEmaSmoothing =
     }
     return result;
   };
+
+/**
+ * Combines multiple smoothers into a single WeightSmoother that applies
+ * each smoother in sequence (left to right). Each pass must output the
+ * same number of values as it receives, so the length is preserved.
+ *
+ * @param smoothers Smoothers to apply in order.
+ */
+export const composeSmoothers =
+  (...smoothers: WeightSmoother[]): WeightSmoother =>
+  (weights: number[]): number[] =>
+    smoothers.reduce((acc, smoother) => smoother(acc), weights);

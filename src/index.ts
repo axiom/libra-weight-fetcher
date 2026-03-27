@@ -2,7 +2,11 @@ import * as echarts from "echarts";
 import rawWeights from "../weights.json";
 import { targetWeightConfig } from "./config";
 import { getDarkMode, updateTrend, type WeightEntry } from "./shared";
-import { createEmaSmoothing } from "./smoothing";
+import {
+  composeSmoothers,
+  createEmaSmoothing,
+  createMedianSmoother,
+} from "./smoothing";
 import "./shared.css";
 import "./index.css";
 
@@ -64,7 +68,10 @@ export const computeZoomStart = (
   return zoomStart;
 };
 
-const smoother = createEmaSmoothing(0.15);
+const smoother = composeSmoothers(
+  createMedianSmoother(3),
+  createEmaSmoothing(0.1),
+);
 
 const init = (chartDom: HTMLElement) => {
   const smoothedWeights = smoother(weights.map((w) => w.weight));
