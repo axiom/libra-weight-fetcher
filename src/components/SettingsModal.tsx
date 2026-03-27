@@ -51,8 +51,9 @@ export default function SettingsModal() {
     settings().dataDays,
   );
   const [expandedIndex, setExpandedIndex] = createSignal(0);
-  const [smootherToAdd, setSmootherToAdd] =
-    createSignal<SmoothingType>(FALLBACK_SMOOTHER);
+  const [smootherToAdd, setSmootherToAdd] = createSignal<SmoothingType>(
+    smootherDefinitions[0]?.id ?? FALLBACK_SMOOTHER,
+  );
 
   const open = () => {
     const current = settings();
@@ -68,6 +69,7 @@ export default function SettingsModal() {
     setLocalOptions(cloneSmoothingOptions(originalOptions));
     setLocalDateRange(originalDateRange);
     setExpandedIndex(0);
+    setSmootherToAdd(smootherDefinitions[0]?.id ?? FALLBACK_SMOOTHER);
     dialogRef?.showModal();
   };
 
@@ -343,7 +345,7 @@ export default function SettingsModal() {
                   <select
                     id="add-smoother"
                     value={smootherToAdd()}
-                    onChange={(e) =>
+                    onInput={(e) =>
                       setSmootherToAdd(e.currentTarget.value as SmoothingType)
                     }
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"

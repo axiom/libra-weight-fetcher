@@ -10,6 +10,9 @@ import Layout from "../layouts/Layout.astro";
       <WeightChange days={30} label="This Month" client:load />
       <WeightChange days={7} label="Last 7 Days" client:load />
       <WeightChange days={90} label="Last 90 Days" client:load />
+      <WeightChange days={180} label="Last 180 Days" client:load />
+      <WeightChange days={365} label="Last 365 Days" client:load />
+      <WeightChange days={Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000)} label="Year to Date" client:load />
     </div>
     <div class="h-[500px]">
       <Chart client:only="solid-js" />
