@@ -5,20 +5,13 @@ import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout>
-  <div class="kpi-grid">
-    <WeightChange days={30} label="This Month" client:load />
-    <WeightChange days={7} label="Last 7 Days" client:load />
-    <WeightChange days={90} label="Last 90 Days" client:load />
+  <div class="max-w-4xl mx-auto w-full px-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4">
+      <WeightChange days={30} label="This Month" client:load />
+      <WeightChange days={7} label="Last 7 Days" client:load />
+      <WeightChange days={90} label="Last 90 Days" client:load />
+    </div>
   </div>
   <h1 id="trend"></h1>
   <Chart client:only="solid-js" />
 </Layout>
-
-<style>
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
-    padding: 1rem;
-  }
-</style>

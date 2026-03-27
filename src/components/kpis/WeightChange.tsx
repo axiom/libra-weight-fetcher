@@ -26,19 +26,37 @@ export default function WeightChange(props: Props) {
   });
 
   return (
-    <div class="kpi-card">
-      <div class="kpi-label">{props.label}</div>
-      <div class="kpi-value">
+    <div class="rounded-2xl p-4 bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-orange-100/80 to-amber-100/80 dark:from-orange-900/30 dark:to-amber-900/30">
+      <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+        {props.label}
+      </div>
+      <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
         {change() !== null ? (
           <>
             {(() => {
               const c = change()!;
               return (
                 <>
-                  <span class={c < 0 ? "negative" : c > 0 ? "positive" : ""}>
+                  <span
+                    class={
+                      c < 0
+                        ? "text-green-500"
+                        : c > 0
+                          ? "text-red-500"
+                          : "text-gray-400"
+                    }
+                  >
                     {c > 0 ? "📈" : c < 0 ? "📉" : "➡️"}
                   </span>
-                  <span class={c < 0 ? "negative" : c > 0 ? "positive" : ""}>
+                  <span
+                    class={
+                      c < 0
+                        ? "text-green-500"
+                        : c > 0
+                          ? "text-red-500"
+                          : "text-gray-400 ml-1"
+                    }
+                  >
                     {Math.abs(c).toFixed(1)} kg
                   </span>
                 </>

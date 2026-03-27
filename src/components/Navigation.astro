@@ -8,49 +8,16 @@ const navItems = [
 ];
 ---
 
-<nav>
-  <ul>
+<nav class="w-full border-b-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 shadow-sm">
+  <div class="flex gap-6 px-8 py-4 max-w-4xl mx-auto">
     {navItems.map((item) => (
-      <li>
-        <a 
-          href={item.href}
-          data-current={currentPath === item.path || currentPath === item.path + '/'}
-        >
-          {item.label}
-        </a>
-      </li>
+      <a 
+        href={item.href}
+        class="no-underline text-gray-900 dark:text-gray-100 font-medium py-2 border-b-2 border-transparent hover:border-orange-500 dark:hover:border-orange-500 transition-colors duration-200 data-[current=true]:border-orange-500"
+        data-current={currentPath === item.path || currentPath === item.path + '/'}
+      >
+        {item.label}
+      </a>
     ))}
-  </ul>
+  </div>
 </nav>
-
-<style>
-  nav {
-    padding: 1rem 2rem;
-    border-bottom: 1px solid var(--text-color);
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    gap: 1.5rem;
-  }
-
-  a {
-    color: var(--text-color);
-    text-decoration: none;
-    font-weight: 500;
-    padding: 0.5rem 0;
-    border-bottom: 2px solid transparent;
-    transition: border-color 0.2s ease;
-  }
-
-  a:hover {
-    border-bottom-color: var(--text-color);
-  }
-
-  a[data-current="true"] {
-    border-bottom-color: var(--text-color);
-  }
-</style>
