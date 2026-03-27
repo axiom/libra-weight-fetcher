@@ -1,4 +1,9 @@
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
+import {
+  type NumericFieldDefinition,
+  smootherById,
+  smootherDefinitions,
+} from "../smootherRegistry";
 import {
   FALLBACK_SMOOTHER,
   type SmoothingOptions,
@@ -6,67 +11,6 @@ import {
   settings,
   updateSetting,
 } from "../stores/settings";
-
-interface Algorithm {
-  id: SmoothingType;
-  name: string;
-  description: string;
-}
-
-const algorithms: Algorithm[] = [
-  {
-    id: "median",
-    name: "Median",
-    description:
-      "Sliding median filter. Good for rejecting outliers while preserving edges.",
-  },
-  {
-    id: "ema",
-    name: "EMA",
-    description:
-      "Exponential moving average. Fast response to changes, lower values = smoother.",
-  },
-  {
-    id: "wma",
-    name: "WMA",
-    description:
-      "Weighted moving average. Centre-weighted, recent values have highest weight.",
-  },
-  {
-    id: "holt",
-    name: "Holt",
-    description:
-      "Double exponential smoothing. Tracks both level and trend components.",
-  },
-  {
-    id: "trimmed-mean",
-    name: "Trimmed Mean",
-    description:
-      "Sliding window, discards min/max values before averaging. Rejects outliers.",
-  },
-  {
-    id: "savitzky-golay",
-    name: "Savitzky-Golay",
-    description:
-      "Polynomial smoothing. Preserves peak shapes better than moving averages.",
-  },
-  {
-    id: "loess",
-    name: "LOESS",
-    description:
-      "Local regression. Flexible locally-weighted fit, good for non-linear trends.",
-  },
-  {
-    id: "holt-winters",
-    name: "Holt-Winters",
-    description:
-      "Triple exponential smoothing with weekly and yearly seasonal components.",
-  },
-];
-
-const algorithmById = new Map(
-  algorithms.map((algorithm) => [algorithm.id, algorithm]),
-);
 
 const cloneSmoothingOptions = (source: SmoothingOptions): SmoothingOptions => ({
   median: { ...source.median },
@@ -78,6 +22,16 @@ const cloneSmoothingOptions = (source: SmoothingOptions): SmoothingOptions => ({
   loess: { ...source.loess },
   "holt-winters": { ...source["holt-winters"] },
 });
+
+const parseFloatOr = (value: string, fallback: number) => {
+  const parsed = Number.parseFloat(value);
+  return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+const parseIntOr = (value: string, fallback: number) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isNaN(parsed) ? fallback : parsed;
+};
 
 export default function SettingsModal() {
   let dialogRef: HTMLDialogElement | undefined;
@@ -100,21 +54,6 @@ export default function SettingsModal() {
   const [dragIndex, setDragIndex] = createSignal<number | null>(null);
   const [smootherToAdd, setSmootherToAdd] =
     createSignal<SmoothingType>(FALLBACK_SMOOTHER);
-
-  createEffect(() => {
-    const current = settings();
-    const smoothingChain =
-      current.smoothing.length > 0
-        ? [...current.smoothing]
-        : [FALLBACK_SMOOTHER];
-
-    setLocalSmoothing(smoothingChain);
-    setLocalOptions(cloneSmoothingOptions(current.smoothingOptions));
-    setLocalDateRange(current.dataDays);
-    setExpandedIndex((prev) =>
-      Math.max(0, Math.min(prev, smoothingChain.length - 1)),
-    );
-  });
 
   const open = () => {
     const current = settings();
@@ -146,19 +85,12 @@ export default function SettingsModal() {
     dialogRef?.close();
   };
 
-  const handleBackdropClick = (e: MouseEvent) => {
-    if (e.target === dialogRef) {
-      close();
-    }
-  };
-
   const save = () => {
     const smoothingChain =
       localSmoothing().length > 0 ? [...localSmoothing()] : [FALLBACK_SMOOTHER];
     originalSmoothing = smoothingChain;
     originalOptions = cloneSmoothingOptions(localOptions());
     originalDateRange = localDateRange();
-    setLocalDateRange(localDateRange());
     dialogRef?.close();
   };
 
@@ -200,8 +132,9 @@ export default function SettingsModal() {
   const reorderSmoothers = (from: number, to: number) => {
     if (from === to) return;
     const chain = [...localSmoothing()];
-    if (from < 0 || to < 0 || from >= chain.length || to >= chain.length)
+    if (from < 0 || to < 0 || from >= chain.length || to >= chain.length) {
       return;
+    }
 
     const moved = chain[from];
     if (!moved) return;
@@ -221,431 +154,115 @@ export default function SettingsModal() {
     updateChain(chain, nextExpanded);
   };
 
-  const updateOption = <
-    T extends SmoothingType,
-    K extends keyof SmoothingOptions[T],
-  >(
-    smoother: T,
-    key: K,
-    value: SmoothingOptions[T][K],
+  const updateNumericOption = (
+    smoother: SmoothingType,
+    key: string,
+    value: number,
   ) => {
-    const newOptions: SmoothingOptions = {
-      ...localOptions(),
-      [smoother]: { ...localOptions()[smoother], [key]: value },
+    const smootherOptions = localOptions()[smoother] as unknown as Record<
+      string,
+      number
+    >;
+    const updatedSmootherOptions = {
+      ...smootherOptions,
+      [key]: value,
     };
+    const newOptions = {
+      ...localOptions(),
+      [smoother]: updatedSmootherOptions,
+    } as SmoothingOptions;
     setLocalOptions(newOptions);
     updateSetting("smoothingOptions", newOptions);
+  };
+
+  const getNumericValue = (
+    smoother: SmoothingType,
+    field: NumericFieldDefinition,
+  ) => {
+    const smootherOptions = localOptions()[smoother] as unknown as Record<
+      string,
+      number
+    >;
+    const value = smootherOptions[field.key];
+    return typeof value === "number" ? value : field.fallback;
   };
 
   const countInstances = (smoother: SmoothingType) =>
     localSmoothing().filter((entry) => entry === smoother).length;
 
-  const parseFloatOr = (value: string, fallback: number) => {
-    const parsed = Number.parseFloat(value);
-    return Number.isNaN(parsed) ? fallback : parsed;
-  };
+  const renderNumericField = (
+    smoother: SmoothingType,
+    index: number,
+    field: NumericFieldDefinition,
+    compact: boolean,
+  ) => {
+    const inputId = `${field.key}-${index}`;
+    const value = getNumericValue(smoother, field);
 
-  const parseIntOr = (value: string, fallback: number) => {
-    const parsed = Number.parseInt(value, 10);
-    return Number.isNaN(parsed) ? fallback : parsed;
+    return (
+      <div>
+        <label
+          for={inputId}
+          class={
+            compact
+              ? "block text-xs text-gray-600 dark:text-gray-400 mb-1"
+              : "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          }
+        >
+          {field.label}
+        </label>
+        <input
+          type="number"
+          id={inputId}
+          min={field.min.toString()}
+          max={field.max.toString()}
+          step={field.step.toString()}
+          value={value}
+          onInput={(e) => {
+            const raw = e.currentTarget.value;
+            const parsed = field.integer
+              ? parseIntOr(raw, field.fallback)
+              : parseFloatOr(raw, field.fallback);
+            updateNumericOption(smoother, field.key, parsed);
+          }}
+          class={
+            compact
+              ? "w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              : "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          }
+        />
+      </div>
+    );
   };
 
   const renderOptions = (smoother: SmoothingType, index: number) => {
-    const id = (name: string) => `${name}-${index}`;
+    const definition = smootherById.get(smoother);
+    if (!definition) return null;
 
-    if (smoother === "median" || smoother === "wma") {
-      return (
-        <div>
-          <label
-            for={id("windowSize")}
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
-            Window Size (odd number, 3-31)
-          </label>
-          <input
-            type="number"
-            id={id("windowSize")}
-            min="3"
-            max="31"
-            step="2"
-            value={
-              (localOptions()[smoother] as { windowSize?: number })
-                .windowSize ?? 7
-            }
-            onInput={(e) =>
-              updateOption(
-                smoother,
-                "windowSize",
-                parseIntOr(e.currentTarget.value, 7),
-              )
-            }
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          />
-        </div>
-      );
-    }
-
-    if (smoother === "ema" || smoother === "holt") {
-      return (
-        <div class="space-y-3">
-          <div>
-            <label
-              for={id("alpha")}
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Alpha (0.02-0.60, higher = faster response)
-            </label>
-            <input
-              type="number"
-              id={id("alpha")}
-              min="0.02"
-              max="0.60"
-              step="0.01"
-              value={
-                (localOptions()[smoother] as { alpha?: number }).alpha ?? 0.2
-              }
-              onInput={(e) =>
-                updateOption(
-                  smoother,
-                  "alpha",
-                  parseFloatOr(e.currentTarget.value, 0.2),
-                )
-              }
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-
-          <Show when={smoother === "holt"}>
-            <div>
-              <label
-                for={id("beta")}
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+    return (
+      <div class="space-y-3 pt-1">
+        <For each={definition.groups}>
+          {(group) => (
+            <div class={group.title ? "pt-1" : ""}>
+              <Show when={group.title}>
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {group.title}
+                </p>
+              </Show>
+              <div
+                class={group.compact ? "grid grid-cols-3 gap-2" : "space-y-3"}
               >
-                Beta (0-1, trend smoothing)
-              </label>
-              <input
-                type="number"
-                id={id("beta")}
-                min="0.001"
-                max="0.20"
-                step="0.005"
-                value={localOptions().holt.beta}
-                onInput={(e) =>
-                  updateOption(
-                    "holt",
-                    "beta",
-                    parseFloatOr(e.currentTarget.value, 0.02),
-                  )
-                }
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
+                <For each={group.fields}>
+                  {(field) =>
+                    renderNumericField(smoother, index, field, !!group.compact)
+                  }
+                </For>
+              </div>
             </div>
-          </Show>
-        </div>
-      );
-    }
-
-    if (smoother === "trimmed-mean") {
-      return (
-        <div class="space-y-3">
-          <div>
-            <label
-              for={id("windowSize")}
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Window Size (odd number, 3-31)
-            </label>
-            <input
-              type="number"
-              id={id("windowSize")}
-              min="3"
-              max="31"
-              step="2"
-              value={localOptions()["trimmed-mean"].windowSize}
-              onInput={(e) =>
-                updateOption(
-                  "trimmed-mean",
-                  "windowSize",
-                  parseIntOr(e.currentTarget.value, 7),
-                )
-              }
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-          <div>
-            <label
-              for={id("trimCount")}
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Trim Count (values to discard each end)
-            </label>
-            <input
-              type="number"
-              id={id("trimCount")}
-              min="0"
-              max="3"
-              step="1"
-              value={localOptions()["trimmed-mean"].trimCount}
-              onInput={(e) =>
-                updateOption(
-                  "trimmed-mean",
-                  "trimCount",
-                  parseIntOr(e.currentTarget.value, 1),
-                )
-              }
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-        </div>
-      );
-    }
-
-    if (smoother === "savitzky-golay") {
-      return (
-        <div class="space-y-3">
-          <div>
-            <label
-              for={id("windowSize")}
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Window Size (odd number, 3-31)
-            </label>
-            <input
-              type="number"
-              id={id("windowSize")}
-              min="3"
-              max="31"
-              step="2"
-              value={localOptions()["savitzky-golay"].windowSize}
-              onInput={(e) =>
-                updateOption(
-                  "savitzky-golay",
-                  "windowSize",
-                  parseIntOr(e.currentTarget.value, 7),
-                )
-              }
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-          <div>
-            <label
-              for={id("order")}
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Order (polynomial degree, 2-5)
-            </label>
-            <input
-              type="number"
-              id={id("order")}
-              min="2"
-              max="5"
-              step="1"
-              value={localOptions()["savitzky-golay"].order}
-              onInput={(e) =>
-                updateOption(
-                  "savitzky-golay",
-                  "order",
-                  parseIntOr(e.currentTarget.value, 2),
-                )
-              }
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-        </div>
-      );
-    }
-
-    if (smoother === "loess") {
-      return (
-        <div>
-          <label
-            for={id("bandwidth")}
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
-            Bandwidth (0.02-1.0, fraction of data)
-          </label>
-          <input
-            type="number"
-            id={id("bandwidth")}
-            min="0.02"
-            max="1"
-            step="0.01"
-            value={localOptions().loess.bandwidth}
-            onInput={(e) =>
-              updateOption(
-                "loess",
-                "bandwidth",
-                parseFloatOr(e.currentTarget.value, 0.3),
-              )
-            }
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          />
-        </div>
-      );
-    }
-
-    if (smoother === "holt-winters") {
-      return (
-        <div class="space-y-3 pt-1">
-          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Weekly Parameters
-          </p>
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label
-                for={id("weeklyAlpha")}
-                class="block text-xs text-gray-600 dark:text-gray-400 mb-1"
-              >
-                Alpha
-              </label>
-              <input
-                type="number"
-                id={id("weeklyAlpha")}
-                min="0.02"
-                max="0.60"
-                step="0.01"
-                value={localOptions()["holt-winters"].weeklyAlpha}
-                onInput={(e) =>
-                  updateOption(
-                    "holt-winters",
-                    "weeklyAlpha",
-                    parseFloatOr(e.currentTarget.value, 0.2),
-                  )
-                }
-                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-            <div>
-              <label
-                for={id("weeklyBeta")}
-                class="block text-xs text-gray-600 dark:text-gray-400 mb-1"
-              >
-                Beta
-              </label>
-              <input
-                type="number"
-                id={id("weeklyBeta")}
-                min="0.001"
-                max="0.20"
-                step="0.005"
-                value={localOptions()["holt-winters"].weeklyBeta}
-                onInput={(e) =>
-                  updateOption(
-                    "holt-winters",
-                    "weeklyBeta",
-                    parseFloatOr(e.currentTarget.value, 0.05),
-                  )
-                }
-                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-            <div>
-              <label
-                for={id("weeklyGamma")}
-                class="block text-xs text-gray-600 dark:text-gray-400 mb-1"
-              >
-                Gamma
-              </label>
-              <input
-                type="number"
-                id={id("weeklyGamma")}
-                min="0.001"
-                max="0.30"
-                step="0.005"
-                value={localOptions()["holt-winters"].weeklyGamma}
-                onInput={(e) =>
-                  updateOption(
-                    "holt-winters",
-                    "weeklyGamma",
-                    parseFloatOr(e.currentTarget.value, 0.1),
-                  )
-                }
-                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-          </div>
-          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 pt-2">
-            Yearly Parameters
-          </p>
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label
-                for={id("yearlyAlpha")}
-                class="block text-xs text-gray-600 dark:text-gray-400 mb-1"
-              >
-                Alpha
-              </label>
-              <input
-                type="number"
-                id={id("yearlyAlpha")}
-                min="0.01"
-                max="0.30"
-                step="0.01"
-                value={localOptions()["holt-winters"].yearlyAlpha}
-                onInput={(e) =>
-                  updateOption(
-                    "holt-winters",
-                    "yearlyAlpha",
-                    parseFloatOr(e.currentTarget.value, 0.1),
-                  )
-                }
-                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-            <div>
-              <label
-                for={id("yearlyBeta")}
-                class="block text-xs text-gray-600 dark:text-gray-400 mb-1"
-              >
-                Beta
-              </label>
-              <input
-                type="number"
-                id={id("yearlyBeta")}
-                min="0.001"
-                max="0.10"
-                step="0.002"
-                value={localOptions()["holt-winters"].yearlyBeta}
-                onInput={(e) =>
-                  updateOption(
-                    "holt-winters",
-                    "yearlyBeta",
-                    parseFloatOr(e.currentTarget.value, 0.05),
-                  )
-                }
-                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-            <div>
-              <label
-                for={id("yearlyGamma")}
-                class="block text-xs text-gray-600 dark:text-gray-400 mb-1"
-              >
-                Gamma
-              </label>
-              <input
-                type="number"
-                id={id("yearlyGamma")}
-                min="0.001"
-                max="0.15"
-                step="0.002"
-                value={localOptions()["holt-winters"].yearlyGamma}
-                onInput={(e) =>
-                  updateOption(
-                    "holt-winters",
-                    "yearlyGamma",
-                    parseFloatOr(e.currentTarget.value, 0.05),
-                  )
-                }
-                class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return null;
+          )}
+        </For>
+      </div>
+    );
   };
 
   return (
@@ -661,7 +278,9 @@ export default function SettingsModal() {
 
       <dialog
         ref={dialogRef}
-        onClick={handleBackdropClick}
+        onClick={(e) => {
+          if (e.target === dialogRef) close();
+        }}
         onKeyDown={() => {}}
         class="backdrop:bg-black/50 bg-white dark:bg-gray-900 rounded-lg shadow-xl p-0 max-w-md w-[90vw] border-2 border-gray-300 dark:border-gray-600"
       >
@@ -697,7 +316,7 @@ export default function SettingsModal() {
                 step="1"
                 value={localDateRange()}
                 onInput={(e) => {
-                  const value = parseInt(e.currentTarget.value, 10) || 90;
+                  const value = parseIntOr(e.currentTarget.value, 90);
                   setLocalDateRange(value);
                   updateSetting("dataDays", value);
                 }}
@@ -726,8 +345,10 @@ export default function SettingsModal() {
                     }
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
                   >
-                    <For each={algorithms}>
-                      {(algo) => <option value={algo.id}>{algo.name}</option>}
+                    <For each={smootherDefinitions}>
+                      {(definition) => (
+                        <option value={definition.id}>{definition.name}</option>
+                      )}
                     </For>
                   </select>
                 </div>
@@ -743,7 +364,7 @@ export default function SettingsModal() {
               <ul class="space-y-2">
                 <For each={localSmoothing()}>
                   {(smoother, index) => {
-                    const current = () => algorithmById.get(smoother);
+                    const definition = () => smootherById.get(smoother);
                     const isExpanded = () => expandedIndex() === index();
                     const hasSharedParameters = () =>
                       countInstances(smoother) > 1;
@@ -783,7 +404,7 @@ export default function SettingsModal() {
                           >
                             <div class="flex items-center gap-2">
                               <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {index() + 1}. {current()?.name ?? smoother}
+                                {index() + 1}. {definition()?.name ?? smoother}
                               </span>
                               <Show when={hasSharedParameters()}>
                                 <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
@@ -792,7 +413,7 @@ export default function SettingsModal() {
                               </Show>
                             </div>
                             <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                              {current()?.description ?? ""}
+                              {definition()?.description ?? ""}
                             </p>
                           </button>
 
@@ -803,7 +424,7 @@ export default function SettingsModal() {
                               removeSmoother(index());
                             }}
                             class="px-2 py-1 text-sm rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-300"
-                            aria-label={`Remove ${current()?.name ?? smoother}`}
+                            aria-label={`Remove ${definition()?.name ?? smoother}`}
                             title="Remove smoother"
                           >
                             Remove

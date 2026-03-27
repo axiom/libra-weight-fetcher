@@ -9,17 +9,8 @@ import {
 } from "../chartUtils";
 import { targetWeightConfig } from "../config";
 import type { WeightEntry } from "../shared";
-import {
-  composeSmoothers,
-  createEmaSmoothing,
-  createHoltSmoothing,
-  createHoltWintersSmoothing,
-  createLoessSmoother,
-  createMedianSmoother,
-  createSavitzkyGolaySmoothing,
-  createTrimmedMeanSmoother,
-  createWmaSmoother,
-} from "../smoothing";
+import { createSmootherByType } from "../smootherRegistry";
+import { composeSmoothers } from "../smoothing";
 import {
   FALLBACK_SMOOTHER,
   type SmoothingOptions,
@@ -37,37 +28,6 @@ const getLatestWeightDate = (): string => {
   return last.date;
 };
 
-const getSmoother = (type: SmoothingType, opts: SmoothingOptions) => {
-  const oddWindow = (w: number) => (w % 2 === 0 ? w + 1 : w);
-
-  switch (type) {
-    case "median":
-      return createMedianSmoother(oddWindow(opts.median.windowSize));
-    case "ema":
-      return createEmaSmoothing(opts.ema.alpha);
-    case "wma":
-      return createWmaSmoother(oddWindow(opts.wma.windowSize));
-    case "holt":
-      return createHoltSmoothing(opts.holt.alpha, opts.holt.beta);
-    case "trimmed-mean":
-      return createTrimmedMeanSmoother(
-        oddWindow(opts["trimmed-mean"].windowSize),
-        opts["trimmed-mean"].trimCount,
-      );
-    case "savitzky-golay":
-      return createSavitzkyGolaySmoothing({
-        windowSize: oddWindow(opts["savitzky-golay"].windowSize),
-        order: opts["savitzky-golay"].order,
-      });
-    case "loess":
-      return createLoessSmoother({ bandwidth: opts.loess.bandwidth });
-    case "holt-winters":
-      return createHoltWintersSmoothing(opts["holt-winters"]);
-    default:
-      return createEmaSmoothing(0.2);
-  }
-};
-
 const prepareChartData = (
   w: WeightEntry[],
   smootherChain: SmoothingType[],
@@ -75,7 +35,7 @@ const prepareChartData = (
 ): [string, number, number, boolean][] => {
   const chain = smootherChain.length > 0 ? smootherChain : [FALLBACK_SMOOTHER];
   const smoother = composeSmoothers(
-    ...chain.map((type) => getSmoother(type, smoothingOptions)),
+    ...chain.map((type) => createSmootherByType(type, smoothingOptions)),
   );
   const smoothedWeights = smoother(w.map((entry) => entry.weight));
   return w.map((entry, i) => {
