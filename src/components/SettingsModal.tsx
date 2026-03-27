@@ -83,6 +83,7 @@ export default function SettingsModal() {
   let dialogRef: HTMLDialogElement | undefined;
   let originalSmoothing: SmoothingType = settings().smoothing;
   let originalOptions: SmoothingOptions = settings().smoothingOptions;
+  let originalDateRange: number = settings().dataDays;
 
   const [localSmoothing, setLocalSmoothing] = createSignal<SmoothingType>(
     settings().smoothing,
@@ -90,24 +91,32 @@ export default function SettingsModal() {
   const [localOptions, setLocalOptions] = createSignal<SmoothingOptions>(
     settings().smoothingOptions,
   );
+  const [localDateRange, setLocalDateRange] = createSignal<number>(
+    settings().dataDays,
+  );
 
   createEffect(() => {
     const s = settings();
     setLocalSmoothing(s.smoothing);
     setLocalOptions(s.smoothingOptions);
+    setLocalDateRange(s.dataDays);
   });
 
   const open = () => {
     originalSmoothing = settings().smoothing;
     originalOptions = { ...settings().smoothingOptions };
+    originalDateRange = settings().dataDays;
     setLocalSmoothing(originalSmoothing);
     setLocalOptions({ ...originalOptions });
+    setLocalDateRange(originalDateRange);
     dialogRef?.showModal();
   };
 
   const close = () => {
     updateSetting("smoothing", originalSmoothing);
     updateSetting("smoothingOptions", originalOptions);
+    updateSetting("dataDays", originalDateRange);
+    setLocalDateRange(originalDateRange);
     dialogRef?.close();
   };
 
@@ -120,6 +129,8 @@ export default function SettingsModal() {
   const save = () => {
     originalSmoothing = localSmoothing();
     originalOptions = { ...localOptions() };
+    originalDateRange = localDateRange();
+    setLocalDateRange(localDateRange());
     dialogRef?.close();
   };
 
@@ -196,6 +207,29 @@ export default function SettingsModal() {
               <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                 {currentAlgo().description}
               </p>
+            </div>
+
+            <div>
+              <label
+                for="dataDays"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Date Range: {localDateRange()} days
+              </label>
+              <input
+                type="range"
+                id="dataDays"
+                min="7"
+                max="365"
+                step="1"
+                value={localDateRange()}
+                onInput={(e) => {
+                  const value = parseInt(e.currentTarget.value) || 90;
+                  setLocalDateRange(value);
+                  updateSetting("dataDays", value);
+                }}
+                class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+              />
             </div>
 
             <Show when={currentAlgo().params.includes("windowSize")}>

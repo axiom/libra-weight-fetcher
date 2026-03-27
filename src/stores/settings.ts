@@ -28,7 +28,8 @@ export interface SmoothingOptions {
 export interface Settings {
   smoothing: SmoothingType;
   smoothingOptions: SmoothingOptions;
-  days: number;
+  dataDays: number;
+  endDate: string | null;
   weightMeasurements: number;
 }
 
@@ -50,7 +51,8 @@ const defaultSmoothingOptions: SmoothingOptions = {
 const defaultSettings: Settings = {
   smoothing: "holt",
   smoothingOptions: defaultSmoothingOptions,
-  days: 90,
+  dataDays: 90,
+  endDate: null,
   weightMeasurements: 50,
 };
 
@@ -64,11 +66,13 @@ function getInitialSettings(): Settings {
 
   const smoothing =
     (params.get("smoothing") as SmoothingType) || defaultSettings.smoothing;
-  const days = parseInt(params.get("d") ?? "", 10) || defaultSettings.days;
   const weightMeasurements =
     parseInt(params.get("w") ?? "", 10) || defaultSettings.weightMeasurements;
+  const endDate = params.get("end");
+  const dataDaysParam = parseInt(params.get("d") ?? "", 10);
 
   let smoothingOptions = defaultSmoothingOptions;
+  let dataDays = dataDaysParam || defaultSettings.dataDays;
 
   if (typeof window !== "undefined") {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -79,6 +83,10 @@ function getInitialSettings(): Settings {
           ...defaultSmoothingOptions,
           ...parsed.smoothingOptions,
         };
+        // Only use localStorage dataDays if not in URL
+        if (!dataDaysParam && typeof parsed.dataDays === "number") {
+          dataDays = parsed.dataDays;
+        }
       } catch {
         // ignore parse errors
       }
@@ -88,12 +96,18 @@ function getInitialSettings(): Settings {
   return {
     smoothing,
     smoothingOptions,
-    days,
+    dataDays,
+    endDate,
     weightMeasurements,
   };
 }
 
 const [settings, setSettings] = createSignal<Settings>(defaultSettings);
+
+// Initialize settings from localStorage/URL on module load in browser
+if (typeof window !== "undefined") {
+  setSettings(getInitialSettings());
+}
 
 const saveToStorage = (smoothingOptions: SmoothingOptions) => {
   if (typeof window === "undefined") return;
@@ -117,6 +131,17 @@ export const useSettings = () => {
   return settings;
 };
 
+const saveDateRangeToStorage = (dataDays: number) => {
+  if (typeof window === "undefined") return;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const current = stored ? JSON.parse(stored) : {};
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, dataDays }));
+  } catch {
+    // ignore storage errors
+  }
+};
+
 export const updateSetting = <K extends keyof Settings>(
   key: K,
   value: Settings[K],
@@ -126,17 +151,63 @@ export const updateSetting = <K extends keyof Settings>(
 
     if (key === "smoothingOptions") {
       saveToStorage(value as SmoothingOptions);
+    } else if (key === "dataDays") {
+      saveDateRangeToStorage(value as number);
     }
 
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
-      if (key === "days") {
-        url.searchParams.set("d", value.toString());
+      if (key === "endDate") {
+        if (value) {
+          url.searchParams.set("end", value as string);
+        } else {
+          url.searchParams.delete("end");
+        }
+      } else if (key === "dataDays") {
+        url.searchParams.set("d", (value as number).toString());
       } else if (key === "weightMeasurements") {
-        url.searchParams.set("w", value.toString());
+        url.searchParams.set("w", (value as number).toString());
       } else if (key === "smoothing") {
         url.searchParams.set("smoothing", value as string);
       }
+      window.history.pushState({}, "", url.toString());
+    }
+
+    return next;
+  });
+};
+
+export const updateSettings = (updates: Partial<Settings>) => {
+  setSettings((prev) => {
+    const next = { ...prev, ...updates };
+
+    if (updates.smoothingOptions) {
+      saveToStorage(updates.smoothingOptions);
+    }
+    if (updates.dataDays !== undefined) {
+      saveDateRangeToStorage(updates.dataDays);
+    }
+
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+
+      if (updates.endDate !== undefined) {
+        if (updates.endDate) {
+          url.searchParams.set("end", updates.endDate);
+        } else {
+          url.searchParams.delete("end");
+        }
+      }
+      if (updates.dataDays !== undefined) {
+        url.searchParams.set("d", updates.dataDays.toString());
+      }
+      if (updates.weightMeasurements !== undefined) {
+        url.searchParams.set("w", updates.weightMeasurements.toString());
+      }
+      if (updates.smoothing !== undefined) {
+        url.searchParams.set("smoothing", updates.smoothing);
+      }
+
       window.history.pushState({}, "", url.toString());
     }
 

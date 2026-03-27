@@ -17,10 +17,24 @@ import {
   type SmoothingOptions,
   type SmoothingType,
   settings,
+  updateSetting,
+  updateSettings,
 } from "../stores/settings";
 import rawWeights from "../weights.json";
 
 const weights = rawWeights satisfies WeightEntry[];
+
+const getLatestWeightDate = (): string => {
+  if (weights.length === 0) return new Date().toISOString().split("T")[0];
+  return weights[weights.length - 1]!.date;
+};
+
+const getZoomStart = (endDate: string, dataDays: number): Date => {
+  const end = new Date(endDate);
+  const start = new Date(end);
+  start.setDate(start.getDate() - dataDays);
+  return start;
+};
 
 const getSmoother = (type: SmoothingType, opts: SmoothingOptions) => {
   const windowSize = opts.windowSize ?? 7;
@@ -77,13 +91,6 @@ const computeTargetWeight = (
   return startWeight - progress * (startWeight - targetWeight);
 };
 
-const computeZoomStart = (
-  data: [string, number, number, boolean][],
-  n: number,
-): Date => {
-  return new Date(data[data.length - n]?.[0] ?? new Date());
-};
-
 const prepareChartData = (
   w: WeightEntry[],
   smootherType: SmoothingType,
@@ -104,7 +111,8 @@ const prepareChartData = (
 
 const buildChartOptions = (
   data: [string, number, number, boolean][],
-  days: number,
+  endDate: string | null,
+  dataDays: number,
   darkMode: boolean,
 ) => {
   const chartData: [string, number, number][] = data.map((d) => [
@@ -113,10 +121,42 @@ const buildChartOptions = (
     d[2],
   ]);
 
-  const now = new Date(data[data.length - 1]?.[0]);
+  // Always use the actual latest weight date for target line and percentage calculations
+  const actualLatestDate = getLatestWeightDate();
+  const zoomEndDate = endDate || actualLatestDate;
+  const now = new Date(zoomEndDate);
   now.setHours(6, 0, 0, 0);
 
-  const zoomStart = computeZoomStart(data, days);
+  const zoomStart = getZoomStart(zoomEndDate, dataDays);
+  const zoomEnd = new Date(zoomEndDate);
+
+  // Percentages must be relative to the full dataset range (what ECharts actually renders)
+  const firstWeightTime = new Date(weights[0]!.date).getTime();
+  const lastWeightTime = new Date(actualLatestDate).getTime();
+  const totalTime = lastWeightTime - firstWeightTime;
+  const startPercent =
+    totalTime > 0
+      ? ((zoomStart.getTime() - firstWeightTime) / totalTime) * 100
+      : 0;
+  const endPercent =
+    totalTime > 0
+      ? ((zoomEnd.getTime() - firstWeightTime) / totalTime) * 100
+      : 100;
+
+  console.log(
+    "[DEBUG buildChartOptions] zoomEndDate:",
+    zoomEndDate,
+    "dataDays:",
+    dataDays,
+    "actualLatestDate:",
+    actualLatestDate,
+    "zoomStart:",
+    zoomStart,
+    "startPercent:",
+    startPercent,
+    "endPercent:",
+    endPercent,
+  );
 
   const startWeight = targetWeightConfig.startWeight;
   const startDate = new Date(targetWeightConfig.startDate);
@@ -179,9 +219,11 @@ const buildChartOptions = (
     dataZoom: [
       {
         type: "slider",
-        startValue: zoomStart,
+        start: Math.max(0, Math.min(100, startPercent)),
+        end: Math.max(0, Math.min(100, endPercent)),
         height: 75,
         bottom: 15,
+        realtime: false,
       },
     ],
     xAxis: {
@@ -280,7 +322,12 @@ export default function Chart() {
       currentSettings.smoothing,
       currentSettings.smoothingOptions,
     );
-    const option = buildChartOptions(data, currentSettings.days, darkMode);
+    const option = buildChartOptions(
+      data,
+      currentSettings.endDate,
+      currentSettings.dataDays,
+      darkMode,
+    );
     chart.setOption(option);
 
     const latestWeight = data[data.length - 1];
@@ -290,6 +337,58 @@ export default function Chart() {
         latestWeight[3],
       );
     }
+
+    chart.on("datazoom", (params: unknown) => {
+      const p = params as
+        | {
+            start?: number;
+            end?: number;
+            batch?: Array<{ start?: number; end?: number }>;
+          }
+        | undefined;
+
+      console.log("[DEBUG datazoom] params:", JSON.stringify(p));
+
+      // Extract start/end percentages — always available for slider events
+      let startPct: number, endPct: number;
+
+      if (p?.batch && p.batch.length > 0) {
+        const batchItem = p.batch[p.batch.length - 1];
+        if (batchItem?.start === undefined || batchItem?.end === undefined)
+          return;
+        startPct = batchItem.start;
+        endPct = batchItem.end;
+      } else if (p?.start !== undefined && p?.end !== undefined) {
+        startPct = p.start;
+        endPct = p.end;
+      } else return;
+
+      // Convert percentages directly to timestamps — no snapping to data points
+      const fullStartTime = new Date(weights[0]!.date).getTime();
+      const fullEndTime = new Date(weights[weights.length - 1]!.date).getTime();
+      const totalMs = fullEndTime - fullStartTime;
+
+      const startTime = fullStartTime + (startPct / 100) * totalMs;
+      const endTime = fullStartTime + (endPct / 100) * totalMs;
+
+      const endDate = new Date(endTime).toISOString().split("T")[0];
+      const dataDays = Math.max(
+        7,
+        Math.round((endTime - startTime) / (1000 * 60 * 60 * 24)),
+      );
+
+      console.log(
+        "[DEBUG datazoom] Setting endDate:",
+        endDate,
+        "dataDays:",
+        dataDays,
+        "startPct:",
+        startPct,
+        "endPct:",
+        endPct,
+      );
+      updateSettings({ endDate, dataDays });
+    });
   });
 
   createEffect(() => {
@@ -302,7 +401,12 @@ export default function Chart() {
       currentSettings.smoothing,
       currentSettings.smoothingOptions,
     );
-    const option = buildChartOptions(data, currentSettings.days, darkMode);
+    const option = buildChartOptions(
+      data,
+      currentSettings.endDate,
+      currentSettings.dataDays,
+      darkMode,
+    );
     chart.setOption(option);
 
     const latestWeight = data[data.length - 1];
