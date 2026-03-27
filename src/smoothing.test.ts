@@ -100,9 +100,10 @@ describe("value sanity", () => {
     const smoother = createTrimmedMeanSmoother(7, 1);
     const input = [1, 100, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     const output = smoother(input);
-    expect(Number.isFinite(output[3]!)).toBe(true);
-    expect(output[3]!).toBeGreaterThan(3);
-    expect(output[3]!).toBeLessThan(10);
+    const val3 = output[3];
+    expect(val3).not.toBeNaN();
+    expect(val3).toBeGreaterThan(3);
+    expect(val3).toBeLessThan(10);
   });
 
   test("createHoltWintersSmoothing: returns reasonable values", () => {

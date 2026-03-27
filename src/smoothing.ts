@@ -1,8 +1,6 @@
-/**
- * A function that smooths an array of weight values.
- * Must return the same number of values as the input array.
- */
-export type WeightSmoother = (weights: number[]) => number[];
+export type WeightSmoother = (
+  weights: number[],
+) => number[] & { length: number };
 
 /**
  * Returns a WeightSmoother that applies a sliding median window.
@@ -20,9 +18,11 @@ export const createMedianSmoother =
       const end = Math.min(weights.length - 1, i + half);
       const window = weights.slice(start, end + 1).sort((a, b) => a - b);
       const mid = Math.floor(window.length / 2);
-      return window.length % 2 !== 0
-        ? window[mid]!
-        : (window[mid - 1]! + window[mid]!) / 2;
+      const w = window;
+      if (w.length % 2 !== 0) {
+        return w[mid];
+      }
+      return (w[mid - 1] + w[mid]) / 2;
     });
   };
 
@@ -38,9 +38,12 @@ export const createEmaSmoothing =
   (alpha: number): WeightSmoother =>
   (weights: number[]): number[] => {
     if (weights.length === 0) return [];
-    const result: number[] = [weights[0]!];
+    const w0 = weights[0];
+    const result: number[] = [w0];
     for (let i = 1; i < weights.length; i++) {
-      result.push(alpha * weights[i]! + (1 - alpha) * result[i - 1]!);
+      const prev = result[i - 1];
+      const curr = weights[i];
+      result.push(alpha * curr + (1 - alpha) * prev);
     }
     return result;
   };
@@ -78,7 +81,8 @@ export const createWmaSmoother =
       for (let j = start; j <= end; j++) {
         const dist = Math.abs(j - i);
         const weight = size - dist;
-        sum += weights[j]! * weight;
+        const wj = weights[j];
+        sum += wj * weight;
         totalWeight += weight;
       }
       return sum / totalWeight;
@@ -99,12 +103,13 @@ export const createHoltSmoothing =
   (weights: number[]): number[] => {
     if (weights.length === 0) return [];
     const result: number[] = new Array(weights.length);
-    let level = weights[0]!;
+    let level = weights[0];
     let trend = 0;
     result[0] = level;
     for (let i = 1; i < weights.length; i++) {
       const prevLevel = level;
-      level = alpha * weights[i]! + (1 - alpha) * (level + trend);
+      const currWeight = weights[i];
+      level = alpha * currWeight + (1 - alpha) * (level + trend);
       trend = beta * (level - prevLevel) + (1 - beta) * trend;
       result[i] = level;
     }
@@ -136,9 +141,11 @@ export const createTrimmedMeanSmoother =
       );
       if (trimmed.length === 0) {
         const mid = Math.floor(window.length / 2);
-        return window.length % 2 !== 0
-          ? window[mid]!
-          : (window[mid - 1]! + window[mid]!) / 2;
+        const w = window;
+        if (w.length % 2 !== 0) {
+          return w[mid];
+        }
+        return (w[mid - 1] + w[mid]) / 2;
       }
       const sum = trimmed.reduce((acc, v) => acc + v, 0);
       return sum / trimmed.length;
@@ -153,7 +160,7 @@ const hwUpdate = (
   alpha: number,
   beta: number,
   gamma: number,
-  period: number,
+  _period: number,
 ): { level: number; trend: number; seasonal: number } => {
   const prevLevel = level;
   level = alpha * (value - seasonal) + (1 - alpha) * (level + trend);
@@ -178,9 +185,13 @@ const hwInitialize = (
     const nextAvg = nextSum / nextPeriod.length;
     trend = (nextAvg - level) / period;
   }
-  const seasonal = new Array(period).fill(0);
+  const seasonal: number[] = [];
   for (let i = 0; i < period && i < weights.length; i++) {
-    seasonal[i] = weights[i]! - level;
+    const w = weights[i];
+    seasonal.push(w - level);
+  }
+  while (seasonal.length < period) {
+    seasonal.push(0);
   }
   return { level, trend, seasonal };
 };
@@ -216,13 +227,15 @@ export const createHoltWintersSmoothing = (
     let { level, trend, seasonal } = hwInitialize(weights, WEEKLY);
     const weeklyResult: number[] = new Array(weights.length);
     for (let i = 0; i < weights.length; i++) {
-      weeklyResult[i] = level + seasonal[i % WEEKLY]!;
+      const s = seasonal[i % WEEKLY];
+      weeklyResult[i] = level + s;
       if (i < weights.length - 1) {
+        const w = weights[i];
         const updated = hwUpdate(
-          weights[i]!,
+          w,
           level,
           trend,
-          seasonal[i % WEEKLY]!,
+          s,
           weeklyAlpha,
           weeklyBeta,
           weeklyGamma,
@@ -230,7 +243,7 @@ export const createHoltWintersSmoothing = (
         );
         level = updated.level;
         trend = updated.trend;
-        seasonal[i % WEEKLY]! = updated.seasonal;
+        seasonal[i % WEEKLY] = updated.seasonal;
       }
     }
 
@@ -238,7 +251,10 @@ export const createHoltWintersSmoothing = (
       return weeklyResult;
     }
 
-    const residuals = weights.map((w, i) => w - weeklyResult[i]!);
+    const residuals = weights.map((w, i) => {
+      const sw = weeklyResult[i];
+      return w - sw;
+    });
 
     let {
       level: yLevel,
@@ -247,13 +263,15 @@ export const createHoltWintersSmoothing = (
     } = hwInitialize(residuals, YEARLY);
     const yearlyResult: number[] = new Array(weights.length);
     for (let i = 0; i < weights.length; i++) {
-      yearlyResult[i] = yLevel + ySeasonal[i % YEARLY]!;
+      const ys = ySeasonal[i % YEARLY];
+      yearlyResult[i] = yLevel + ys;
       if (i < weights.length - 1) {
+        const r = residuals[i];
         const updated = hwUpdate(
-          residuals[i]!,
+          r,
           yLevel,
           yTrend,
-          ySeasonal[i % YEARLY]!,
+          ys,
           yearlyAlpha,
           yearlyBeta,
           yearlyGamma,
@@ -261,25 +279,31 @@ export const createHoltWintersSmoothing = (
         );
         yLevel = updated.level;
         yTrend = updated.trend;
-        ySeasonal[i % YEARLY]! = updated.seasonal;
+        ySeasonal[i % YEARLY] = updated.seasonal;
       }
     }
 
-    return weights.map((_, i) => weeklyResult[i]! + yearlyResult[i]!);
+    return weights.map((_, i) => {
+      const w = weeklyResult[i];
+      const y = yearlyResult[i];
+      return w + y;
+    });
   };
 };
 
 const fitQuadraticLocal = (
   xs: number[],
   ys: number[],
-  weights: number[],
+  ws: number[],
 ): number => {
   const n = xs.length;
   if (n === 0) return 0;
-  if (n === 1) return ys[0]!;
+  if (n === 1) return ys[0] ?? 0;
 
-  const xMin = xs[0]!;
-  const xMax = xs[n - 1]!;
+  const x0 = xs[0];
+  const xn = xs[n - 1];
+  const xMin = x0 ?? 0;
+  const xMax = xn ?? 0;
   const scale = Math.max(Math.abs(xMin), Math.abs(xMax));
   const nx = scale < 1e-10 ? xs : xs.map((x) => x / scale);
 
@@ -287,8 +311,12 @@ const fitQuadraticLocal = (
     let sumY = 0;
     let sumW = 0;
     for (let i = 0; i < n; i++) {
-      sumY += ys[i]! * weights[i]!;
-      sumW += weights[i]!;
+      const y = ys[i];
+      const w = ws[i];
+      if (y !== undefined && w !== undefined) {
+        sumY += y * w;
+        sumW += w;
+      }
     }
     return sumY / sumW;
   }
@@ -304,10 +332,11 @@ const fitQuadraticLocal = (
     b2 = 0;
 
   for (let i = 0; i < n; i++) {
-    const w = weights[i]!;
-    const x = nx[i]!;
+    const w = ws[i];
+    const x = nx[i];
+    const y = ys[i];
+    if (w === undefined || x === undefined || y === undefined) continue;
     const x2 = x * x;
-    const y = ys[i]!;
     const wx = w * x;
     const wx2 = w * x2;
     a00 += w;
@@ -334,16 +363,20 @@ const fitQuadraticLocal = (
   const d = c1 * m2 - c2 * m1;
   const c1p = (c2 * m1 - c1 * m3) / d;
   const c2p = (c1 * m2 - c2 * m1) / d;
-  const v1p = (c2 * v2 - v1 * m1) / d;
-  const v2p = (c1 * v3 - v2 * m1) / d;
+  const _v1p = (c2 * v2 - v1 * m1) / d;
+  const _v2p = (c1 * v3 - v2 * m1) / d;
 
   const det = c0 + c1 * c1p + c2 * c2p;
   if (Math.abs(det) < 1e-12) {
     let sumY = 0,
       sumW = 0;
     for (let i = 0; i < n; i++) {
-      sumY += ys[i]! * weights[i]!;
-      sumW += weights[i]!;
+      const y = ys[i];
+      const w = ws[i];
+      if (y !== undefined && w !== undefined) {
+        sumY += y * w;
+        sumW += w;
+      }
     }
     return sumY / sumW;
   }
@@ -372,7 +405,8 @@ export const createSavitzkyGolaySmoothing = (
     const padded: number[] = [];
     for (let i = 0; i < weights.length; i++) {
       const idx = Math.max(0, Math.min(weights.length - 1, i));
-      padded.push(weights[idx]!);
+      const w = weights[idx];
+      padded.push(w ?? 0);
     }
 
     const result: number[] = new Array(weights.length);
@@ -384,11 +418,12 @@ export const createSavitzkyGolaySmoothing = (
       for (let j = -half; j <= half; j++) {
         const idx = Math.max(0, Math.min(weights.length - 1, i + j));
         xs.push(j);
-        ys.push(padded[idx]!);
+        const p = padded[idx];
+        ys.push(p ?? 0);
         ws.push(1);
       }
 
-      const smoothedOrder = Math.min(order, xs.length - 1);
+      const _smoothedOrder = Math.min(order, xs.length - 1);
       result[i] = fitQuadraticLocal(xs, ys, ws);
     }
 
@@ -430,7 +465,8 @@ export const createLoessSmoother = (
 
       for (let j = start; j <= end; j++) {
         xs.push(j - i);
-        ys.push(weights[j]!);
+        const wj = weights[j];
+        ys.push(wj ?? 0);
         const dist = Math.abs(j - i) / (maxDist < 1 ? 1 : maxDist);
         ws.push(tricube(dist));
       }

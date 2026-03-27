@@ -4,14 +4,8 @@ import { targetWeightConfig } from "./config";
 import { getDarkMode, updateTrend, type WeightEntry } from "./shared";
 import {
   composeSmoothers,
-  createEmaSmoothing,
   createHoltSmoothing,
-  createHoltWintersSmoothing,
-  createLoessSmoother,
-  createMedianSmoother,
   createSavitzkyGolaySmoothing,
-  createTrimmedMeanSmoother,
-  createWmaSmoother,
 } from "./smoothing";
 import "./shared.css";
 import "./index.css";
@@ -87,12 +81,15 @@ const smoother = composeSmoothers(
 
 const init = (chartDom: HTMLElement) => {
   const smoothedWeights = smoother(weights.map((w) => w.weight));
-  const data: [string, number, number, boolean][] = weights.map((w, i) => [
-    w.date,
-    w.weight,
-    smoothedWeights[i]!,
-    w.weight < smoothedWeights[i]!,
-  ]);
+  const data: [string, number, number, boolean][] = weights.map((w, i) => {
+    const smoothed = smoothedWeights[i];
+    return [
+      w.date,
+      w.weight,
+      smoothed ?? w.weight,
+      w.weight < (smoothed ?? w.weight),
+    ];
+  });
 
   const chartData: [string, number, number][] = data.map((d) => [
     d[0],
