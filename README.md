@@ -6,8 +6,10 @@ Keep track of how fat I am, since that helps me moderate my food intake.
 
 ## Tech
 
-- GitHub actions
-- Cloudflare pages
-- ECharts
+- Bun, TypeScript (go compiler version)
+- Astro with SolidJS, UnoCSS for styling
+- GitHub actions to fetch weight data and build JSON
+- Cloudflare pages to serve static files
+- ECharts to visualize weight data
 - [Libra APP API](https://libra-app.eu)
-- Withings scale and API
+- Withings scale and API as source of weight data.
