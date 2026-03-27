@@ -11,7 +11,8 @@ import Layout from "../layouts/Layout.astro";
       <WeightChange days={7} label="Last 7 Days" client:load />
       <WeightChange days={90} label="Last 90 Days" client:load />
     </div>
+    <div class="h-[500px]">
+      <Chart client:only="solid-js" />
+    </div>
   </div>
-  <h1 id="trend"></h1>
-  <Chart client:only="solid-js" />
 </Layout>

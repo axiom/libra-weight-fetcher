@@ -3,6 +3,7 @@ const currentPath = Astro.url.pathname;
 const queryString = Astro.url.search;
 
 const navItems = [
+  { href: `/`, label: "Home", path: "/" },
   { href: `/chart${queryString}`, label: "Chart", path: "/chart" },
   { href: `/calendar${queryString}`, label: "Calendar", path: "/calendar" },
 ];

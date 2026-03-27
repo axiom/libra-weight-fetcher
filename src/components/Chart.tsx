@@ -269,9 +269,7 @@ export default function Chart() {
     }
   });
 
-  return (
-    <div ref={chartContainer} style={{ width: "100%", height: "600px" }} />
-  );
+  return <div ref={chartContainer} style={{ width: "100%", height: "100%" }} />;
 }
 
 const updateTrend = (
