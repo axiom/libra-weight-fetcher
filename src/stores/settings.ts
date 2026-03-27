@@ -62,12 +62,14 @@ export interface SmoothingOptions {
 }
 
 export interface Settings {
-  smoothing: SmoothingType;
+  smoothing: SmoothingType[];
   smoothingOptions: SmoothingOptions;
   dataDays: number;
   endDate: string | null;
   weightMeasurements: number;
 }
+
+export const FALLBACK_SMOOTHER: SmoothingType = "ema";
 
 const defaultSmoothingOptions: SmoothingOptions = {
   median: { windowSize: 7 },
@@ -88,7 +90,7 @@ const defaultSmoothingOptions: SmoothingOptions = {
 };
 
 const defaultSettings: Settings = {
-  smoothing: "holt",
+  smoothing: [FALLBACK_SMOOTHER],
   smoothingOptions: defaultSmoothingOptions,
   dataDays: 90,
   endDate: null,
@@ -103,8 +105,18 @@ function getInitialSettings(): Settings {
       ? new URL(window.location.href).searchParams
       : new URLSearchParams();
 
-  const smoothing =
-    (params.get("smoothing") as SmoothingType) || defaultSettings.smoothing;
+  const allowedSmoothers = new Set(
+    Object.keys(defaultSmoothingOptions) as SmoothingType[],
+  );
+  const rawSmoothing = params.get("smoothing") ?? "";
+  const smoothing = rawSmoothing
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry): entry is SmoothingType =>
+      allowedSmoothers.has(entry as SmoothingType),
+    );
+  const smoothingChain =
+    smoothing.length > 0 ? smoothing : [...defaultSettings.smoothing];
   const weightMeasurements =
     parseInt(params.get("w") ?? "", 10) || defaultSettings.weightMeasurements;
   const endDate = params.get("end");
@@ -148,7 +160,7 @@ function getInitialSettings(): Settings {
   }
 
   return {
-    smoothing,
+    smoothing: smoothingChain,
     smoothingOptions,
     dataDays,
     endDate,
@@ -222,7 +234,7 @@ export const updateSetting = <K extends keyof Settings>(
       } else if (key === "weightMeasurements") {
         url.searchParams.set("w", (value as number).toString());
       } else if (key === "smoothing") {
-        url.searchParams.set("smoothing", value as string);
+        url.searchParams.set("smoothing", (value as SmoothingType[]).join(","));
       }
       window.history.pushState({}, "", url.toString());
     }
@@ -259,7 +271,7 @@ export const updateSettings = (updates: Partial<Settings>) => {
         url.searchParams.set("w", updates.weightMeasurements.toString());
       }
       if (updates.smoothing !== undefined) {
-        url.searchParams.set("smoothing", updates.smoothing);
+        url.searchParams.set("smoothing", updates.smoothing.join(","));
       }
 
       window.history.pushState({}, "", url.toString());

@@ -10,6 +10,7 @@ import {
 import { targetWeightConfig } from "../config";
 import type { WeightEntry } from "../shared";
 import {
+  composeSmoothers,
   createEmaSmoothing,
   createHoltSmoothing,
   createHoltWintersSmoothing,
@@ -20,6 +21,7 @@ import {
   createWmaSmoother,
 } from "../smoothing";
 import {
+  FALLBACK_SMOOTHER,
   type SmoothingOptions,
   type SmoothingType,
   settings,
@@ -62,16 +64,19 @@ const getSmoother = (type: SmoothingType, opts: SmoothingOptions) => {
     case "holt-winters":
       return createHoltWintersSmoothing(opts["holt-winters"]);
     default:
-      return createHoltSmoothing(0.2, 0.02);
+      return createEmaSmoothing(0.2);
   }
 };
 
 const prepareChartData = (
   w: WeightEntry[],
-  smootherType: SmoothingType,
+  smootherChain: SmoothingType[],
   smoothingOptions: SmoothingOptions,
 ): [string, number, number, boolean][] => {
-  const smoother = getSmoother(smootherType, smoothingOptions);
+  const chain = smootherChain.length > 0 ? smootherChain : [FALLBACK_SMOOTHER];
+  const smoother = composeSmoothers(
+    ...chain.map((type) => getSmoother(type, smoothingOptions)),
+  );
   const smoothedWeights = smoother(w.map((entry) => entry.weight));
   return w.map((entry, i) => {
     const smoothed = smoothedWeights[i];
