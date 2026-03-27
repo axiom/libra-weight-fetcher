@@ -5,7 +5,13 @@ import { getDarkMode, updateTrend, type WeightEntry } from "./shared";
 import {
   composeSmoothers,
   createEmaSmoothing,
+  createHoltSmoothing,
+  createHoltWintersSmoothing,
+  createLoessSmoother,
   createMedianSmoother,
+  createSavitzkyGolaySmoothing,
+  createTrimmedMeanSmoother,
+  createWmaSmoother,
 } from "./smoothing";
 import "./shared.css";
 import "./index.css";
@@ -69,8 +75,14 @@ export const computeZoomStart = (
 };
 
 const smoother = composeSmoothers(
-  createMedianSmoother(3),
-  createEmaSmoothing(0.1),
+  // createTrimmedMeanSmoother(3, 1),
+  // createEmaSmoothing(0.3),
+  createHoltSmoothing(0.2, 0.02),
+  // createMedianSmoother(7),
+  // createWmaSmoother(7),
+  createSavitzkyGolaySmoothing({ windowSize: 14, order: 2 }),
+  // createHoltWintersSmoothing(),
+  // createLoessSmoother({ bandwidth: 0.005 }),
 );
 
 const init = (chartDom: HTMLElement) => {
