@@ -1,5 +1,12 @@
 import * as echarts from "echarts";
 import { createEffect, onMount } from "solid-js";
+import {
+  computeTargetProgress,
+  computeTargetWeight,
+  getZoomStart,
+  zoomParamsFromSlider,
+  zoomPercentsFromSettings,
+} from "../chartUtils";
 import { targetWeightConfig } from "../config";
 import type { WeightEntry } from "../shared";
 import {
@@ -17,7 +24,6 @@ import {
   type SmoothingOptions,
   type SmoothingType,
   settings,
-  updateSetting,
   updateSettings,
 } from "../stores/settings";
 import rawWeights from "../weights.json";
@@ -27,13 +33,6 @@ const weights = rawWeights satisfies WeightEntry[];
 const getLatestWeightDate = (): string => {
   if (weights.length === 0) return new Date().toISOString().split("T")[0];
   return weights[weights.length - 1]!.date;
-};
-
-const getZoomStart = (endDate: string, dataDays: number): Date => {
-  const end = new Date(endDate);
-  const start = new Date(end);
-  start.setDate(start.getDate() - dataDays);
-  return start;
 };
 
 const getSmoother = (type: SmoothingType, opts: SmoothingOptions) => {
@@ -70,25 +69,6 @@ const getSmoother = (type: SmoothingType, opts: SmoothingOptions) => {
     default:
       return createHoltSmoothing(0.2, 0.02);
   }
-};
-
-const computeTargetProgress = (
-  now: Date,
-  startDate: Date,
-  targetDate: Date,
-): number => {
-  return (
-    (now.getTime() - startDate.getTime()) /
-    (targetDate.getTime() - startDate.getTime())
-  );
-};
-
-const computeTargetWeight = (
-  startWeight: number,
-  targetWeight: number,
-  progress: number,
-): number => {
-  return startWeight - progress * (startWeight - targetWeight);
 };
 
 const prepareChartData = (
@@ -128,34 +108,14 @@ const buildChartOptions = (
   now.setHours(6, 0, 0, 0);
 
   const zoomStart = getZoomStart(zoomEndDate, dataDays);
-  const zoomEnd = new Date(zoomEndDate);
 
-  // Percentages must be relative to the full dataset range (what ECharts actually renders)
   const firstWeightTime = new Date(weights[0]!.date).getTime();
   const lastWeightTime = new Date(actualLatestDate).getTime();
-  const totalTime = lastWeightTime - firstWeightTime;
-  const startPercent =
-    totalTime > 0
-      ? ((zoomStart.getTime() - firstWeightTime) / totalTime) * 100
-      : 0;
-  const endPercent =
-    totalTime > 0
-      ? ((zoomEnd.getTime() - firstWeightTime) / totalTime) * 100
-      : 100;
-
-  console.log(
-    "[DEBUG buildChartOptions] zoomEndDate:",
-    zoomEndDate,
-    "dataDays:",
+  const { startPercent, endPercent } = zoomPercentsFromSettings(
+    endDate,
     dataDays,
-    "actualLatestDate:",
-    actualLatestDate,
-    "zoomStart:",
-    zoomStart,
-    "startPercent:",
-    startPercent,
-    "endPercent:",
-    endPercent,
+    firstWeightTime,
+    lastWeightTime,
   );
 
   const startWeight = targetWeightConfig.startWeight;
@@ -347,8 +307,6 @@ export default function Chart() {
           }
         | undefined;
 
-      console.log("[DEBUG datazoom] params:", JSON.stringify(p));
-
       // Extract start/end percentages — always available for slider events
       let startPct: number, endPct: number;
 
@@ -363,29 +321,13 @@ export default function Chart() {
         endPct = p.end;
       } else return;
 
-      // Convert percentages directly to timestamps — no snapping to data points
       const fullStartTime = new Date(weights[0]!.date).getTime();
       const fullEndTime = new Date(weights[weights.length - 1]!.date).getTime();
-      const totalMs = fullEndTime - fullStartTime;
-
-      const startTime = fullStartTime + (startPct / 100) * totalMs;
-      const endTime = fullStartTime + (endPct / 100) * totalMs;
-
-      const endDate = new Date(endTime).toISOString().split("T")[0];
-      const dataDays = Math.max(
-        7,
-        Math.round((endTime - startTime) / (1000 * 60 * 60 * 24)),
-      );
-
-      console.log(
-        "[DEBUG datazoom] Setting endDate:",
-        endDate,
-        "dataDays:",
-        dataDays,
-        "startPct:",
+      const { endDate, dataDays } = zoomParamsFromSlider(
         startPct,
-        "endPct:",
         endPct,
+        fullStartTime,
+        fullEndTime,
       );
       updateSettings({ endDate, dataDays });
     });
