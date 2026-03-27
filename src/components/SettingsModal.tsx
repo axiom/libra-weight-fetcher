@@ -10,7 +10,6 @@ interface Algorithm {
   id: SmoothingType;
   name: string;
   description: string;
-  params: (keyof SmoothingOptions)[];
 }
 
 const algorithms: Algorithm[] = [
@@ -19,63 +18,48 @@ const algorithms: Algorithm[] = [
     name: "Median",
     description:
       "Sliding median filter. Good for rejecting outliers while preserving edges.",
-    params: ["windowSize"],
   },
   {
     id: "ema",
     name: "EMA",
     description:
       "Exponential moving average. Fast response to changes, lower values = smoother.",
-    params: ["alpha"],
   },
   {
     id: "wma",
     name: "WMA",
     description:
       "Weighted moving average. Centre-weighted, recent values have highest weight.",
-    params: ["windowSize"],
   },
   {
     id: "holt",
     name: "Holt",
     description:
       "Double exponential smoothing. Tracks both level and trend components.",
-    params: ["alpha", "beta"],
   },
   {
     id: "trimmed-mean",
     name: "Trimmed Mean",
     description:
       "Sliding window, discards min/max values before averaging. Rejects outliers.",
-    params: ["windowSize", "trimCount"],
   },
   {
     id: "savitzky-golay",
     name: "Savitzky-Golay",
     description:
       "Polynomial smoothing. Preserves peak shapes better than moving averages.",
-    params: ["windowSize", "order"],
   },
   {
     id: "loess",
     name: "LOESS",
     description:
       "Local regression. Flexible locally-weighted fit, good for non-linear trends.",
-    params: ["bandwidth"],
   },
   {
     id: "holt-winters",
     name: "Holt-Winters",
     description:
       "Triple exponential smoothing with weekly and yearly seasonal components.",
-    params: [
-      "weeklyAlpha",
-      "weeklyBeta",
-      "weeklyGamma",
-      "yearlyAlpha",
-      "yearlyBeta",
-      "yearlyGamma",
-    ],
   },
 ];
 
@@ -134,11 +118,18 @@ export default function SettingsModal() {
     dialogRef?.close();
   };
 
-  const updateOption = <K extends keyof SmoothingOptions>(
+  const updateOption = <
+    T extends SmoothingType,
+    K extends keyof SmoothingOptions[T],
+  >(
+    smoother: T,
     key: K,
-    value: SmoothingOptions[K],
+    value: SmoothingOptions[T][K],
   ) => {
-    const newOptions = { ...localOptions(), [key]: value };
+    const newOptions: SmoothingOptions = {
+      ...localOptions(),
+      [smoother]: { ...localOptions()[smoother], [key]: value },
+    };
     setLocalOptions(newOptions);
     updateSetting("smoothing", localSmoothing());
     updateSetting("smoothingOptions", newOptions);
@@ -233,7 +224,14 @@ export default function SettingsModal() {
               />
             </div>
 
-            <Show when={currentAlgo().params.includes("windowSize")}>
+            <Show
+              when={
+                localSmoothing() === "median" ||
+                localSmoothing() === "wma" ||
+                localSmoothing() === "trimmed-mean" ||
+                localSmoothing() === "savitzky-golay"
+              }
+            >
               <div>
                 <label
                   for="windowSize"
@@ -247,19 +245,36 @@ export default function SettingsModal() {
                   min="3"
                   max="31"
                   step="2"
-                  value={localOptions().windowSize ?? 7}
-                  onInput={(e) =>
-                    updateOption(
-                      "windowSize",
-                      parseInt(e.currentTarget.value, 10) || 7,
-                    )
+                  value={
+                    (
+                      localOptions()[localSmoothing()] as {
+                        windowSize?: number;
+                      }
+                    ).windowSize ?? 7
                   }
+                  onInput={(e) => {
+                    const s = localSmoothing();
+                    if (
+                      s === "median" ||
+                      s === "wma" ||
+                      s === "trimmed-mean" ||
+                      s === "savitzky-golay"
+                    ) {
+                      updateOption(
+                        s,
+                        "windowSize",
+                        parseInt(e.currentTarget.value, 10) || 7,
+                      );
+                    }
+                  }}
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
             </Show>
 
-            <Show when={currentAlgo().params.includes("alpha")}>
+            <Show
+              when={localSmoothing() === "ema" || localSmoothing() === "holt"}
+            >
               <div>
                 <label
                   for="alpha"
@@ -273,19 +288,26 @@ export default function SettingsModal() {
                   min="0"
                   max="1"
                   step="0.05"
-                  value={localOptions().alpha ?? 0.2}
-                  onInput={(e) =>
-                    updateOption(
-                      "alpha",
-                      parseFloat(e.currentTarget.value) || 0.2,
-                    )
+                  value={
+                    (localOptions()[localSmoothing()] as { alpha?: number })
+                      .alpha ?? 0.2
                   }
+                  onInput={(e) => {
+                    const s = localSmoothing();
+                    if (s === "ema" || s === "holt") {
+                      updateOption(
+                        s,
+                        "alpha",
+                        parseFloat(e.currentTarget.value) || 0.2,
+                      );
+                    }
+                  }}
                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
             </Show>
 
-            <Show when={currentAlgo().params.includes("beta")}>
+            <Show when={localSmoothing() === "holt"}>
               <div>
                 <label
                   for="beta"
@@ -299,9 +321,10 @@ export default function SettingsModal() {
                   min="0"
                   max="1"
                   step="0.01"
-                  value={localOptions().beta ?? 0.02}
+                  value={localOptions().holt.beta}
                   onInput={(e) =>
                     updateOption(
+                      "holt",
                       "beta",
                       parseFloat(e.currentTarget.value) || 0.02,
                     )
@@ -311,7 +334,7 @@ export default function SettingsModal() {
               </div>
             </Show>
 
-            <Show when={currentAlgo().params.includes("trimCount")}>
+            <Show when={localSmoothing() === "trimmed-mean"}>
               <div>
                 <label
                   for="trimCount"
@@ -325,9 +348,10 @@ export default function SettingsModal() {
                   min="0"
                   max="3"
                   step="1"
-                  value={localOptions().trimCount ?? 1}
+                  value={localOptions()["trimmed-mean"].trimCount}
                   onInput={(e) =>
                     updateOption(
+                      "trimmed-mean",
                       "trimCount",
                       parseInt(e.currentTarget.value, 10) || 1,
                     )
@@ -337,7 +361,7 @@ export default function SettingsModal() {
               </div>
             </Show>
 
-            <Show when={currentAlgo().params.includes("order")}>
+            <Show when={localSmoothing() === "savitzky-golay"}>
               <div>
                 <label
                   for="order"
@@ -351,9 +375,10 @@ export default function SettingsModal() {
                   min="2"
                   max="5"
                   step="1"
-                  value={localOptions().order ?? 2}
+                  value={localOptions()["savitzky-golay"].order}
                   onInput={(e) =>
                     updateOption(
+                      "savitzky-golay",
                       "order",
                       parseInt(e.currentTarget.value, 10) || 2,
                     )
@@ -363,7 +388,7 @@ export default function SettingsModal() {
               </div>
             </Show>
 
-            <Show when={currentAlgo().params.includes("bandwidth")}>
+            <Show when={localSmoothing() === "loess"}>
               <div>
                 <label
                   for="bandwidth"
@@ -377,9 +402,10 @@ export default function SettingsModal() {
                   min="0.1"
                   max="1"
                   step="0.05"
-                  value={localOptions().bandwidth ?? 0.3}
+                  value={localOptions().loess.bandwidth}
                   onInput={(e) =>
                     updateOption(
+                      "loess",
                       "bandwidth",
                       parseFloat(e.currentTarget.value) || 0.3,
                     )
@@ -408,9 +434,10 @@ export default function SettingsModal() {
                       min="0"
                       max="1"
                       step="0.05"
-                      value={localOptions().weeklyAlpha ?? 0.2}
+                      value={localOptions()["holt-winters"].weeklyAlpha}
                       onInput={(e) =>
                         updateOption(
+                          "holt-winters",
                           "weeklyAlpha",
                           parseFloat(e.currentTarget.value) || 0.2,
                         )
@@ -431,9 +458,10 @@ export default function SettingsModal() {
                       min="0"
                       max="1"
                       step="0.01"
-                      value={localOptions().weeklyBeta ?? 0.05}
+                      value={localOptions()["holt-winters"].weeklyBeta}
                       onInput={(e) =>
                         updateOption(
+                          "holt-winters",
                           "weeklyBeta",
                           parseFloat(e.currentTarget.value) || 0.05,
                         )
@@ -454,9 +482,10 @@ export default function SettingsModal() {
                       min="0"
                       max="1"
                       step="0.01"
-                      value={localOptions().weeklyGamma ?? 0.1}
+                      value={localOptions()["holt-winters"].weeklyGamma}
                       onInput={(e) =>
                         updateOption(
+                          "holt-winters",
                           "weeklyGamma",
                           parseFloat(e.currentTarget.value) || 0.1,
                         )
@@ -482,9 +511,10 @@ export default function SettingsModal() {
                       min="0"
                       max="1"
                       step="0.05"
-                      value={localOptions().yearlyAlpha ?? 0.1}
+                      value={localOptions()["holt-winters"].yearlyAlpha}
                       onInput={(e) =>
                         updateOption(
+                          "holt-winters",
                           "yearlyAlpha",
                           parseFloat(e.currentTarget.value) || 0.1,
                         )
@@ -505,9 +535,10 @@ export default function SettingsModal() {
                       min="0"
                       max="1"
                       step="0.01"
-                      value={localOptions().yearlyBeta ?? 0.05}
+                      value={localOptions()["holt-winters"].yearlyBeta}
                       onInput={(e) =>
                         updateOption(
+                          "holt-winters",
                           "yearlyBeta",
                           parseFloat(e.currentTarget.value) || 0.05,
                         )
@@ -528,9 +559,10 @@ export default function SettingsModal() {
                       min="0"
                       max="1"
                       step="0.01"
-                      value={localOptions().yearlyGamma ?? 0.05}
+                      value={localOptions()["holt-winters"].yearlyGamma}
                       onInput={(e) =>
                         updateOption(
+                          "holt-winters",
                           "yearlyGamma",
                           parseFloat(e.currentTarget.value) || 0.05,
                         )

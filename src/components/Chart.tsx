@@ -36,36 +36,31 @@ const getLatestWeightDate = (): string => {
 };
 
 const getSmoother = (type: SmoothingType, opts: SmoothingOptions) => {
-  const windowSize = opts.windowSize ?? 7;
-  const oddWindow = windowSize % 2 === 0 ? windowSize + 1 : windowSize;
+  const oddWindow = (w: number) => (w % 2 === 0 ? w + 1 : w);
 
   switch (type) {
     case "median":
-      return createMedianSmoother(oddWindow);
+      return createMedianSmoother(oddWindow(opts.median.windowSize));
     case "ema":
-      return createEmaSmoothing(opts.alpha ?? 0.2);
+      return createEmaSmoothing(opts.ema.alpha);
     case "wma":
-      return createWmaSmoother(oddWindow);
+      return createWmaSmoother(oddWindow(opts.wma.windowSize));
     case "holt":
-      return createHoltSmoothing(opts.alpha ?? 0.2, opts.beta ?? 0.02);
+      return createHoltSmoothing(opts.holt.alpha, opts.holt.beta);
     case "trimmed-mean":
-      return createTrimmedMeanSmoother(oddWindow, opts.trimCount ?? 1);
+      return createTrimmedMeanSmoother(
+        oddWindow(opts["trimmed-mean"].windowSize),
+        opts["trimmed-mean"].trimCount,
+      );
     case "savitzky-golay":
       return createSavitzkyGolaySmoothing({
-        windowSize: oddWindow,
-        order: opts.order ?? 2,
+        windowSize: oddWindow(opts["savitzky-golay"].windowSize),
+        order: opts["savitzky-golay"].order,
       });
     case "loess":
-      return createLoessSmoother({ bandwidth: opts.bandwidth ?? 0.3 });
+      return createLoessSmoother({ bandwidth: opts.loess.bandwidth });
     case "holt-winters":
-      return createHoltWintersSmoothing({
-        weeklyAlpha: opts.weeklyAlpha ?? 0.2,
-        weeklyBeta: opts.weeklyBeta ?? 0.05,
-        weeklyGamma: opts.weeklyGamma ?? 0.1,
-        yearlyAlpha: opts.yearlyAlpha ?? 0.1,
-        yearlyBeta: opts.yearlyBeta ?? 0.05,
-        yearlyGamma: opts.yearlyGamma ?? 0.05,
-      });
+      return createHoltWintersSmoothing(opts["holt-winters"]);
     default:
       return createHoltSmoothing(0.2, 0.02);
   }

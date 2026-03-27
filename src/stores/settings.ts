@@ -10,19 +10,55 @@ export type SmoothingType =
   | "loess"
   | "holt-winters";
 
+export interface MedianOptions {
+  windowSize: number;
+}
+
+export interface EmaOptions {
+  alpha: number;
+}
+
+export interface WmaOptions {
+  windowSize: number;
+}
+
+export interface HoltOptions {
+  alpha: number;
+  beta: number;
+}
+
+export interface TrimmedMeanOptions {
+  windowSize: number;
+  trimCount: number;
+}
+
+export interface SavitzkyGolayOptions {
+  windowSize: number;
+  order: number;
+}
+
+export interface LoessOptions {
+  bandwidth: number;
+}
+
+export interface HoltWintersOptions {
+  weeklyAlpha: number;
+  weeklyBeta: number;
+  weeklyGamma: number;
+  yearlyAlpha: number;
+  yearlyBeta: number;
+  yearlyGamma: number;
+}
+
 export interface SmoothingOptions {
-  windowSize?: number;
-  alpha?: number;
-  beta?: number;
-  trimCount?: number;
-  order?: number;
-  bandwidth?: number;
-  weeklyAlpha?: number;
-  weeklyBeta?: number;
-  weeklyGamma?: number;
-  yearlyAlpha?: number;
-  yearlyBeta?: number;
-  yearlyGamma?: number;
+  median: MedianOptions;
+  ema: EmaOptions;
+  wma: WmaOptions;
+  holt: HoltOptions;
+  "trimmed-mean": TrimmedMeanOptions;
+  "savitzky-golay": SavitzkyGolayOptions;
+  loess: LoessOptions;
+  "holt-winters": HoltWintersOptions;
 }
 
 export interface Settings {
@@ -34,18 +70,21 @@ export interface Settings {
 }
 
 const defaultSmoothingOptions: SmoothingOptions = {
-  windowSize: 7,
-  alpha: 0.2,
-  beta: 0.02,
-  trimCount: 1,
-  order: 2,
-  bandwidth: 0.3,
-  weeklyAlpha: 0.2,
-  weeklyBeta: 0.05,
-  weeklyGamma: 0.1,
-  yearlyAlpha: 0.1,
-  yearlyBeta: 0.05,
-  yearlyGamma: 0.05,
+  median: { windowSize: 7 },
+  ema: { alpha: 0.2 },
+  wma: { windowSize: 7 },
+  holt: { alpha: 0.2, beta: 0.02 },
+  "trimmed-mean": { windowSize: 7, trimCount: 1 },
+  "savitzky-golay": { windowSize: 7, order: 2 },
+  loess: { bandwidth: 0.3 },
+  "holt-winters": {
+    weeklyAlpha: 0.2,
+    weeklyBeta: 0.05,
+    weeklyGamma: 0.1,
+    yearlyAlpha: 0.1,
+    yearlyBeta: 0.05,
+    yearlyGamma: 0.05,
+  },
 };
 
 const defaultSettings: Settings = {
@@ -79,10 +118,25 @@ function getInitialSettings(): Settings {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        smoothingOptions = {
-          ...defaultSmoothingOptions,
-          ...parsed.smoothingOptions,
-        };
+        if (
+          parsed.smoothingOptions &&
+          typeof parsed.smoothingOptions === "object"
+        ) {
+          smoothingOptions = {
+            ...defaultSmoothingOptions,
+            ...Object.fromEntries(
+              (Object.keys(defaultSmoothingOptions) as SmoothingType[]).map(
+                (key) => [
+                  key,
+                  {
+                    ...defaultSmoothingOptions[key],
+                    ...(parsed.smoothingOptions[key] ?? {}),
+                  },
+                ],
+              ),
+            ),
+          } as SmoothingOptions;
+        }
         // Only use localStorage dataDays if not in URL
         if (!dataDaysParam && typeof parsed.dataDays === "number") {
           dataDays = parsed.dataDays;
