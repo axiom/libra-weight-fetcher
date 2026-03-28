@@ -1,18 +1,42 @@
 ---
 import Chart from "../components/Chart";
-import WeightChange from "../components/kpis/WeightChange";
+import {
+  AverageWeightKPI,
+  CurrentGainStreakKPI,
+  CurrentLossStreakKPI,
+  CurrentWeightKPI,
+  HighestWeightKPI,
+  LongestGainStreakKPI,
+  LongestLossStreakKPI,
+  LowestWeightKPI,
+  WeightChangeKPI,
+  WeightRangeKPI,
+  YearToDateChangeKPI,
+} from "../components/kpis/presets";
 import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout>
   <div class="max-w-4xl mx-auto w-full px-4">
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4">
-      <WeightChange days={30} label="This Month" client:load />
-      <WeightChange days={7} label="Last 7 Days" client:load />
-      <WeightChange days={90} label="Last 90 Days" client:load />
-      <WeightChange days={180} label="Last 180 Days" client:load />
-      <WeightChange days={365} label="Last 365 Days" client:load />
-      <WeightChange days={Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000)} label="Year to Date" client:load />
+      <CurrentWeightKPI client:load />
+      <CurrentLossStreakKPI client:load />
+      <CurrentGainStreakKPI client:load />
+      <LongestLossStreakKPI client:load />
+      <LongestGainStreakKPI client:load />
+      <AverageWeightKPI days={30} label="30-Day Avg" client:load />
+
+      <WeightChangeKPI days={30} label="This Month" client:load />
+      <WeightChangeKPI days={7} label="Last 7 Days" client:load />
+      <WeightChangeKPI days={90} label="Last 90 Days" client:load />
+
+      <WeightChangeKPI days={180} label="Last 180 Days" client:load />
+      <WeightChangeKPI days={365} label="Last 365 Days" client:load />
+      <YearToDateChangeKPI client:load />
+
+      <WeightRangeKPI days={180} label="180-Day Range" client:load />
+      <LowestWeightKPI client:load />
+      <HighestWeightKPI client:load />
     </div>
     <div class="h-[500px]">
       <Chart client:only="solid-js" hideDataZoom={true} />
