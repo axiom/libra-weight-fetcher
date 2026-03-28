@@ -48,7 +48,7 @@ export default function WeightKPIView(props: Props) {
         </div>
       </div>
 
-      <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100 leading-tight">
+      <div class="text-5xl font-semibold text-gray-900 dark:text-gray-100 leading-tight">
         {props.slots?.value ? (
           props.slots.value({
             value: props.value,
