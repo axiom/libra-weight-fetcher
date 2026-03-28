@@ -39,12 +39,6 @@ export type KPIResult = KPIResultMap[KPIType];
 
 const DAY_MS = 86_400_000;
 
-function asSortedByDateAsc(entries: WeightEntry[]): WeightEntry[] {
-  return [...entries].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-  );
-}
-
 function getWeightsInPeriod(
   entries: WeightEntry[],
   days?: number,
@@ -74,12 +68,9 @@ function findMinEntry(entries: WeightEntry[]): WeightEntry | null {
 function getCurrentStreak(entries: WeightEntry[], isLoss: boolean): number {
   if (entries.length === 0) return 0;
 
-  const desc = [...entries].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
-
   let startDate: Date | null = null;
-  for (const entry of desc) {
+  for (let index = entries.length - 1; index >= 0; index -= 1) {
+    const entry = entries[index];
     const isBelowTrend = entry.weight < entry.trend;
     if (isBelowTrend === isLoss) {
       if (!startDate) startDate = new Date(entry.date);
@@ -90,7 +81,7 @@ function getCurrentStreak(entries: WeightEntry[], isLoss: boolean): number {
 
   if (!startDate) return 0;
 
-  const latestDate = new Date(desc[0].date);
+  const latestDate = new Date(entries[entries.length - 1].date);
   return Math.round((latestDate.getTime() - startDate.getTime()) / DAY_MS) + 1;
 }
 
@@ -100,14 +91,13 @@ function getLongestStreak(
 ): StreakResult | null {
   if (entries.length === 0) return null;
 
-  const asc = asSortedByDateAsc(entries);
   let longest = 0;
   let longestEndDate = "";
   let streakStart: Date | null = null;
   let streakEndDate = "";
 
-  for (let index = 0; index < asc.length; index += 1) {
-    const entry = asc[index];
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index];
     const isBelowTrend = entry.weight < entry.trend;
 
     if (isBelowTrend === isLoss) {
@@ -119,7 +109,7 @@ function getLongestStreak(
     }
 
     if (streakStart) {
-      const previousDate = new Date(asc[index - 1].date);
+      const previousDate = new Date(entries[index - 1].date);
       const days =
         Math.round((previousDate.getTime() - streakStart.getTime()) / DAY_MS) +
         1;
@@ -132,7 +122,7 @@ function getLongestStreak(
   }
 
   if (streakStart) {
-    const lastDate = new Date(asc[asc.length - 1].date);
+    const lastDate = new Date(entries[entries.length - 1].date);
     const days =
       Math.round((lastDate.getTime() - streakStart.getTime()) / DAY_MS) + 1;
     if (days > longest) {
@@ -149,7 +139,7 @@ export function computeKPI<T extends KPIType>(args: {
   weights: WeightEntry[];
   days?: number;
 }): KPIResultMap[T] {
-  const sortedWeights = asSortedByDateAsc(args.weights);
+  const sortedWeights = args.weights;
 
   switch (args.type) {
     case "current": {
