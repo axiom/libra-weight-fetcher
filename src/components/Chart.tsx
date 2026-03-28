@@ -54,6 +54,7 @@ const buildChartOptions = (
   endDate: string | null,
   dataDays: number,
   darkMode: boolean,
+  hideDataZoom: boolean,
 ) => {
   const chartData: [string, number, number][] = data.map((d) => [
     d[0],
@@ -139,6 +140,7 @@ const buildChartOptions = (
     dataZoom: [
       {
         type: "slider",
+        show: !hideDataZoom,
         start: Math.max(0, Math.min(100, startPercent)),
         end: Math.max(0, Math.min(100, endPercent)),
         height: 75,
@@ -219,7 +221,11 @@ const buildChartOptions = (
   };
 };
 
-export default function Chart() {
+type Props = {
+  hideDataZoom?: boolean;
+};
+
+export default function Chart(props: Props) {
   let chartContainer: HTMLDivElement | undefined;
   let chart: echarts.ECharts | undefined;
 
@@ -247,6 +253,7 @@ export default function Chart() {
       currentSettings.endDate,
       currentSettings.dataDays,
       darkMode,
+      props.hideDataZoom ?? false,
     );
     chart.setOption(option);
 
@@ -258,39 +265,41 @@ export default function Chart() {
       );
     }
 
-    chart.on("datazoom", (params: unknown) => {
-      const p = params as
-        | {
-            start?: number;
-            end?: number;
-            batch?: Array<{ start?: number; end?: number }>;
-          }
-        | undefined;
+    if (!props.hideDataZoom) {
+      chart.on("datazoom", (params: unknown) => {
+        const p = params as
+          | {
+              start?: number;
+              end?: number;
+              batch?: Array<{ start?: number; end?: number }>;
+            }
+          | undefined;
 
-      // Extract start/end percentages — always available for slider events
-      let startPct: number, endPct: number;
+        // Extract start/end percentages — always available for slider events
+        let startPct: number, endPct: number;
 
-      if (p?.batch && p.batch.length > 0) {
-        const batchItem = p.batch[p.batch.length - 1];
-        if (batchItem?.start === undefined || batchItem?.end === undefined)
-          return;
-        startPct = batchItem.start;
-        endPct = batchItem.end;
-      } else if (p?.start !== undefined && p?.end !== undefined) {
-        startPct = p.start;
-        endPct = p.end;
-      } else return;
+        if (p?.batch && p.batch.length > 0) {
+          const batchItem = p.batch[p.batch.length - 1];
+          if (batchItem?.start === undefined || batchItem?.end === undefined)
+            return;
+          startPct = batchItem.start;
+          endPct = batchItem.end;
+        } else if (p?.start !== undefined && p?.end !== undefined) {
+          startPct = p.start;
+          endPct = p.end;
+        } else return;
 
-      const fullStartTime = new Date(weights[0]?.date ?? "").getTime();
-      const fullEndTime = new Date(weights.at(-1)?.date ?? "").getTime();
-      const { endDate, dataDays } = zoomParamsFromSlider(
-        startPct,
-        endPct,
-        fullStartTime,
-        fullEndTime,
-      );
-      updateSettings({ endDate, dataDays });
-    });
+        const fullStartTime = new Date(weights[0]?.date ?? "").getTime();
+        const fullEndTime = new Date(weights.at(-1)?.date ?? "").getTime();
+        const { endDate, dataDays } = zoomParamsFromSlider(
+          startPct,
+          endPct,
+          fullStartTime,
+          fullEndTime,
+        );
+        updateSettings({ endDate, dataDays });
+      });
+    }
   });
 
   createEffect(() => {
@@ -308,6 +317,7 @@ export default function Chart() {
       currentSettings.endDate,
       currentSettings.dataDays,
       darkMode,
+      props.hideDataZoom ?? false,
     );
     chart.setOption(option);
 

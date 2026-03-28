@@ -15,7 +15,7 @@ import Layout from "../layouts/Layout.astro";
       <WeightChange days={Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000)} label="Year to Date" client:load />
     </div>
     <div class="h-[500px]">
-      <Chart client:only="solid-js" />
+      <Chart client:only="solid-js" hideDataZoom={true} />
     </div>
   </div>
 </Layout>
