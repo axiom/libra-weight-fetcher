@@ -34,6 +34,6 @@ jobs:
       run: |
         git config --local user.name "github-actions[bot]"
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git add weights.db weights.json
+        git add weights.db src/weights.json
         git commit -m "Add new weight data" || echo "No changes to commit"
         git push
