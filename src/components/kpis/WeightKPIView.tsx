@@ -27,7 +27,7 @@ interface Props {
 export default function WeightKPIView(props: Props) {
   return (
     <div
-      class={`rounded-2xl p-4 bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-orange-100/80 to-amber-100/80 dark:from-orange-900/30 dark:to-amber-900/30 ${props.class ?? ""}`}
+      class={`relative overflow-hidden rounded-2xl p-4 bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-orange-100/80 to-amber-100/80 dark:from-orange-900/30 dark:to-amber-900/30 ${props.class ?? ""}`}
     >
       <div class="flex items-start justify-between gap-3 mb-2">
         <div class="text-sm text-gray-600 dark:text-gray-300">
@@ -48,7 +48,7 @@ export default function WeightKPIView(props: Props) {
         </div>
       </div>
 
-      <div class="text-5xl font-semibold text-gray-900 dark:text-gray-100 leading-tight">
+      <div class="text-5xl font-semibold text-gray-900 dark:text-gray-100 leading-tight relative z-10">
         {props.slots?.value ? (
           props.slots.value({
             value: props.value,
@@ -56,13 +56,11 @@ export default function WeightKPIView(props: Props) {
             icon: props.icon,
           })
         ) : (
-          <span class={props.valueClassName}>
-            {props.slots?.icon
-              ? props.slots.icon({ icon: props.icon })
-              : props.icon}{" "}
-            {props.value}
-          </span>
+          <span class={props.valueClassName}>{props.value}</span>
         )}
+      </div>
+      <div class="absolute -bottom-4 -right-4 text-9xl opacity-15 select-none pointer-events-none leading-none">
+        {props.icon}
       </div>
 
       {props.slots?.meta ? (
