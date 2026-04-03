@@ -15,14 +15,18 @@ interface Props {
   class?: string;
 }
 
-function BadText(props: { children: any }) {
+function BadValue(props: { children: any }) {
   return <span class="text-red-500 dark:text-red-400">{props.children}</span>;
 }
 
-function GoodText(props: { children: any }) {
+function GoodValue(props: { children: any }) {
   return (
     <span class="text-green-600 dark:text-green-400">{props.children}</span>
   );
+}
+
+function NeutralValue(props: { children: any }) {
+  return <span class="text-gray-900 dark:text-gray-100">{props.children}</span>;
 }
 
 export default function WeightKPIView(props: Props) {
@@ -47,11 +51,11 @@ export default function WeightKPIView(props: Props) {
 
       <div class="text-5xl font-semibold leading-tight relative z-10 whitespace-nowrap">
         {props.sentiment === "bad" ? (
-          <BadText>{props.value}</BadText>
+          <BadValue>{props.value}</BadValue>
         ) : props.sentiment === "good" ? (
-          <GoodText>{props.value}</GoodText>
+          <GoodValue>{props.value}</GoodValue>
         ) : (
-          <span class="text-gray-900 dark:text-gray-100">{props.value}</span>
+          <NeutralValue>{props.value}</NeutralValue>
         )}
       </div>
       <div class="absolute -bottom-4 -right-4 text-9xl opacity-15 select-none pointer-events-none leading-none">
