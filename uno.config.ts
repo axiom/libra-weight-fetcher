@@ -1,12 +1,5 @@
-import { defineConfig, presetUno } from "unocss";
+import { defineConfig, presetWind4 } from "unocss";
 
 export default defineConfig({
-  presets: [presetUno({ dark: "media" })],
-  theme: {
-    colors: {
-      brand: {
-        orange: "#ff8b00",
-      },
-    },
-  },
+  presets: [presetWind4()],
 });

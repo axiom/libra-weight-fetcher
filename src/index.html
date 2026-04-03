@@ -1,72 +1,38 @@
----
-import { ClientRouter } from "astro:transitions";
-import Navigation from "../components/Navigation.astro";
-
-interface Props {
-  title?: string;
-}
-
-const { title = "Scale Wars: The Return of the Flab 🐼🐷" } = Astro.props;
----
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐖</text></svg>" />
-
-    <title>{title}</title>
-
+    <title>Scale Wars: The Return of the Flab 🐼🐷</title>
     <meta name="title" content="Scale Wars: The Return of the Flab" />
     <meta name="description" content="A saga where the scale strikes back and I attempt to tip the balance in my favor." />
-
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://vikt.skev.se/" />
     <meta property="og:title" content="Scale Wars: The Return of the Flab" />
     <meta property="og:description" content="A saga where the scale strikes back and I attempt to tip the balance in my favor." />
     <meta property="og:image" content="https://vikt.skev.se/socially-fat.png" />
-
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://vikt.skev.se/" />
     <meta property="twitter:title" content="Scale Wars: The Return of the Flab" />
     <meta property="twitter:description" content="A saga where the scale strikes back and I attempt to tip the balance in my favor." />
     <meta property="twitter:image" content="https://vikt.skev.se/socially-fat.png" />
-
-    <ClientRouter />
+    <script>
+      // Apply dark class based on system preference for Wind4 class-based dark mode
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+      }
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        if (e.matches) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      });
+    </script>
   </head>
-
   <body>
-    <Navigation />
-    <slot />
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
-
-<style is:global>
-  :root {
-    --bg-color: #ffffff;
-    --text-color: #333333;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg-color: #1a1a1a;
-      --text-color: #e0e0e0;
-    }
-  }
-
-  html {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 18px;
-    background: var(--bg-color);
-    color: var(--text-color);
-  }
-
-  body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-</style>

@@ -1,18 +1,13 @@
 import { resolve } from "node:path";
+import UnoCSS from "@unocss/vite";
 import { defineConfig } from "vite";
+import solidPlugin from "vite-plugin-solid";
 
 export default defineConfig({
+  plugins: [solidPlugin(), UnoCSS()],
   root: "src",
-  base: "./",
-  publicDir: "../public",
   build: {
     outDir: "../dist",
     emptyOutDir: true,
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, "src/index.html"),
-        calendar: resolve(__dirname, "src/calendar.html"),
-      },
-    },
   },
 });

@@ -2,22 +2,25 @@
   "name": "libra-weight-fetcher",
   "private": true,
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "fetch": "bun run bin/fetch-weights.ts",
     "write-json": "bun run bin/write-json.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@astrojs/solid-js": "^6.0.1",
+    "@solidjs/router": "^0.16.1",
     "@solidjs/testing-library": "^0.8.10",
     "@types/bun": "^1.3.11",
     "@unocss/astro": "^66.6.7",
-    "astro": "^6.1.3",
+    "@unocss/preset-mini": "^66.6.7",
+    "@unocss/preset-wind4": "^66.6.7",
+    "@unocss/vite": "^66.6.7",
     "jsdom": "^29.0.1",
     "unocss": "^66.6.7",
-    "vite": "^7.3.1",
+    "vite": "^8.0.3",
     "vite-plugin-solid": "^2.11.11",
     "vitest": "^4.1.2"
   },
