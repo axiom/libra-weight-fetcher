@@ -1,23 +1,9 @@
-import type { JSX } from "solid-js";
-
 export interface KPIBadge {
   text: string;
   className: string;
 }
 
 export type KPISentiment = "good" | "bad" | "neutral";
-
-export interface KPIViewSlots {
-  icon?: (args: { icon: string }) => JSX.Element;
-  label?: (args: { label: string }) => JSX.Element;
-  value?: (args: {
-    value: string;
-    sentiment: KPISentiment;
-    icon: string;
-  }) => JSX.Element;
-  badge?: (args: { badge: KPIBadge | null }) => JSX.Element;
-  meta?: (args: { meta: string | null }) => JSX.Element;
-}
 
 interface Props {
   label: string;
@@ -26,12 +12,17 @@ interface Props {
   sentiment?: KPISentiment;
   badge: KPIBadge | null;
   meta: string | null;
-  slots?: KPIViewSlots;
   class?: string;
 }
 
-function BadText({ children }) {
-  return <span class="text-red-500">{children}</span>;
+function BadText(props: { children: any }) {
+  return <span class="text-red-500 dark:text-red-400">{props.children}</span>;
+}
+
+function GoodText(props: { children: any }) {
+  return (
+    <span class="text-green-600 dark:text-green-400">{props.children}</span>
+  );
 }
 
 export default function WeightKPIView(props: Props) {
@@ -41,14 +32,10 @@ export default function WeightKPIView(props: Props) {
     >
       <div class="flex items-start justify-between gap-3 mb-2">
         <div class="text-sm text-gray-600 dark:text-gray-300">
-          {props.slots?.label
-            ? props.slots.label({ label: props.label })
-            : props.label}
+          {props.label}
         </div>
         <div>
-          {props.slots?.badge ? (
-            props.slots.badge({ badge: props.badge })
-          ) : props.badge ? (
+          {props.badge ? (
             <span
               class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${props.badge.className}`}
             >
@@ -58,39 +45,20 @@ export default function WeightKPIView(props: Props) {
         </div>
       </div>
 
-      <div class="text-5xl font-semibold text-gray-900 dark:text-gray-100 leading-tight relative z-10 whitespace-nowrap">
-        {
-          props.slots?.value ? (
-            props.slots.value({
-              value: props.value,
-              sentiment: props.sentiment ?? "neutral",
-              icon: props.icon,
-            })
-          ) : props.sentiment === "bad" ? (
-            <BadText>{props.value}</BadText>
-          ) : (
-            <span>{props.value}</span>
-          )
-          // <span
-          //   class={
-          //     props.sentiment === "bad"
-          //       ? "text-red-500 dark:text-red-400"
-          //       : props.sentiment === "good"
-          //         ? "text-green-600 dark:text-green-400"
-          //         : "text-gray-900 dark:text-gray-100"
-          //   }
-          // >
-          //   {props.value}
-          // </span>
-        }
+      <div class="text-5xl font-semibold leading-tight relative z-10 whitespace-nowrap">
+        {props.sentiment === "bad" ? (
+          <BadText>{props.value}</BadText>
+        ) : props.sentiment === "good" ? (
+          <GoodText>{props.value}</GoodText>
+        ) : (
+          <span class="text-gray-900 dark:text-gray-100">{props.value}</span>
+        )}
       </div>
       <div class="absolute -bottom-4 -right-4 text-9xl opacity-15 select-none pointer-events-none leading-none">
         {props.icon}
       </div>
 
-      {props.slots?.meta ? (
-        <div class="mt-2">{props.slots.meta({ meta: props.meta })}</div>
-      ) : props.meta ? (
+      {props.meta ? (
         <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
           {props.meta}
         </div>

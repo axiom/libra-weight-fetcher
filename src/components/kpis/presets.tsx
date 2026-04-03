@@ -1,10 +1,7 @@
 import { createMemo } from "solid-js";
 import type { WeightEntry } from "../../shared";
 import { useWeightData } from "../../stores/weightData";
-import WeightKPIView, {
-  type KPIBadge,
-  type KPIViewSlots,
-} from "./WeightKPIView";
+import WeightKPIView, { type KPIBadge } from "./WeightKPIView";
 import {
   computeAverageWeight,
   computeCurrentWeight,
@@ -28,7 +25,6 @@ function formatDate(dateStr: string): string {
 interface BaseProps {
   weights?: WeightEntry[];
   class?: string;
-  slots?: KPIViewSlots;
 }
 
 interface WindowProps extends BaseProps {
@@ -56,7 +52,6 @@ export function CurrentWeightKPI(props: LabelProps) {
       badge={null}
       meta={null}
       class={props.class}
-      slots={props.slots}
     />
   );
 }
@@ -85,7 +80,6 @@ export function CurrentLossStreakKPI(props: LabelProps) {
       badge={badge()}
       meta={null}
       class={props.class}
-      slots={props.slots}
     />
   );
 }
@@ -114,7 +108,6 @@ export function CurrentGainStreakKPI(props: LabelProps) {
       badge={badge()}
       meta={null}
       class={props.class}
-      slots={props.slots}
     />
   );
 }
@@ -149,7 +142,6 @@ export function LongestLossStreakKPI(props: LabelProps) {
       badge={badge()}
       meta={null}
       class={props.class}
-      slots={props.slots}
     />
   );
 }
@@ -184,7 +176,6 @@ export function LongestGainStreakKPI(props: LabelProps) {
       badge={badge()}
       meta={null}
       class={props.class}
-      slots={props.slots}
     />
   );
 }
@@ -205,7 +196,6 @@ export function AverageWeightKPI(props: WindowProps) {
       badge={null}
       meta={`${props.days}-day window`}
       class={props.class}
-      slots={props.slots}
     />
   );
 }
@@ -260,7 +250,6 @@ export function WeightChangeKPI(props: WindowProps) {
       badge={badge()}
       meta={`${props.days}-day window`}
       class={props.class}
-      slots={props.slots}
     />
   );
 }
@@ -280,7 +269,6 @@ export function YearToDateChangeKPI(props: LabelProps) {
       label={props.label ?? "Year to Date"}
       weights={props.weights}
       class={props.class}
-      slots={props.slots}
     />
   );
 }
@@ -301,7 +289,6 @@ export function WeightRangeKPI(props: WindowProps) {
       badge={null}
       meta={`${props.days}-day window`}
       class={props.class}
-      slots={props.slots}
     />
   );
 }
@@ -328,7 +315,6 @@ export function LowestWeightKPI(props: LabelProps) {
       badge={null}
       meta={null}
       class={props.class}
-      slots={props.slots}
     />
   );
 }
@@ -356,7 +342,6 @@ export function HighestWeightKPI(props: LabelProps) {
       badge={null}
       meta={null}
       class={props.class}
-      slots={props.slots}
     />
   );
 }
