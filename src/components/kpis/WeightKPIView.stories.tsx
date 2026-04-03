@@ -4,6 +4,13 @@ import WeightKPIView from "./WeightKPIView";
 const meta: Meta<typeof WeightKPIView> = {
   component: WeightKPIView,
   tags: ["autodocs"],
+  decorators: [
+    (Story) => (
+      <div style="width: min(33ch, 100%);">
+        <Story />
+      </div>
+    ),
+  ],
 };
 
 export default meta;

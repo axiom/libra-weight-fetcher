@@ -1,4 +1,5 @@
 import type { StorybookConfig } from "storybook-solidjs-vite";
+import UnoCSS from "unocss/vite";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
@@ -8,6 +9,7 @@ const config: StorybookConfig = {
     options: {},
   },
   viteFinal: async (config) => {
+    config.plugins = [...(config.plugins ?? []), UnoCSS()];
     return config;
   },
 };
