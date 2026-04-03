@@ -9,48 +9,25 @@ import {
 } from "../chartUtils";
 import { targetWeightConfig } from "../config";
 import type { WeightEntry } from "../shared";
-import { createSmootherByType } from "../smootherRegistry";
-import { composeSmoothers } from "../smoothing";
-import {
-  FALLBACK_SMOOTHER,
-  type SmoothingOptions,
-  type SmoothingType,
-  settings,
-  updateSettings,
-} from "../stores/settings";
-import rawWeights from "../weights.json";
+import { settings, updateSettings } from "../stores/settings";
+import { useWeightData } from "../stores/weightData";
 
-const weights = rawWeights satisfies WeightEntry[];
-
-const getLatestWeightDate = (): string => {
-  const last = weights.at(-1);
-  if (last === undefined) return new Date().toISOString().split("T")[0] ?? "";
-  return last.date;
-};
-
+// Transforms already-smoothed WeightEntry[] into chart tuples.
+// Smoothing is handled by the weightData store.
 const prepareChartData = (
   w: WeightEntry[],
-  smootherChain: SmoothingType[],
-  smoothingOptions: SmoothingOptions,
-): [string, number, number, boolean][] => {
-  const chain = smootherChain.length > 0 ? smootherChain : [FALLBACK_SMOOTHER];
-  const smoother = composeSmoothers(
-    ...chain.map((type) => createSmootherByType(type, smoothingOptions)),
-  );
-  const smoothedWeights = smoother(w.map((entry) => entry.weight));
-  return w.map((entry, i) => {
-    const smoothed = smoothedWeights[i];
-    return [
-      entry.date,
-      entry.weight,
-      smoothed ?? entry.weight,
-      entry.weight < (smoothed ?? entry.weight),
-    ];
-  });
-};
+): [string, number, number, boolean][] =>
+  w.map((entry) => [
+    entry.date,
+    entry.weight,
+    entry.trend,
+    entry.weight < entry.trend,
+  ]);
 
 const buildChartOptions = (
   data: [string, number, number, boolean][],
+  firstDate: string,
+  latestDate: string,
   endDate: string | null,
   dataDays: number,
   darkMode: boolean,
@@ -63,14 +40,14 @@ const buildChartOptions = (
   ]);
 
   // Always use the actual latest weight date for target line and percentage calculations
-  const actualLatestDate = getLatestWeightDate();
+  const actualLatestDate = latestDate;
   const zoomEndDate = endDate || actualLatestDate;
   const now = new Date(zoomEndDate);
   now.setHours(6, 0, 0, 0);
 
   const zoomStart = getZoomStart(zoomEndDate, dataDays);
 
-  const firstWeightTime = new Date(weights[0]?.date ?? "").getTime();
+  const firstWeightTime = new Date(firstDate).getTime();
   const lastWeightTime = new Date(actualLatestDate).getTime();
   const { startPercent, endPercent } = zoomPercentsFromSettings(
     endDate,
@@ -228,6 +205,7 @@ type Props = {
 export default function Chart(props: Props) {
   let chartContainer: HTMLDivElement | undefined;
   let chart: echarts.ECharts | undefined;
+  const weightData = useWeightData();
 
   const getDarkMode = () => {
     return (
@@ -240,16 +218,18 @@ export default function Chart(props: Props) {
 
     const darkMode = getDarkMode();
     const currentSettings = settings();
+    const w = weightData();
 
     chart = echarts.init(chartContainer, darkMode ? "dark" : "light");
 
-    const data = prepareChartData(
-      weights,
-      currentSettings.smoothing,
-      currentSettings.smoothingOptions,
-    );
+    const data = prepareChartData(w);
+    const firstDate = w[0]?.date ?? "";
+    const latestDate =
+      w.at(-1)?.date ?? new Date().toISOString().split("T")[0] ?? "";
     const option = buildChartOptions(
       data,
+      firstDate,
+      latestDate,
       currentSettings.endDate,
       currentSettings.dataDays,
       darkMode,
@@ -289,8 +269,9 @@ export default function Chart(props: Props) {
           endPct = p.end;
         } else return;
 
-        const fullStartTime = new Date(weights[0]?.date ?? "").getTime();
-        const fullEndTime = new Date(weights.at(-1)?.date ?? "").getTime();
+        const allEntries = weightData();
+        const fullStartTime = new Date(allEntries[0]?.date ?? "").getTime();
+        const fullEndTime = new Date(allEntries.at(-1)?.date ?? "").getTime();
         const { endDate, dataDays } = zoomParamsFromSlider(
           startPct,
           endPct,
@@ -304,16 +285,18 @@ export default function Chart(props: Props) {
 
   createEffect(() => {
     const currentSettings = settings();
+    const w = weightData();
     if (!chart) return;
 
     const darkMode = getDarkMode();
-    const data = prepareChartData(
-      weights,
-      currentSettings.smoothing,
-      currentSettings.smoothingOptions,
-    );
+    const data = prepareChartData(w);
+    const firstDate = w[0]?.date ?? "";
+    const latestDate =
+      w.at(-1)?.date ?? new Date().toISOString().split("T")[0] ?? "";
     const option = buildChartOptions(
       data,
+      firstDate,
+      latestDate,
       currentSettings.endDate,
       currentSettings.dataDays,
       darkMode,

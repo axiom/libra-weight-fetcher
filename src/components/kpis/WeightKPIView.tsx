@@ -1,5 +1,9 @@
 import type { JSX } from "solid-js";
-import type { KPIBadge } from "./weightKpi.presenter";
+
+export interface KPIBadge {
+  text: string;
+  className: string;
+}
 
 export interface KPIViewSlots {
   icon?: (args: { icon: string }) => JSX.Element;

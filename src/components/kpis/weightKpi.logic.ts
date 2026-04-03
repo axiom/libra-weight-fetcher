@@ -1,17 +1,5 @@
 import type { WeightEntry } from "../../shared";
 
-export type KPIType =
-  | "change"
-  | "current"
-  | "lossStreak"
-  | "longestLossStreak"
-  | "gainStreak"
-  | "longestGainStreak"
-  | "range"
-  | "min"
-  | "max"
-  | "average";
-
 export interface StreakResult {
   days: number;
   endDate: string;
@@ -21,21 +9,6 @@ export interface ValueAtDate {
   value: number;
   date: string;
 }
-
-export type KPIResultMap = {
-  change: number | null;
-  current: number | null;
-  lossStreak: number;
-  longestLossStreak: StreakResult | null;
-  gainStreak: number;
-  longestGainStreak: StreakResult | null;
-  range: number | null;
-  min: ValueAtDate | null;
-  max: ValueAtDate | null;
-  average: number | null;
-};
-
-export type KPIResult = KPIResultMap[KPIType];
 
 const DAY_MS = 86_400_000;
 
@@ -49,20 +22,6 @@ function getWeightsInPeriod(
   cutoff.setDate(cutoff.getDate() - days);
 
   return entries.filter((entry) => new Date(entry.date) >= cutoff);
-}
-
-function findMaxEntry(entries: WeightEntry[]): WeightEntry | null {
-  if (entries.length === 0) return null;
-  return entries.reduce((max, entry) =>
-    entry.trend > max.trend ? entry : max,
-  );
-}
-
-function findMinEntry(entries: WeightEntry[]): WeightEntry | null {
-  if (entries.length === 0) return null;
-  return entries.reduce((min, entry) =>
-    entry.trend < min.trend ? entry : min,
-  );
 }
 
 function getCurrentStreak(entries: WeightEntry[], isLoss: boolean): number {
@@ -134,59 +93,79 @@ function getLongestStreak(
   return longest > 0 ? { days: longest, endDate: longestEndDate } : null;
 }
 
-export function computeKPI<T extends KPIType>(args: {
-  type: T;
-  weights: WeightEntry[];
-  days?: number;
-}): KPIResultMap[T] {
-  const sortedWeights = args.weights;
+export function computeCurrentWeight(entries: WeightEntry[]): number | null {
+  if (entries.length === 0) return null;
+  return entries[entries.length - 1].trend;
+}
 
-  switch (args.type) {
-    case "current": {
-      if (sortedWeights.length === 0) return null as KPIResultMap[T];
-      return sortedWeights[sortedWeights.length - 1].trend as KPIResultMap[T];
-    }
-    case "lossStreak":
-      return getCurrentStreak(sortedWeights, true) as KPIResultMap[T];
-    case "longestLossStreak":
-      return getLongestStreak(sortedWeights, true) as KPIResultMap[T];
-    case "gainStreak":
-      return getCurrentStreak(sortedWeights, false) as KPIResultMap[T];
-    case "longestGainStreak":
-      return getLongestStreak(sortedWeights, false) as KPIResultMap[T];
-    case "range": {
-      const periodWeights = getWeightsInPeriod(sortedWeights, args.days);
-      if (periodWeights.length < 2) return null as KPIResultMap[T];
-      const min = Math.min(...periodWeights.map((entry) => entry.trend));
-      const max = Math.max(...periodWeights.map((entry) => entry.trend));
-      return (max - min) as KPIResultMap[T];
-    }
-    case "min": {
-      const periodWeights = getWeightsInPeriod(sortedWeights, args.days);
-      const entry = findMinEntry(periodWeights);
-      if (!entry) return null as KPIResultMap[T];
-      return { value: entry.trend, date: entry.date } as KPIResultMap[T];
-    }
-    case "max": {
-      const periodWeights = getWeightsInPeriod(sortedWeights, args.days);
-      const entry = findMaxEntry(periodWeights);
-      if (!entry) return null as KPIResultMap[T];
-      return { value: entry.trend, date: entry.date } as KPIResultMap[T];
-    }
-    case "average": {
-      const periodWeights = getWeightsInPeriod(sortedWeights, args.days);
-      if (periodWeights.length === 0) return null as KPIResultMap[T];
-      const sum = periodWeights.reduce((acc, entry) => acc + entry.trend, 0);
-      return (sum / periodWeights.length) as KPIResultMap[T];
-    }
-    case "change": {
-      const periodWeights = getWeightsInPeriod(sortedWeights, args.days);
-      if (periodWeights.length < 2) return null as KPIResultMap[T];
-      const oldest = periodWeights[0];
-      const latest = periodWeights[periodWeights.length - 1];
-      return (latest.trend - oldest.trend) as KPIResultMap[T];
-    }
-    default:
-      return null as KPIResultMap[T];
-  }
+export function computeLossStreak(entries: WeightEntry[]): number {
+  return getCurrentStreak(entries, true);
+}
+
+export function computeGainStreak(entries: WeightEntry[]): number {
+  return getCurrentStreak(entries, false);
+}
+
+export function computeLongestLossStreak(
+  entries: WeightEntry[],
+): StreakResult | null {
+  return getLongestStreak(entries, true);
+}
+
+export function computeLongestGainStreak(
+  entries: WeightEntry[],
+): StreakResult | null {
+  return getLongestStreak(entries, false);
+}
+
+export function computeWeightChange(
+  entries: WeightEntry[],
+  days?: number,
+): number | null {
+  const period = getWeightsInPeriod(entries, days);
+  if (period.length < 2) return null;
+  const oldest = period[0];
+  const latest = period[period.length - 1];
+  return latest.trend - oldest.trend;
+}
+
+export function computeAverageWeight(
+  entries: WeightEntry[],
+  days?: number,
+): number | null {
+  const period = getWeightsInPeriod(entries, days);
+  if (period.length === 0) return null;
+  const sum = period.reduce((acc, entry) => acc + entry.trend, 0);
+  return sum / period.length;
+}
+
+export function computeWeightRange(
+  entries: WeightEntry[],
+  days?: number,
+): number | null {
+  const period = getWeightsInPeriod(entries, days);
+  if (period.length < 2) return null;
+  const min = Math.min(...period.map((e) => e.trend));
+  const max = Math.max(...period.map((e) => e.trend));
+  return max - min;
+}
+
+export function computeMinWeight(
+  entries: WeightEntry[],
+  days?: number,
+): ValueAtDate | null {
+  const period = getWeightsInPeriod(entries, days);
+  if (period.length === 0) return null;
+  const entry = period.reduce((min, e) => (e.trend < min.trend ? e : min));
+  return { value: entry.trend, date: entry.date };
+}
+
+export function computeMaxWeight(
+  entries: WeightEntry[],
+  days?: number,
+): ValueAtDate | null {
+  const period = getWeightsInPeriod(entries, days);
+  if (period.length === 0) return null;
+  const entry = period.reduce((max, e) => (e.trend > max.trend ? e : max));
+  return { value: entry.trend, date: entry.date };
 }

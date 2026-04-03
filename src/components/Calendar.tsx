@@ -1,9 +1,7 @@
 import * as echarts from "echarts";
 import { onMount } from "solid-js";
 import type { WeightEntry } from "../shared";
-import rawWeights from "../weights.json";
-
-const weights = rawWeights satisfies WeightEntry[];
+import { useWeightData } from "../stores/weightData";
 
 const computeMaxDiff = (w: WeightEntry[]): number => {
   let maxDiff = 0;
@@ -34,14 +32,17 @@ export default function Calendar() {
     );
   };
 
+  const weightData = useWeightData();
+
   onMount(() => {
     if (!chartContainer) return;
 
     const darkMode = getDarkMode();
-    const maxDiff = computeMaxDiff(weights);
-    const years = extractRecentYears(weights, 5);
+    const entries = weightData();
+    const maxDiff = computeMaxDiff(entries);
+    const years = extractRecentYears(entries, 5);
 
-    const data: [string, number, number, number][] = weights.map((w) => [
+    const data: [string, number, number, number][] = entries.map((w) => [
       w.date,
       w.weight,
       w.trend,
