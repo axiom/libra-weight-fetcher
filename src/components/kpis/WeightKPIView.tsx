@@ -1,3 +1,5 @@
+import type { ParentProps } from "solid-js";
+
 export interface KPIBadge {
   text: string;
   className: string;
@@ -15,17 +17,17 @@ interface Props {
   class?: string;
 }
 
-function BadValue(props: { children: any }) {
+function BadValue(props: ParentProps) {
   return <span class="text-red-500 dark:text-red-400">{props.children}</span>;
 }
 
-function GoodValue(props: { children: any }) {
+function GoodValue(props: ParentProps) {
   return (
     <span class="text-green-600 dark:text-green-400">{props.children}</span>
   );
 }
 
-function NeutralValue(props: { children: any }) {
+function NeutralValue(props: ParentProps) {
   return <span class="text-gray-900 dark:text-gray-100">{props.children}</span>;
 }
 
