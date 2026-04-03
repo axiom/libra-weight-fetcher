@@ -52,7 +52,6 @@ export function CurrentWeightKPI(props: LabelProps) {
     <WeightKPIView
       label={props.label ?? "Current Weight"}
       value={value() !== null ? `${value()!.toFixed(1)} kg` : "N/A"}
-      valueClassName="text-gray-900 dark:text-gray-100"
       icon={value() !== null ? "⚖️" : "➖"}
       badge={null}
       meta={null}
@@ -81,7 +80,7 @@ export function CurrentLossStreakKPI(props: LabelProps) {
     <WeightKPIView
       label={props.label ?? "Current Loss Streak"}
       value={`${days()} days`}
-      valueClassName={days() > 0 ? "text-green-600" : "text-gray-500"}
+      sentiment={days() <= 0 ? "bad" : "good"}
       icon={days() > 0 ? "📉" : "➖"}
       badge={badge()}
       meta={null}
@@ -110,7 +109,7 @@ export function CurrentGainStreakKPI(props: LabelProps) {
     <WeightKPIView
       label={props.label ?? "Current Gain Streak"}
       value={`${days()} days`}
-      valueClassName={days() > 0 ? "text-red-500" : "text-gray-500"}
+      sentiment={days() > 0 ? "bad" : "neutral"}
       icon={days() > 0 ? "📈" : "➖"}
       badge={badge()}
       meta={null}
@@ -145,9 +144,7 @@ export function LongestLossStreakKPI(props: LabelProps) {
     <WeightKPIView
       label={label()}
       value={streak() ? `${streak()!.days} days` : "N/A"}
-      valueClassName={
-        streak() && streak()!.days > 0 ? "text-green-600" : "text-gray-500"
-      }
+      sentiment={!(streak() && streak()!.days > 0) ? "bad" : "good"}
       icon="🏆"
       badge={badge()}
       meta={null}
@@ -182,9 +179,7 @@ export function LongestGainStreakKPI(props: LabelProps) {
     <WeightKPIView
       label={label()}
       value={streak() ? `${streak()!.days} days` : "N/A"}
-      valueClassName={
-        streak() && streak()!.days > 0 ? "text-red-500" : "text-gray-500"
-      }
+      sentiment={streak() && streak()!.days > 0 ? "bad" : "neutral"}
       icon="😬"
       badge={badge()}
       meta={null}
@@ -206,7 +201,6 @@ export function AverageWeightKPI(props: WindowProps) {
     <WeightKPIView
       label={props.label}
       value={value() !== null ? `${value()!.toFixed(1)} kg` : "N/A"}
-      valueClassName="text-gray-900 dark:text-gray-100"
       icon="📊"
       badge={null}
       meta={`${props.days}-day window`}
@@ -241,12 +235,12 @@ export function WeightChangeKPI(props: WindowProps) {
     return `${prefix}${v.toFixed(1)} kg`;
   });
 
-  const valueClassName = createMemo(() => {
+  const sentiment = createMemo((): "good" | "bad" | "neutral" => {
     const v = value();
-    if (v === null) return "text-gray-400";
-    if (v < 0) return "text-green-600";
-    if (v > 0) return "text-red-500";
-    return "text-gray-500";
+    if (v === null) return "neutral";
+    if (v < 0) return "good";
+    if (v > 0) return "bad";
+    return "neutral";
   });
 
   const icon = createMemo(() => {
@@ -261,7 +255,7 @@ export function WeightChangeKPI(props: WindowProps) {
     <WeightKPIView
       label={props.label}
       value={formatted()}
-      valueClassName={valueClassName()}
+      sentiment={sentiment()}
       icon={icon()}
       badge={badge()}
       meta={`${props.days}-day window`}
@@ -303,7 +297,6 @@ export function WeightRangeKPI(props: WindowProps) {
     <WeightKPIView
       label={props.label}
       value={value() !== null ? `${value()!.toFixed(1)} kg` : "N/A"}
-      valueClassName="text-gray-700 dark:text-gray-300"
       icon="↔️"
       badge={null}
       meta={`${props.days}-day window`}
@@ -331,7 +324,6 @@ export function LowestWeightKPI(props: LabelProps) {
     <WeightKPIView
       label={label()}
       value={result() ? `${result()!.value.toFixed(1)} kg` : "N/A"}
-      valueClassName="text-green-600"
       icon="⬇️"
       badge={null}
       meta={null}
@@ -359,7 +351,7 @@ export function HighestWeightKPI(props: LabelProps) {
     <WeightKPIView
       label={label()}
       value={result() ? `${result()!.value.toFixed(1)} kg` : "N/A"}
-      valueClassName="text-red-500"
+      sentiment={result() ? "bad" : "neutral"}
       icon="⬆️"
       badge={null}
       meta={null}

@@ -5,12 +5,14 @@ export interface KPIBadge {
   className: string;
 }
 
+export type KPISentiment = "good" | "bad" | "neutral";
+
 export interface KPIViewSlots {
   icon?: (args: { icon: string }) => JSX.Element;
   label?: (args: { label: string }) => JSX.Element;
   value?: (args: {
     value: string;
-    valueClassName: string;
+    sentiment: KPISentiment;
     icon: string;
   }) => JSX.Element;
   badge?: (args: { badge: KPIBadge | null }) => JSX.Element;
@@ -21,11 +23,15 @@ interface Props {
   label: string;
   value: string;
   icon: string;
-  valueClassName: string;
+  sentiment?: KPISentiment;
   badge: KPIBadge | null;
   meta: string | null;
   slots?: KPIViewSlots;
   class?: string;
+}
+
+function BadText({ children }) {
+  return <span class="text-red-500">{children}</span>;
 }
 
 export default function WeightKPIView(props: Props) {
@@ -53,15 +59,30 @@ export default function WeightKPIView(props: Props) {
       </div>
 
       <div class="text-5xl font-semibold text-gray-900 dark:text-gray-100 leading-tight relative z-10 whitespace-nowrap">
-        {props.slots?.value ? (
-          props.slots.value({
-            value: props.value,
-            valueClassName: props.valueClassName,
-            icon: props.icon,
-          })
-        ) : (
-          <span class={props.valueClassName}>{props.value}</span>
-        )}
+        {
+          props.slots?.value ? (
+            props.slots.value({
+              value: props.value,
+              sentiment: props.sentiment ?? "neutral",
+              icon: props.icon,
+            })
+          ) : props.sentiment === "bad" ? (
+            <BadText>{props.value}</BadText>
+          ) : (
+            <span>{props.value}</span>
+          )
+          // <span
+          //   class={
+          //     props.sentiment === "bad"
+          //       ? "text-red-500 dark:text-red-400"
+          //       : props.sentiment === "good"
+          //         ? "text-green-600 dark:text-green-400"
+          //         : "text-gray-900 dark:text-gray-100"
+          //   }
+          // >
+          //   {props.value}
+          // </span>
+        }
       </div>
       <div class="absolute -bottom-4 -right-4 text-9xl opacity-15 select-none pointer-events-none leading-none">
         {props.icon}

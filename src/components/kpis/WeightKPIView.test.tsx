@@ -9,7 +9,6 @@ describe("WeightKPIView", () => {
         label="Current Weight"
         value="85.5 kg"
         icon="⚖️"
-        valueClassName="text-gray-900"
         badge={null}
         meta={null}
       />
@@ -24,7 +23,6 @@ describe("WeightKPIView", () => {
         label="Current Weight"
         value="85.5 kg"
         icon="⚖️"
-        valueClassName="text-gray-900"
         badge={null}
         meta={null}
       />
@@ -39,7 +37,7 @@ describe("WeightKPIView", () => {
         label="Weight Change"
         value="-2.5 kg"
         icon="📉"
-        valueClassName="text-green-600"
+        sentiment="neutral"
         badge={{ text: "Cutting", className: "text-green-700 bg-green-100" }}
         meta="30-day window"
       />
@@ -54,7 +52,7 @@ describe("WeightKPIView", () => {
         label="Weight Change"
         value="-2.5 kg"
         icon="📉"
-        valueClassName="text-green-600"
+        sentiment="neutral"
         badge={null}
         meta="30-day window"
       />
@@ -69,7 +67,6 @@ describe("WeightKPIView", () => {
         label="Current Weight"
         value="85.5 kg"
         icon="⚖️"
-        valueClassName="text-gray-900"
         badge={null}
         meta={null}
       />
@@ -84,7 +81,6 @@ describe("WeightKPIView", () => {
         label="Current Weight"
         value="85.5 kg"
         icon="⚖️"
-        valueClassName="text-gray-900"
         badge={null}
         meta={null}
       />
