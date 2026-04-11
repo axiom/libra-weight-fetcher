@@ -6,6 +6,7 @@ import { zoomParamsFromSlider } from "../chartUtils";
 import { targetWeightConfig } from "../config";
 import { settings, updateSettings } from "../stores/settings";
 import { useWeightData } from "../stores/weightData";
+import { getDarkMode, updateTrend } from "../shared";
 
 type Props = {
   hideDataZoom?: boolean;
@@ -16,12 +17,6 @@ export default function Chart(props: Props) {
   let chartContainer: HTMLDivElement | undefined;
   let chart: echarts.ECharts | undefined;
   const weightData = useWeightData();
-
-  const getDarkMode = () => {
-    return (
-      window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false
-    );
-  };
 
   onMount(() => {
     if (!chartContainer) return;
@@ -131,16 +126,3 @@ export default function Chart(props: Props) {
 
   return <div ref={chartContainer} style={{ width: "100%", height: "100%" }} />;
 }
-
-const updateTrend = (
-  latestWeight: [string, number, number],
-  isFalling: boolean,
-) => {
-  const currentWeight = Math.round(latestWeight[2]).toString();
-  const currentTrendDom = document.getElementById("trend");
-  if (currentTrendDom) {
-    currentTrendDom.innerText = currentWeight;
-  }
-  const trendToken = isFalling ? "📉" : "📈";
-  document.title = `🐼 ${trendToken} ${currentWeight}kg ${trendToken}`;
-};

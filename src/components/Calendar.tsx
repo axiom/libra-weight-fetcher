@@ -1,6 +1,7 @@
 import * as echarts from "echarts";
 import { onMount } from "solid-js";
 import type { WeightEntry } from "../shared";
+import { getDarkMode, updateTrend } from "../shared";
 import { useWeightData } from "../stores/weightData";
 
 const computeMaxDiff = (w: WeightEntry[]): number => {
@@ -25,12 +26,6 @@ const extractRecentYears = (
 export default function Calendar() {
   let chartContainer: HTMLDivElement | undefined;
   let chart: echarts.ECharts | undefined;
-
-  const getDarkMode = () => {
-    return (
-      window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false
-    );
-  };
 
   const weightData = useWeightData();
 
@@ -115,16 +110,3 @@ export default function Calendar() {
     <div ref={chartContainer} style={{ width: "100%", height: "1000px" }} />
   );
 }
-
-const updateTrend = (
-  latestWeight: [string, number, number],
-  isFalling: boolean,
-) => {
-  const currentWeight = Math.round(latestWeight[2]).toString();
-  const currentTrendDom = document.getElementById("trend");
-  if (currentTrendDom) {
-    currentTrendDom.innerText = currentWeight;
-  }
-  const trendToken = isFalling ? "📉" : "📈";
-  document.title = `🐼 ${trendToken} ${currentWeight}kg ${trendToken}`;
-};
