@@ -8,8 +8,6 @@ import type {
   YAXisComponentOption,
 } from "echarts";
 import {
-  computeTargetProgress,
-  computeTargetWeight,
   generateTargetLineData,
   getZoomStart,
   zoomPercentsFromSettings,
@@ -101,26 +99,6 @@ export const buildChartOptions = (
   const startDate = new Date(targetConfig.startDate);
   const targetWeight = targetConfig.targetWeight;
   const targetDate = new Date(targetConfig.targetDate);
-
-  const targetProgress = computeTargetProgress(now, startDate, targetDate);
-  const targetProgressClamped = Math.max(0, targetProgress);
-  const dailyTargetWeight = computeTargetWeight(
-    startWeight,
-    targetWeight,
-    targetProgressClamped,
-  );
-
-  const zoomStartProgress = computeTargetProgress(
-    zoomStart,
-    startDate,
-    targetDate,
-  );
-  const zoomStartProgressClamped = Math.max(0, zoomStartProgress);
-  const zoomStartWeight = computeTargetWeight(
-    startWeight,
-    targetWeight,
-    zoomStartProgressClamped,
-  );
 
   const targetLineData: [string, number][] = shouldShowTargetLine
     ? generateTargetLineData(

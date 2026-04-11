@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import { buildChartOptions, prepareChartData } from "./chartOptions";
-import { computeTargetProgress, computeTargetWeight } from "./chartUtils";
 
 // ─── Shared fixtures ──────────────────────────────────────────────────────────
 
@@ -203,7 +202,7 @@ describe("buildChartOptions – series[1].markLine", () => {
 
 describe("buildChartOptions – target line series", () => {
   const getTargetLine = () => {
-    return BASE_OPTIONS.series[2]! as Record<string, unknown>;
+    return BASE_OPTIONS.series[2] as Record<string, unknown>;
   };
 
   test("has approximately one data point per day (interpolated)", () => {
@@ -224,7 +223,7 @@ describe("buildChartOptions – target line series", () => {
     const data = targetLine.data as [string, number][];
     const lo = TEST_CONFIG.targetWeight;
     const hi = TEST_CONFIG.startWeight;
-    for (const [date, weight] of data) {
+    for (const [_date, weight] of data) {
       expect(weight).toBeGreaterThanOrEqual(lo - 5);
       expect(weight).toBeLessThanOrEqual(hi + 5);
     }
@@ -496,8 +495,8 @@ describe("buildChartOptions – dark mode", () => {
       targetConfig: TEST_CONFIG,
       showTargetLine: true,
     });
-    const lightColor = light.series[0].lineStyle!.color;
-    const darkColor = dark.series[0].lineStyle!.color;
+    const lightColor = light.series[0].lineStyle?.color;
+    const darkColor = dark.series[0].lineStyle?.color;
     expect(lightColor).not.toBe(darkColor);
   });
 });
