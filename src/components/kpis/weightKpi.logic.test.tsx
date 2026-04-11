@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { WeightEntry } from "../../shared";
 import { computeDaysSinceLastWeighIn } from "./weightKpi.logic";
+import {
+  computeDaysToTargetDate,
+  computeKgsToTarget,
+  computeRequiredChangePerWeek,
+  linearTrendProjection,
+} from "./weightKpi.logic";
 
 describe("computeDaysSinceLastWeighIn", () => {
   const createDate = (daysAgo: number): Date => {
@@ -93,5 +99,96 @@ describe("computeDaysSinceLastWeighIn", () => {
     const result = computeDaysSinceLastWeighIn(weights, new Date());
     expect(result?.days).toBe(2);
     expect(result?.sentiment).toBe("good");
+  });
+});
+
+describe("computeDaysToTargetDate", () => {
+  it("returns positive number of days for future target date", () => {
+    const result = computeDaysToTargetDate();
+    expect(result).toBeGreaterThan(0);
+  });
+});
+
+describe("computeKgsToTarget", () => {
+  it("returns null for empty array", () => {
+    const result = computeKgsToTarget([]);
+    expect(result).toBeNull();
+  });
+
+  it("returns positive kgs when current > target", () => {
+    const weights: WeightEntry[] = [
+      { date: new Date().toISOString(), weight: 100, trend: 100 },
+    ];
+    const result = computeKgsToTarget(weights);
+    expect(result).toBe(12);
+  });
+
+  it("returns 0 when current <= target", () => {
+    const weights: WeightEntry[] = [
+      { date: new Date().toISOString(), weight: 85, trend: 85 },
+    ];
+    const result = computeKgsToTarget(weights);
+    expect(result).toBe(0);
+  });
+});
+
+describe("computeRequiredChangePerWeek", () => {
+  it("returns null for empty array", () => {
+    const result = computeRequiredChangePerWeek([]);
+    expect(result).toBeNull();
+  });
+
+  it("returns null when at or past target", () => {
+    const weights: WeightEntry[] = [
+      { date: new Date().toISOString(), weight: 85, trend: 85 },
+    ];
+    const result = computeRequiredChangePerWeek(weights);
+    expect(result).toBeNull();
+  });
+
+  it("returns negative kg/week needed to lose weight and reach target on time", () => {
+    const weights: WeightEntry[] = [
+      { date: new Date().toISOString(), weight: 100, trend: 100 },
+    ];
+    const result = computeRequiredChangePerWeek(weights);
+    expect(result).toBeLessThan(0);
+    expect(result).toBeGreaterThan(-2);
+  });
+});
+
+describe("linearTrendProjection", () => {
+  it("returns null for empty array", () => {
+    const result = linearTrendProjection([], 80);
+    expect(result).toBeNull();
+  });
+
+  it("returns null when current weight <= target", () => {
+    const weights: WeightEntry[] = [
+      { date: new Date().toISOString(), weight: 80, trend: 80 },
+    ];
+    const result = linearTrendProjection(weights, 80);
+    expect(result).toBeNull();
+  });
+
+  it("returns null when slope is positive (gaining weight)", () => {
+    const baseDate = new Date();
+    const weights: WeightEntry[] = [
+      { date: new Date(baseDate.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString(), weight: 95, trend: 95 },
+      { date: baseDate.toISOString(), weight: 100, trend: 100 },
+    ];
+    const result = linearTrendProjection(weights, 80);
+    expect(result).toBeNull();
+  });
+
+  it("returns projected days when losing weight", () => {
+    const baseDate = new Date();
+    const weights: WeightEntry[] = [
+      { date: new Date(baseDate.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString(), weight: 100, trend: 100 },
+      { date: baseDate.toISOString(), weight: 90, trend: 90 },
+    ];
+    const result = linearTrendProjection(weights, 80);
+    expect(result).not.toBeNull();
+    expect(result?.days).toBeGreaterThan(0);
+    expect(result?.algorithm).toBe("linear-trend");
   });
 });

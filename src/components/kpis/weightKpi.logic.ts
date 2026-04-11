@@ -1,4 +1,5 @@
 import { DAY_MS, type WeightEntry } from "../../shared";
+import { targetWeightConfig } from "../../config";
 
 export interface DaysSinceResult {
   days: number;
@@ -186,4 +187,84 @@ export function computeDaysSinceLastWeighIn(
     days <= 2 ? "good" : days <= 7 ? "fair" : days <= 0 ? "good" : "bad";
 
   return { days, sentiment };
+}
+
+function getLinearTrendSlope(entries: WeightEntry[], days: number): number | null {
+  const period = getWeightsInPeriod(entries, days);
+  if (period.length < 2) return null;
+
+  const first = period[0];
+  const last = period[period.length - 1];
+  const firstDate = new Date(first.date).getTime();
+  const lastDate = new Date(last.date).getTime();
+  const dayDiff = (lastDate - firstDate) / DAY_MS;
+
+  if (dayDiff === 0) return null;
+
+  return (last.trend - first.trend) / dayDiff;
+}
+
+export interface ProjectionResult {
+  days: number;
+  algorithm: string;
+}
+
+export type ProjectionAlgorithm = (
+  entries: WeightEntry[],
+  targetWeight: number,
+) => ProjectionResult | null;
+
+export function linearTrendProjection(
+  entries: WeightEntry[],
+  targetWeight: number,
+  lookbackDays: number = 14,
+): ProjectionResult | null {
+  const currentWeight = computeCurrentWeight(entries);
+  if (currentWeight === null) return null;
+
+  if (currentWeight <= targetWeight) {
+    return null;
+  }
+
+  const slope = getLinearTrendSlope(entries, lookbackDays);
+  if (slope === null || slope >= 0) return null;
+
+  const kgsToTarget = currentWeight - targetWeight;
+  const days = Math.ceil(kgsToTarget / -slope);
+
+  return { days, algorithm: "linear-trend" };
+}
+
+export function computeDaysToTargetDate(): number {
+  const targetDate = new Date(targetWeightConfig.targetDate);
+  const today = new Date();
+  const days = Math.ceil((targetDate.getTime() - today.getTime()) / DAY_MS);
+  return days > 0 ? days : 0;
+}
+
+export function computeKgsToTarget(entries: WeightEntry[]): number | null {
+  const currentWeight = computeCurrentWeight(entries);
+  if (currentWeight === null) return null;
+
+  const kgs = currentWeight - targetWeightConfig.targetWeight;
+  return kgs > 0 ? kgs : 0;
+}
+
+export function computeRequiredChangePerWeek(
+  entries: WeightEntry[],
+): number | null {
+  const currentWeight = computeCurrentWeight(entries);
+  if (currentWeight === null) return null;
+
+  if (currentWeight <= targetWeightConfig.targetWeight) {
+    return null;
+  }
+
+  const kgsToTarget = currentWeight - targetWeightConfig.targetWeight;
+  const daysToTarget = computeDaysToTargetDate();
+  if (daysToTarget <= 0) return null;
+
+  const weeks = daysToTarget / 7;
+  const changePerWeek = kgsToTarget / weeks;
+  return -changePerWeek;
 }

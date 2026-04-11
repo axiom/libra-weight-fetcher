@@ -5,10 +5,14 @@ import {
   CurrentLossStreakKPI,
   CurrentWeightKPI,
   DaysSinceWeighInKPI,
+  DaysToTargetKPI,
   HighestWeightKPI,
+  KgsToTargetKPI,
   LongestGainStreakKPI,
   LongestLossStreakKPI,
   LowestWeightKPI,
+  ProjectedDaysKPI,
+  RequiredChangePerWeekKPI,
   WeightChangeKPI,
   WeightRangeKPI,
   YearToDateChangeKPI,
@@ -31,6 +35,11 @@ export default function Home() {
         <LongestLossStreakKPI />
         <LongestGainStreakKPI />
         <AverageWeightKPI days={30} label="30-Day Avg" />
+
+        <DaysToTargetKPI />
+        <KgsToTargetKPI />
+        <ProjectedDaysKPI />
+        <RequiredChangePerWeekKPI />
 
         <WeightChangeKPI days={30} label="This Month" />
         <WeightChangeKPI days={7} label="Last 7 Days" />
