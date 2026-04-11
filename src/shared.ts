@@ -4,6 +4,12 @@ export interface WeightEntry {
   trend: number;
 }
 
+export const formatDate = (dateStr: string): string =>
+  new Date(dateStr).toLocaleDateString("en-GB", {
+    month: "short",
+    year: "numeric",
+  });
+
 export const updateTrend = (
   latestWeight: [string, number, number],
   isFalling: boolean,

@@ -1,15 +1,8 @@
 import { createMemo } from "solid-js";
-import type { WeightEntry } from "../../shared";
+import { formatDate, type WeightEntry } from "../../shared";
 import { useWeightData } from "../../stores/weightData";
 import WeightKPIView from "./WeightKPIView";
 import { computeLongestGainStreak } from "./weightKpi.logic";
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-GB", {
-    month: "short",
-    year: "numeric",
-  });
-}
 
 interface Props {
   weights?: WeightEntry[];
