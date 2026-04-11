@@ -25,14 +25,13 @@ export interface TargetConfig {
 
 export interface ChartOptions {
   backgroundColor: string;
+  darkMode?: boolean;
   grid: GridComponentOption;
   tooltip: TooltipComponentOption;
   dataZoom: SliderDataZoomComponentOption[];
   xAxis: XAXisComponentOption;
   yAxis: YAXisComponentOption;
-  series:
-    | [LineSeriesOption, ScatterSeriesOption]
-    | [LineSeriesOption, ScatterSeriesOption, LineSeriesOption];
+  series: [LineSeriesOption, ScatterSeriesOption, LineSeriesOption?];
   dataset?: undefined;
 }
 

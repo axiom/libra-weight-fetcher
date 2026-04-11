@@ -100,12 +100,12 @@ describe("buildChartOptions – top-level structure", () => {
   });
 
   test("series[2] is type 'line' (target line)", () => {
-    expect((BASE_OPTIONS.series as unknown[])[2]!.type).toBe("line");
+    expect(BASE_OPTIONS.series[2]?.type).toBe("line");
   });
 
   test("series[2] has name 'Target'", () => {
-    const s2 = (BASE_OPTIONS.series as unknown[])[2] as Record<string, unknown>;
-    expect(s2.name).toBe("Target");
+    const s2 = BASE_OPTIONS.series[2];
+    expect(s2?.name).toBe("Target");
   });
 });
 
