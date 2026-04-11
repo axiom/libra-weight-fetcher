@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import {
   computeTargetProgress,
   computeTargetWeight,
+  generateTargetLineData,
   getZoomStart,
   percentToTimestamp,
   timestampToPercent,
@@ -273,5 +274,48 @@ describe("computeTargetWeight", () => {
 
   test("works when target > start (gaining weight)", () => {
     expect(computeTargetWeight(60, 80, 0.5)).toBe(70);
+  });
+});
+
+// ─── generateTargetLineData ───────────────────────────────────────────────────────
+
+describe("generateTargetLineData", () => {
+  test("generates correct number of points (one per day)", () => {
+    const data = generateTargetLineData(
+      100,
+      new Date("2025-01-01"),
+      80,
+      new Date("2026-01-01"),
+      new Date("2025-06-01"),
+      new Date("2025-06-03"),
+    );
+    expect(data.length).toBe(3);
+  });
+
+  test("weights stay within bounds", () => {
+    const data = generateTargetLineData(
+      100,
+      new Date("2025-01-01"),
+      80,
+      new Date("2026-01-01"),
+      new Date("2025-06-01"),
+      new Date("2025-06-03"),
+    );
+    for (const [, weight] of data) {
+      expect(weight).toBeGreaterThanOrEqual(79);
+      expect(weight).toBeLessThanOrEqual(101);
+    }
+  });
+
+  test("clamps progress before target start to startWeight", () => {
+    const data = generateTargetLineData(
+      100,
+      new Date("2025-07-01"),
+      80,
+      new Date("2026-07-01"),
+      new Date("2025-06-01"),
+      new Date("2025-06-03"),
+    );
+    expect(data[0][1]).toBe(100);
   });
 });

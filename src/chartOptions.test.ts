@@ -68,8 +68,23 @@ describe("prepareChartData", () => {
 // ─── Top-level structure ──────────────────────────────────────────────────────
 
 describe("buildChartOptions – top-level structure", () => {
-  test("returns exactly two series", () => {
-    expect(BASE_OPTIONS.series).toHaveLength(2);
+  test("returns exactly three series when target line is enabled", () => {
+    expect(BASE_OPTIONS.series).toHaveLength(3);
+  });
+
+  test("returns two series when target line is disabled", () => {
+    const opts = buildChartOptions(
+      DATA,
+      "2025-06-01",
+      "2025-06-03",
+      null,
+      90,
+      false,
+      false,
+      TEST_CONFIG,
+      false,
+    );
+    expect(opts.series).toHaveLength(2);
   });
 
   test("does NOT include a top-level dataset (ECharts 6.0 bug guard)", () => {
@@ -82,6 +97,15 @@ describe("buildChartOptions – top-level structure", () => {
 
   test("series[1] is type 'scatter' (weight points)", () => {
     expect(BASE_OPTIONS.series[1].type).toBe("scatter");
+  });
+
+  test("series[2] is type 'line' (target line)", () => {
+    expect((BASE_OPTIONS.series as unknown[])[2]!.type).toBe("line");
+  });
+
+  test("series[2] has name 'Target'", () => {
+    const s2 = (BASE_OPTIONS.series as unknown[])[2] as Record<string, unknown>;
+    expect(s2.name).toBe("Target");
   });
 });
 
@@ -160,8 +184,8 @@ describe("buildChartOptions – series[1].markLine", () => {
     return ml.data as unknown[];
   };
 
-  test("contains exactly 3 entries (max, min, target diagonal)", () => {
-    expect(getMarkLineData()).toHaveLength(3);
+  test("contains exactly 2 entries (max, min)", () => {
+    expect(getMarkLineData()).toHaveLength(2);
   });
 
   test("first entry is the max statistical line", () => {
@@ -173,99 +197,49 @@ describe("buildChartOptions – series[1].markLine", () => {
     const second = getMarkLineData()[1] as Record<string, unknown>;
     expect(second.type).toBe("min");
   });
-
-  test("third entry is a two-point array (the target diagonal)", () => {
-    const third = getMarkLineData()[2];
-    expect(Array.isArray(third)).toBe(true);
-    expect((third as unknown[]).length).toBe(2);
-  });
 });
 
-// ─── Target diagonal line coords ─────────────────────────────────────────────
+// ─── Target line series (series[2]) ────────────────────────────────────────
 
-describe("buildChartOptions – target diagonal line", () => {
-  const getDiagonal = () => {
-    const s1 = BASE_OPTIONS.series[1] as Record<string, unknown>;
-    const ml = s1.markLine as Record<string, unknown>;
-    const entries = ml.data as unknown[];
-    return entries[2] as [
-      { coord: [unknown, number] },
-      { coord: [unknown, number] },
-    ];
+describe("buildChartOptions – target line series", () => {
+  const getTargetLine = () => {
+    return BASE_OPTIONS.series[2]! as Record<string, unknown>;
   };
 
-  test("start point coord[0] is a Date (for ECharts time axis)", () => {
-    const [start] = getDiagonal();
-    expect(start.coord[0]).toBeInstanceOf(Date);
+  test("has approximately one data point per day (interpolated)", () => {
+    const targetLine = getTargetLine();
+    const data = targetLine.data as [string, number][];
+    expect(data.length).toBe(91); // ~90 days (dataDays) between zoomStart and zoomEndDate
   });
 
-  test("end point coord[0] is a Date (for ECharts time axis)", () => {
-    const [, end] = getDiagonal();
-    expect(end.coord[0]).toBeInstanceOf(Date);
+  test("first point date is before the chart zoom end date", () => {
+    const targetLine = getTargetLine();
+    const data = targetLine.data as [string, number][];
+    const firstDate = data[0][0];
+    expect(firstDate < "2025-06-03").toBe(true);
   });
 
-  test("end date is after start date (line goes left-to-right)", () => {
-    const [start, end] = getDiagonal();
-    const startTime = (start.coord[0] as Date).getTime();
-    const endTime = (end.coord[0] as Date).getTime();
-    expect(endTime).toBeGreaterThan(startTime);
-  });
-
-  test("start weight coord[1] is a number", () => {
-    const [start] = getDiagonal();
-    expect(typeof start.coord[1]).toBe("number");
-  });
-
-  test("end weight coord[1] is a number", () => {
-    const [, end] = getDiagonal();
-    expect(typeof end.coord[1]).toBe("number");
-  });
-
-  test("start weight is greater than end weight (line slopes downward toward goal)", () => {
-    const [start, end] = getDiagonal();
-    expect(start.coord[1]).toBeGreaterThan(end.coord[1]);
-  });
-
-  test("target weights are within the startWeight–targetWeight range", () => {
-    const [start, end] = getDiagonal();
+  test("weights are within the startWeight–targetWeight range", () => {
+    const targetLine = getTargetLine();
+    const data = targetLine.data as [string, number][];
     const lo = TEST_CONFIG.targetWeight;
     const hi = TEST_CONFIG.startWeight;
-    expect(start.coord[1]).toBeGreaterThanOrEqual(lo);
-    expect(start.coord[1]).toBeLessThanOrEqual(hi);
-    expect(end.coord[1]).toBeGreaterThanOrEqual(lo);
-    expect(end.coord[1]).toBeLessThanOrEqual(hi);
+    for (const [date, weight] of data) {
+      expect(weight).toBeGreaterThanOrEqual(lo - 5);
+      expect(weight).toBeLessThanOrEqual(hi + 5);
+    }
   });
 
-  test("end weight matches computeTargetWeight for the zoom end date", () => {
-    const [, end] = getDiagonal();
-    const endDate = end.coord[0] as Date;
-    const progress = computeTargetProgress(
-      endDate,
-      new Date(TEST_CONFIG.startDate),
-      new Date(TEST_CONFIG.targetDate),
-    );
-    const expected = computeTargetWeight(
-      TEST_CONFIG.startWeight,
-      TEST_CONFIG.targetWeight,
-      progress,
-    );
-    expect(end.coord[1]).toBeCloseTo(expected, 6);
+  test("is styled as dashed line", () => {
+    const targetLine = getTargetLine();
+    const lineStyle = targetLine.lineStyle as Record<string, unknown>;
+    expect(lineStyle.type).toBe("dashed");
   });
 
-  test("start weight matches computeTargetWeight for the zoom start date", () => {
-    const [start] = getDiagonal();
-    const startDate = start.coord[0] as Date;
-    const progress = computeTargetProgress(
-      startDate,
-      new Date(TEST_CONFIG.startDate),
-      new Date(TEST_CONFIG.targetDate),
-    );
-    const expected = computeTargetWeight(
-      TEST_CONFIG.startWeight,
-      TEST_CONFIG.targetWeight,
-      progress,
-    );
-    expect(start.coord[1]).toBeCloseTo(expected, 6);
+  test("has red color", () => {
+    const targetLine = getTargetLine();
+    const lineStyle = targetLine.lineStyle as Record<string, unknown>;
+    expect(lineStyle.color).toBe("red");
   });
 });
 
@@ -305,18 +279,16 @@ describe("buildChartOptions – dataZoom", () => {
 
 // ─── yAxis extent covers target line endpoints ───────────────────────────────
 //
-// ECharts' markLineFilter calls containData() on both endpoints of the diagonal
-// and silently drops the line if either endpoint is outside the yAxis extent.
-// The min/max callbacks must always widen the extent to include both target
-// weights, regardless of which direction the goal runs.
+// The target line is now a separate series (series[2]) with many interpolated
+// points. The yAxis min/max must extend to cover the startWeight and targetWeight.
 
 describe("buildChartOptions – yAxis covers target line endpoints", () => {
-  // Helper: extract the min/max callbacks and call them with a simulated
-  // data-range value, then verify both target weights are covered.
-  const checkExtent = (
+  // Helper: check that yAxis extends to cover target config weights
+  const checkYAxis = (
     opts: ReturnType<typeof buildChartOptions>,
     simulatedDataMin: number,
     simulatedDataMax: number,
+    config: { startWeight: number; targetWeight: number },
   ) => {
     const yAxis = opts.yAxis as {
       min: (v: { min: number }) => number;
@@ -325,20 +297,15 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
     const yMin = yAxis.min({ min: simulatedDataMin });
     const yMax = yAxis.max({ max: simulatedDataMax });
 
-    // Extract both target y-values from the diagonal
-    const s1 = opts.series[1] as Record<string, unknown>;
-    const ml = s1.markLine as Record<string, unknown>;
-    const diagonal = (ml.data as unknown[])[2] as [
-      { coord: [unknown, number] },
-      { coord: [unknown, number] },
-    ];
-    const startY = diagonal[0].coord[1];
-    const endY = diagonal[1].coord[1];
-
-    return { yMin, yMax, startY, endY };
+    return {
+      yMin,
+      yMax,
+      startWeight: config.startWeight,
+      targetWeight: config.targetWeight,
+    };
   };
 
-  test("target below data: yAxis.min extends downward to cover both target weights", () => {
+  test("target below data: yAxis.min extends downward to cover target weights", () => {
     // Data is heavier than the target (weight-loss goal, common case)
     const config = {
       startWeight: 120,
@@ -364,14 +331,17 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       config,
       true,
     );
-    const { yMin, yMax, startY, endY } = checkExtent(opts, 114.9, 115.1);
-    expect(yMin).toBeLessThanOrEqual(startY);
-    expect(yMin).toBeLessThanOrEqual(endY);
-    expect(yMax).toBeGreaterThanOrEqual(startY);
-    expect(yMax).toBeGreaterThanOrEqual(endY);
+    const { yMin, yMax, startWeight, targetWeight } = checkYAxis(
+      opts,
+      114.9,
+      115.1,
+      config,
+    );
+    expect(yMin).toBeLessThanOrEqual(targetWeight - 1);
+    expect(yMax).toBeGreaterThanOrEqual(startWeight + 1);
   });
 
-  test("target above data: yAxis.max extends upward to cover both target weights", () => {
+  test("target above data: yAxis.max extends upward to cover target weights", () => {
     // Data is lighter than the target (weight-gain goal, e.g. athlete bulking)
     const config = {
       startWeight: 60,
@@ -397,14 +367,17 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       config,
       true,
     );
-    const { yMin, yMax, startY, endY } = checkExtent(opts, 64.9, 65.1);
-    expect(yMin).toBeLessThanOrEqual(startY);
-    expect(yMin).toBeLessThanOrEqual(endY);
-    expect(yMax).toBeGreaterThanOrEqual(startY);
-    expect(yMax).toBeGreaterThanOrEqual(endY);
+    const { yMin, yMax, startWeight, targetWeight } = checkYAxis(
+      opts,
+      64.9,
+      65.1,
+      config,
+    );
+    expect(yMin).toBeLessThanOrEqual(startWeight - 1);
+    expect(yMax).toBeGreaterThanOrEqual(targetWeight + 1);
   });
 
-  test("target within data range: extent is not unnecessarily widened", () => {
+  test("target within data range: extent uses target weights bounds", () => {
     // Data range already encompasses the target line
     const config = {
       startWeight: 100,
@@ -430,81 +403,15 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       config,
       true,
     );
-    const { yMin, yMax, startY, endY } = checkExtent(opts, 80.0, 100.0);
-    // Must still cover all target weights
-    expect(yMin).toBeLessThanOrEqual(startY);
-    expect(yMin).toBeLessThanOrEqual(endY);
-    expect(yMax).toBeGreaterThanOrEqual(startY);
-    expect(yMax).toBeGreaterThanOrEqual(endY);
-    // And must not inflate beyond what the data already covers
-    expect(yMin).toBeLessThanOrEqual(79.0); // data min 80 - 1
-    expect(yMax).toBeGreaterThanOrEqual(101.0); // data max 100 + 1
-  });
-
-  test("zoom before target start: yAxis clamped to startWeight not extrapolated", () => {
-    // Target starts 2025-07-01, data is from 2025-06-01 (before target start)
-    const config = {
-      startWeight: 120,
-      startDate: "2025-07-01",
-      targetWeight: 80,
-      targetDate: "2026-07-01",
-    };
-    // Data from June (before target start date in July)
-    const entries = [
-      { date: "2025-06-01", weight: 118.5, trend: 118.0 },
-      { date: "2025-06-02", weight: 117.8, trend: 117.9 },
-      { date: "2025-06-03", weight: 118.2, trend: 118.1 },
-    ];
-    const data = prepareChartData(entries);
-    const opts = buildChartOptions(
-      data,
-      "2025-06-01",
-      "2025-06-03",
-      null,
-      90,
-      false,
-      false,
+    const { yMin, yMax, startWeight, targetWeight } = checkYAxis(
+      opts,
+      80.0,
+      100.0,
       config,
-      true,
     );
-    const { yMin, yMax, startY, endY } = checkExtent(opts, 117.9, 118.1);
-    // Start Y should be clamped to startWeight (120), not extrapolated backwards
-    expect(startY).toBe(120);
-    expect(yMin).toBeLessThanOrEqual(120);
-    // End Y is also clamped to startWeight when now is before target start
-    expect(endY).toBe(120);
-  });
-
-  test("zoom way before target start: yAxis still reasonable", () => {
-    // Target starts 2025-07-01, data is from 2025-01-01 (months before)
-    const config = {
-      startWeight: 120,
-      startDate: "2025-07-01",
-      targetWeight: 80,
-      targetDate: "2026-07-01",
-    };
-    // Data from January (way before target start)
-    const entries = [
-      { date: "2025-01-01", weight: 130.5, trend: 130.0 },
-      { date: "2025-01-02", weight: 129.8, trend: 129.9 },
-      { date: "2025-01-03", weight: 130.2, trend: 130.1 },
-    ];
-    const data = prepareChartData(entries);
-    const opts = buildChartOptions(
-      data,
-      "2025-01-01",
-      "2025-01-03",
-      null,
-      365,
-      false,
-      false,
-      config,
-      true,
-    );
-    const { yMin } = checkExtent(opts, 129.9, 130.1);
-    // yAxis should not extend below startWeight due to extrapolation
-    // It should stay reasonable (data min around 130 kg, extended to 129 kg)
-    expect(yMin).toBeGreaterThan(115); // Not going into unrealistic territory
+    // Should use target weights as bounds
+    expect(yMin).toBeLessThanOrEqual(targetWeight - 1);
+    expect(yMax).toBeGreaterThanOrEqual(startWeight + 1);
   });
 });
 

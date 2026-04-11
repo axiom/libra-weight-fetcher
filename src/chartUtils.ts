@@ -115,3 +115,38 @@ export const computeTargetWeight = (
 ): number => {
   return startWeight - progress * (startWeight - targetWeight);
 };
+
+/**
+ * Generate interpolated data points for the target line.
+ * Returns an array of [date, weight] tuples distributed between startDate and endDate.
+ * Uses approximately one point per day.
+ */
+export const generateTargetLineData = (
+  startWeight: number,
+  startDate: Date,
+  targetWeight: number,
+  targetDate: Date,
+  startDateOpt: Date,
+  endDate: Date,
+): [string, number][] => {
+  const points: [string, number][] = [];
+  const startTime = startDateOpt.getTime();
+  const endTime = endDate.getTime();
+  const duration = endTime - startTime;
+  const numPoints = Math.round(duration / (1000 * 60 * 60 * 24));
+
+  for (let i = 0; i <= numPoints; i++) {
+    const time = startTime + (duration * i) / numPoints;
+    const date = new Date(time);
+    const dateStr = date.toISOString().split("T")[0];
+    const progress = computeTargetProgress(date, startDate, targetDate);
+    const progressClamped = Math.max(0, Math.min(1, progress));
+    const weight = computeTargetWeight(
+      startWeight,
+      targetWeight,
+      progressClamped,
+    );
+    points.push([dateStr, weight]);
+  }
+  return points;
+};

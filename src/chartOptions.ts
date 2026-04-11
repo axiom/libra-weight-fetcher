@@ -10,6 +10,7 @@ import type {
 import {
   computeTargetProgress,
   computeTargetWeight,
+  generateTargetLineData,
   getZoomStart,
   zoomPercentsFromSettings,
 } from "./chartUtils";
@@ -23,14 +24,15 @@ export interface TargetConfig {
 }
 
 export interface ChartOptions {
-  darkMode: boolean;
   backgroundColor: string;
   grid: GridComponentOption;
   tooltip: TooltipComponentOption;
   dataZoom: SliderDataZoomComponentOption[];
   xAxis: XAXisComponentOption;
   yAxis: YAXisComponentOption;
-  series: [LineSeriesOption, ScatterSeriesOption];
+  series:
+    | [LineSeriesOption, ScatterSeriesOption]
+    | [LineSeriesOption, ScatterSeriesOption, LineSeriesOption];
   dataset?: undefined;
 }
 
@@ -102,6 +104,17 @@ export const buildChartOptions = (
     zoomStartProgressClamped,
   );
 
+  const targetLineData: [string, number][] = showTargetLine
+    ? generateTargetLineData(
+        startWeight,
+        startDate,
+        targetWeight,
+        targetDate,
+        zoomStart,
+        now,
+      )
+    : [];
+
   const colors = darkMode
     ? ({
         sinker: "#f52c2c",
@@ -152,11 +165,11 @@ export const buildChartOptions = (
       type: "value",
       min: (value: { min: number }) =>
         showTargetLine
-          ? Math.min(value.min, zoomStartWeight, dailyTargetWeight) - 1
+          ? Math.min(value.min, startWeight, targetWeight) - 1
           : value.min - 1,
       max: (value: { max: number }) =>
         showTargetLine
-          ? Math.max(value.max, zoomStartWeight, dailyTargetWeight) + 1
+          ? Math.max(value.max, startWeight, targetWeight) + 1
           : value.max + 1,
     },
     series: [
@@ -199,27 +212,28 @@ export const buildChartOptions = (
           lineStyle: {
             color: colors.markLine,
           },
-          data: (() => {
-            const base: { type: "max" | "min"; name: string }[] = [
-              { type: "max", name: "Max" },
-              { type: "min", name: "Min" },
-            ];
-            if (!showTargetLine) return base;
-            return [
-              ...base,
-              [
-                {
-                  lineStyle: { color: "red" },
-                  coord: [zoomStart, zoomStartWeight],
-                },
-                {
-                  coord: [now, dailyTargetWeight],
-                },
-              ],
-            ];
-          })(),
+          data: [
+            { type: "max", name: "Max" },
+            { type: "min", name: "Min" },
+          ],
         },
       },
-    ],
+      showTargetLine
+        ? {
+            type: "line",
+            name: "Target",
+            showSymbol: false,
+            data: targetLineData,
+            lineStyle: {
+              width: 2,
+              color: "red",
+              type: "dashed",
+              opacity: 0.5,
+            },
+          }
+        : null,
+    ].filter(
+      (s): s is NonNullable<typeof s> => s !== null,
+    ) as unknown as ChartOptions["series"],
   };
 };
