@@ -220,22 +220,18 @@ export const buildChartOptions = (
           ],
         },
       },
-      shouldShowTargetLine
-        ? {
-            type: "line",
-            name: "Target",
-            showSymbol: false,
-            data: targetLineData,
-            lineStyle: {
-              width: 2,
-              color: "red",
-              type: "dashed",
-              opacity: 0.5,
-            },
-          }
-        : null,
-    ].filter(
-      (s): s is NonNullable<typeof s> => s !== null,
-    ) as unknown as ChartOptions["series"],
+      {
+        type: "line",
+        name: "Target",
+        showSymbol: false,
+        data: shouldShowTargetLine ? targetLineData : [],
+        lineStyle: {
+          width: 2,
+          color: "red",
+          type: "dashed",
+          opacity: 0.5,
+        },
+      },
+    ] as unknown as ChartOptions["series"],
   };
 };

@@ -83,7 +83,8 @@ describe("buildChartOptions – top-level structure", () => {
       targetConfig: TEST_CONFIG,
       showTargetLine: false,
     });
-    expect(opts.series).toHaveLength(2);
+    expect(opts.series).toHaveLength(3);
+    expect((opts.series[2] as { data: unknown[] }).data).toHaveLength(0);
   });
 
   test("does NOT include a top-level dataset (ECharts 6.0 bug guard)", () => {
@@ -245,7 +246,7 @@ describe("buildChartOptions – target line series", () => {
 // ─── noTargetLine parameter ──────────────────────────────────────────────────
 
 describe("buildChartOptions – noTargetLine", () => {
-  test("returns 2 series when noTargetLine={true} overrides showTargetLine={true}", () => {
+  test("returns empty target data when noTargetLine={true} overrides showTargetLine={true}", () => {
     const opts = buildChartOptions({
       data: DATA,
       firstDate: "2025-06-01",
@@ -258,10 +259,11 @@ describe("buildChartOptions – noTargetLine", () => {
       showTargetLine: true,
       noTargetLine: true,
     });
-    expect(opts.series).toHaveLength(2);
+    expect(opts.series).toHaveLength(3);
+    expect((opts.series[2] as { data: unknown[] }).data).toHaveLength(0);
   });
 
-  test("returns 2 series when noTargetLine={true} with showTargetLine={false}", () => {
+  test("returns empty target data when noTargetLine={true} with showTargetLine={false}", () => {
     const opts = buildChartOptions({
       data: DATA,
       firstDate: "2025-06-01",
@@ -274,7 +276,8 @@ describe("buildChartOptions – noTargetLine", () => {
       showTargetLine: false,
       noTargetLine: true,
     });
-    expect(opts.series).toHaveLength(2);
+    expect(opts.series).toHaveLength(3);
+    expect((opts.series[2] as { data: unknown[] }).data).toHaveLength(0);
   });
 
   test("yAxis does not extend for target weights when noTargetLine={true}", () => {
