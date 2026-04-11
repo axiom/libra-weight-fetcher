@@ -5,12 +5,7 @@ import WeightKPIView from "./WeightKPIView";
 describe("WeightKPIView", () => {
   it("renders label correctly", () => {
     const { getByText } = render(() => (
-      <WeightKPIView
-        label="Current Weight"
-        value="85.5 kg"
-        icon="⚖️"
-        meta={null}
-      />
+      <WeightKPIView label="Current Weight" value="85.5 kg" icon="⚖️" />
     ));
 
     expect(getByText("Current Weight")).toBeDefined();
@@ -18,12 +13,7 @@ describe("WeightKPIView", () => {
 
   it("renders value correctly", () => {
     const { getByText } = render(() => (
-      <WeightKPIView
-        label="Current Weight"
-        value="85.5 kg"
-        icon="⚖️"
-        meta={null}
-      />
+      <WeightKPIView label="Current Weight" value="85.5 kg" icon="⚖️" />
     ));
 
     expect(getByText("85.5 kg")).toBeDefined();
@@ -60,25 +50,15 @@ describe("WeightKPIView", () => {
 
   it("does not render badge when not provided", () => {
     const { queryByText } = render(() => (
-      <WeightKPIView
-        label="Current Weight"
-        value="85.5 kg"
-        icon="⚖️"
-        meta={null}
-      />
+      <WeightKPIView label="Current Weight" value="85.5 kg" icon="⚖️" />
     ));
 
     expect(queryByText("Cutting")).toBeNull();
   });
 
-  it("does not render meta when null", () => {
+  it("does not render meta when not provided", () => {
     const { queryByText } = render(() => (
-      <WeightKPIView
-        label="Current Weight"
-        value="85.5 kg"
-        icon="⚖️"
-        meta={null}
-      />
+      <WeightKPIView label="Current Weight" value="85.5 kg" icon="⚖️" />
     ));
 
     expect(queryByText("30-day window")).toBeNull();

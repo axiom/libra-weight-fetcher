@@ -25,7 +25,6 @@ export default function CurrentLossStreakKPI(props: Props) {
       sentiment={days() <= 0 ? "bad" : "good"}
       icon={days() > 0 ? "📉" : "➖"}
       badgeText={badgeText()}
-      meta={null}
       class={props.class}
     />
   );

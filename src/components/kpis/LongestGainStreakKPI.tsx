@@ -51,7 +51,6 @@ export default function LongestGainStreakKPI(props: Props) {
       sentiment={sentiment()}
       icon="😬"
       badgeText={badgeText()}
-      meta={null}
       class={props.class}
     />
   );

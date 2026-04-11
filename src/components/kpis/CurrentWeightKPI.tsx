@@ -28,7 +28,6 @@ export default function CurrentWeightKPI(props: Props) {
       label={props.label ?? "Current Weight"}
       value={formatted()}
       icon={icon()}
-      meta={null}
       class={props.class}
     />
   );

@@ -39,7 +39,6 @@ export default function LowestWeightKPI(props: Props) {
       label={label()}
       value={formatted()}
       icon="⬇️"
-      meta={null}
       class={props.class}
     />
   );

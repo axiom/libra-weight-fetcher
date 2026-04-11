@@ -40,7 +40,6 @@ export default function HighestWeightKPI(props: Props) {
       value={formatted()}
       sentiment={result() ? "bad" : "neutral"}
       icon="⬆️"
-      meta={null}
       class={props.class}
     />
   );

@@ -25,7 +25,6 @@ export default function CurrentGainStreakKPI(props: Props) {
       sentiment={days() > 0 ? "bad" : "neutral"}
       icon={days() > 0 ? "📈" : "➖"}
       badgeText={badgeText()}
-      meta={null}
       class={props.class}
     />
   );
