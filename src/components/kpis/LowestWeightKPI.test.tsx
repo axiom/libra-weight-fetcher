@@ -32,7 +32,8 @@ describe("LowestWeightKPI", () => {
       <LowestWeightKPI weights={mockWeights} />
     ));
 
-    expect(getByText("86.0 kg")).toBeDefined();
+    expect(getByText("86.0")).toBeDefined();
+    expect(getByText("kg")).toBeDefined();
   });
 
   it("renders N/A when weights is empty", () => {

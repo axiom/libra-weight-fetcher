@@ -9,10 +9,16 @@ interface Props {
 export default function DaysToTargetKPI(props: Props) {
   const value = createMemo(() => computeDaysToTargetDate());
 
-  const formatted = createMemo(() => {
+  const formattedValue = createMemo(() => {
     const v = value();
     if (v === 0) return "Target reached! 🎉";
-    return `${v} days`;
+    return `${v}`;
+  });
+
+  const unit = createMemo(() => {
+    const v = value();
+    if (v === 0) return undefined;
+    return "days";
   });
 
   const sentiment = createMemo((): "good" | "bad" | "neutral" => {
@@ -41,7 +47,8 @@ export default function DaysToTargetKPI(props: Props) {
   return (
     <WeightKPIView
       label="Days to Target Date"
-      value={formatted()}
+      value={formattedValue()}
+      unit={unit()}
       sentiment={sentiment()}
       icon={icon()}
       badgeText={badgeText()}

@@ -17,11 +17,16 @@ export default function WeightChangeKPI(props: Props) {
 
   const value = createMemo(() => computeWeightChange(entries(), props.days));
 
-  const formatted = createMemo(() => {
+  const formattedValue = createMemo(() => {
     const v = value();
     if (v === null) return "N/A";
     const prefix = v > 0 ? "+" : "";
-    return `${prefix}${v.toFixed(1)} kg`;
+    return `${prefix}${v.toFixed(1)}`;
+  });
+
+  const unit = createMemo(() => {
+    if (value() === null) return undefined;
+    return "kg";
   });
 
   const sentiment = createMemo((): "good" | "bad" | "neutral" => {
@@ -51,7 +56,8 @@ export default function WeightChangeKPI(props: Props) {
   return (
     <WeightKPIView
       label={props.label}
-      value={formatted()}
+      value={formattedValue()}
+      unit={unit()}
       sentiment={sentiment()}
       icon={icon()}
       badgeText={badgeText()}

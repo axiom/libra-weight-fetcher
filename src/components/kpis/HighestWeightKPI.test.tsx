@@ -32,7 +32,8 @@ describe("HighestWeightKPI", () => {
       <HighestWeightKPI weights={mockWeights} />
     ));
 
-    expect(getByText("92.0 kg")).toBeDefined();
+    expect(getByText("92.0")).toBeDefined();
+    expect(getByText("kg")).toBeDefined();
   });
 
   it("renders N/A when weights is empty", () => {

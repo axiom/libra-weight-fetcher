@@ -25,10 +25,16 @@ export default function ProjectedDaysKPI(props: Props) {
     return alg(entries(), targetWeightConfig.targetWeight);
   });
 
-  const formatted = createMemo(() => {
+  const formattedValue = createMemo(() => {
     const v = value();
     if (v === null) return "N/A";
-    return `${v.days} days`;
+    return `${v.days}`;
+  });
+
+  const unit = createMemo(() => {
+    const v = value();
+    if (v === null) return undefined;
+    return "days";
   });
 
   const sentiment = createMemo((): "good" | "bad" | "neutral" => {
@@ -50,7 +56,8 @@ export default function ProjectedDaysKPI(props: Props) {
   return (
     <WeightKPIView
       label="Projected Days to Target"
-      value={formatted()}
+      value={formattedValue()}
+      unit={unit()}
       sentiment={sentiment()}
       icon={icon()}
       badgeText={badgeText()}

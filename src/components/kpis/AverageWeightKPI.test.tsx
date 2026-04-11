@@ -32,7 +32,8 @@ describe("AverageWeightKPI", () => {
       />
     ));
 
-    expect(getByText(/\d+\.\d+ kg/)).toBeDefined();
+    expect(getByText("87.0")).toBeDefined();
+    expect(getByText("kg")).toBeDefined();
   });
 
   it("renders N/A when weights is empty", () => {

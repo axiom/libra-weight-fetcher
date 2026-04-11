@@ -21,7 +21,8 @@ export default function CurrentGainStreakKPI(props: Props) {
   return (
     <WeightKPIView
       label={props.label ?? "Current Gain Streak"}
-      value={`${days()} days`}
+      value={`${days()}`}
+      unit="days"
       sentiment={days() > 0 ? "bad" : "neutral"}
       icon={days() > 0 ? "📈" : "➖"}
       badgeText={badgeText()}

@@ -33,7 +33,8 @@ describe("WeightRangeKPI", () => {
       />
     ));
 
-    expect(getByText(/[0-9.]+ kg/)).toBeDefined();
+    expect(getByText("6.0")).toBeDefined();
+    expect(getByText("kg")).toBeDefined();
   });
 
   it("renders N/A when weights has fewer than 2 entries", () => {

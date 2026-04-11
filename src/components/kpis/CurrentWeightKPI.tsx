@@ -16,17 +16,20 @@ export default function CurrentWeightKPI(props: Props) {
 
   const value = createMemo(() => computeCurrentWeight(entries()));
 
-  const formatted = () => {
+  const formattedValue = () => {
     const v = value();
-    return v !== null ? `${v.toFixed(1)} kg` : "N/A";
+    return v !== null ? v.toFixed(1) : "N/A";
   };
+
+  const unit = () => (value() !== null ? "kg" : undefined);
 
   const icon = () => (value() !== null ? "⚖️" : "➖");
 
   return (
     <WeightKPIView
       label={props.label ?? "Current Weight"}
-      value={formatted()}
+      value={formattedValue()}
+      unit={unit()}
       icon={icon()}
       class={props.class}
     />

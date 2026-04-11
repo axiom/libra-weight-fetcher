@@ -181,10 +181,9 @@ describe("linearTrendProjection", () => {
   });
 
   it("returns projected days when losing weight", () => {
-    const baseDate = new Date();
     const weights: WeightEntry[] = [
-      { date: new Date(baseDate.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString(), weight: 100, trend: 100 },
-      { date: baseDate.toISOString(), weight: 90, trend: 90 },
+      { date: "2026-04-11", weight: 84, trend: 84 },
+      { date: "2026-03-30", weight: 98, trend: 98 },
     ];
     const result = linearTrendProjection(weights, 80);
     expect(result).not.toBeNull();

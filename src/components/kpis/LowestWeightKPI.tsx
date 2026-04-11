@@ -22,15 +22,18 @@ export default function LowestWeightKPI(props: Props) {
     return r ? `${base} (${formatDate(r.date)})` : base;
   });
 
-  const formatted = () => {
+  const formattedValue = () => {
     const r = result();
-    return r ? `${r.value.toFixed(1)} kg` : "N/A";
+    return r ? r.value.toFixed(1) : "N/A";
   };
+
+  const unit = () => (result() ? "kg" : undefined);
 
   return (
     <WeightKPIView
       label={label()}
-      value={formatted()}
+      value={formattedValue()}
+      unit={unit()}
       icon="⬇️"
       class={props.class}
     />

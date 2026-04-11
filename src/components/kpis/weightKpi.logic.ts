@@ -25,7 +25,7 @@ function getWeightsInPeriod(
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
 
-  return entries.filter((entry) => new Date(entry.date) >= cutoff);
+  return entries.filter((entry) => new Date(entry.date).getTime() >= cutoff.getTime());
 }
 
 function getCurrentStreak(entries: WeightEntry[], isLoss: boolean): number {
@@ -193,8 +193,9 @@ function getLinearTrendSlope(entries: WeightEntry[], days: number): number | nul
   const period = getWeightsInPeriod(entries, days);
   if (period.length < 2) return null;
 
-  const first = period[0];
-  const last = period[period.length - 1];
+  const sorted = [...period].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
   const firstDate = new Date(first.date).getTime();
   const lastDate = new Date(last.date).getTime();
   const dayDiff = (lastDate - firstDate) / DAY_MS;

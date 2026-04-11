@@ -19,12 +19,19 @@ export default function DaysSinceWeighInKPI(props: Props) {
   const days = () => result()?.days ?? null;
   const sentiment = () => result()?.sentiment ?? "neutral";
 
-  const formatted = () => {
+  const formattedValue = () => {
     const d = days();
     if (d === null) return "N/A";
     if (d === 0) return "Today";
-    if (d === 1) return "1 day";
-    return `${d} days`;
+    if (d === 1) return "1";
+    return `${d}`;
+  };
+
+  const unit = () => {
+    const d = days();
+    if (d === null || d === 0) return undefined;
+    if (d === 1) return "day";
+    return "days";
   };
 
   const icon = () => (days() !== null ? "📅" : "➖");
@@ -40,7 +47,8 @@ export default function DaysSinceWeighInKPI(props: Props) {
   return (
     <WeightKPIView
       label={props.label ?? "Days Since Weigh-In"}
-      value={formatted()}
+      value={formattedValue()}
+      unit={unit()}
       icon={icon()}
       sentiment={sentiment()}
       meta={meta()}

@@ -17,15 +17,18 @@ export default function AverageWeightKPI(props: Props) {
 
   const value = createMemo(() => computeAverageWeight(entries(), props.days));
 
-  const formatted = () => {
+  const formattedValue = () => {
     const v = value();
-    return v !== null ? `${v.toFixed(1)} kg` : "N/A";
+    return v !== null ? v.toFixed(1) : "N/A";
   };
+
+  const unit = () => (value() !== null ? "kg" : undefined);
 
   return (
     <WeightKPIView
       label={props.label}
-      value={formatted()}
+      value={formattedValue()}
+      unit={unit()}
       icon="📊"
       meta={`${props.days}-day window`}
       class={props.class}

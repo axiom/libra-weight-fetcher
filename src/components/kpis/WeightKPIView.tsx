@@ -5,6 +5,7 @@ export type KPISentiment = "good" | "bad" | "fair" | "neutral";
 interface Props {
   label: string;
   value: string;
+  unit?: string;
   icon: string;
   sentiment?: KPISentiment;
   badgeText?: string;
@@ -65,17 +66,23 @@ export default function WeightKPIView(props: Props) {
         </div>
       </div>
 
-      <div class="text-5xl font-semibold leading-tight relative z-10 whitespace-nowrap">
-        {props.sentiment === "bad" ? (
-          <BadValue>{props.value}</BadValue>
-        ) : props.sentiment === "good" ? (
-          <GoodValue>{props.value}</GoodValue>
-        ) : props.sentiment === "fair" ? (
-          <FairValue>{props.value}</FairValue>
-        ) : (
-          <NeutralValue>{props.value}</NeutralValue>
-        )}
+      <div class="grid grid-cols-2 gap-2 w-full items-baseline">
+        <div class="text-5xl font-semibold leading-tight relative z-10 whitespace-nowrap flex items-baseline gap-1 flex-justify-end w-full">
+          {props.sentiment === "bad" ? (
+            <BadValue>{props.value}</BadValue>
+          ) : props.sentiment === "good" ? (
+            <GoodValue>{props.value}</GoodValue>
+          ) : props.sentiment === "fair" ? (
+            <FairValue>{props.value}</FairValue>
+          ) : (
+            <NeutralValue>{props.value}</NeutralValue>
+          )}
+        </div>
+        <div class="text-2xl font-normal text-gray-600 dark:text-gray-400">
+          {props.unit && props.unit}
+        </div>
       </div>
+
       <div class="absolute -bottom-4 -right-4 text-9xl opacity-15 select-none pointer-events-none leading-none">
         {props.icon}
       </div>

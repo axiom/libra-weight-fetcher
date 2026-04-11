@@ -42,7 +42,8 @@ describe("CurrentLossStreakKPI", () => {
       <CurrentLossStreakKPI weights={createLossStreakWeights()} />
     ));
 
-    expect(getByText(/\d+ days/)).toBeDefined();
+    expect(getByText("1")).toBeDefined();
+    expect(getByText("days")).toBeDefined();
   });
 
   it("renders 0 days when no loss streak", () => {
@@ -50,7 +51,8 @@ describe("CurrentLossStreakKPI", () => {
       <CurrentLossStreakKPI weights={noStreakWeights} />
     ));
 
-    expect(getByText("0 days")).toBeDefined();
+    expect(getByText("0")).toBeDefined();
+    expect(getByText("days")).toBeDefined();
   });
 
   it("renders Active badge when streak exists", () => {

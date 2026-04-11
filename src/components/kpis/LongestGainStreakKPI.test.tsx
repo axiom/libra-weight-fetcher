@@ -62,7 +62,8 @@ describe("LongestGainStreakKPI", () => {
       />
     ));
 
-    expect(getByText(/\d+ days/)).toBeDefined();
+    expect(getByText("700")).toBeDefined();
+    expect(getByText("days")).toBeDefined();
   });
 
   it("renders emoji icon", () => {

@@ -15,11 +15,16 @@ export default function RequiredChangePerWeekKPI(props: Props) {
 
   const value = createMemo(() => computeRequiredChangePerWeek(entries()));
 
-  const formatted = createMemo(() => {
+  const formattedValue = createMemo(() => {
     const v = value();
     if (v === null) return "N/A";
-    const prefix = v < 0 ? "" : "+";
-    return `${prefix}${v.toFixed(2)} kg/week`;
+    return v.toFixed(2);
+  });
+
+  const unit = createMemo(() => {
+    const v = value();
+    if (v === null) return undefined;
+    return "kg/week";
   });
 
   const sentiment = createMemo((): "good" | "bad" | "neutral" => {
@@ -45,7 +50,8 @@ export default function RequiredChangePerWeekKPI(props: Props) {
   return (
     <WeightKPIView
       label="Required Change / Week"
-      value={formatted()}
+      value={formattedValue()}
+      unit={unit()}
       sentiment={sentiment()}
       icon={icon()}
       badgeText={badgeText()}

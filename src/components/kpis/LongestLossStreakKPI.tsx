@@ -22,9 +22,15 @@ export default function LongestLossStreakKPI(props: Props) {
     return s ? `${baseLabel()} (${formatDate(s.endDate)})` : baseLabel();
   });
 
-  const formatted = () => {
+  const formattedValue = () => {
     const s = streak();
-    return s ? `${s.days} days` : "N/A";
+    return s ? `${s.days}` : "N/A";
+  };
+
+  const unit = () => {
+    const s = streak();
+    if (!s || s.days === 0) return undefined;
+    return "days";
   };
 
   const sentiment = () => {
@@ -40,7 +46,8 @@ export default function LongestLossStreakKPI(props: Props) {
   return (
     <WeightKPIView
       label={label()}
-      value={formatted()}
+      value={formattedValue()}
+      unit={unit()}
       sentiment={sentiment()}
       icon="🏆"
       badgeText={badgeText()}

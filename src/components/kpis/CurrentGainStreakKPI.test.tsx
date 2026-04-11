@@ -50,7 +50,8 @@ describe("CurrentGainStreakKPI", () => {
       />
     ));
 
-    expect(getByText(/\d+ days/)).toBeDefined();
+    expect(getByText("1")).toBeDefined();
+    expect(getByText("days")).toBeDefined();
   });
 
   it("renders badge when streak exists", () => {

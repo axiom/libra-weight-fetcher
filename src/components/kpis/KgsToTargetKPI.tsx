@@ -15,11 +15,17 @@ export default function KgsToTargetKPI(props: Props) {
 
   const value = createMemo(() => computeKgsToTarget(entries()));
 
-  const formatted = createMemo(() => {
+  const formattedValue = createMemo(() => {
     const v = value();
     if (v === null) return "N/A";
     if (v === 0) return "Achieved! 🎉";
-    return `${v.toFixed(1)} kg`;
+    return v.toFixed(1);
+  });
+
+  const unit = createMemo(() => {
+    const v = value();
+    if (v === null || v === 0) return undefined;
+    return "kg";
   });
 
   const sentiment = createMemo((): "good" | "bad" | "neutral" => {
@@ -45,7 +51,8 @@ export default function KgsToTargetKPI(props: Props) {
   return (
     <WeightKPIView
       label="Kgs to Target"
-      value={formatted()}
+      value={formattedValue()}
+      unit={unit()}
       sentiment={sentiment()}
       icon={icon()}
       badgeText={badgeText()}
