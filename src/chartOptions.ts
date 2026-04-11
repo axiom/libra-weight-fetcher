@@ -182,14 +182,20 @@ export const buildChartOptions = (
     yAxis: {
       show: false,
       type: "value",
-      min: (value: { min: number }) =>
-        shouldShowTargetLine
-          ? Math.min(value.min, startWeight, targetWeight) - 1
-          : value.min - 1,
-      max: (value: { max: number }) =>
-        shouldShowTargetLine
-          ? Math.max(value.max, startWeight, targetWeight) + 1
-          : value.max + 1,
+      min: (value: { min: number }) => {
+        if (!shouldShowTargetLine || targetLineData.length === 0) {
+          return value.min - 1;
+        }
+        const targetWeights = targetLineData.map((p) => p[1]);
+        return Math.min(value.min, ...targetWeights) - 1;
+      },
+      max: (value: { max: number }) => {
+        if (!shouldShowTargetLine || targetLineData.length === 0) {
+          return value.max + 1;
+        }
+        const targetWeights = targetLineData.map((p) => p[1]);
+        return Math.max(value.max, ...targetWeights) + 1;
+      },
     },
     series: [
       {

@@ -353,38 +353,24 @@ describe("buildChartOptions – dataZoom", () => {
 // The target line is now a separate series (series[2]) with many interpolated
 // points. The yAxis min/max must extend to cover the startWeight and targetWeight.
 
-describe("buildChartOptions – yAxis covers target line endpoints", () => {
-  // Helper: check that yAxis extends to cover target config weights
-  const checkYAxis = (
-    opts: ReturnType<typeof buildChartOptions>,
-    simulatedDataMin: number,
-    simulatedDataMax: number,
-    config: { startWeight: number; targetWeight: number },
-  ) => {
-    const yAxis = opts.yAxis as {
-      min: (v: { min: number }) => number;
-      max: (v: { max: number }) => number;
-    };
-    const yMin = yAxis.min({ min: simulatedDataMin });
-    const yMax = yAxis.max({ max: simulatedDataMax });
-
-    return {
-      yMin,
-      yMax,
-      startWeight: config.startWeight,
-      targetWeight: config.targetWeight,
-    };
+describe("buildChartOptions – yAxis covers target line weights in zoom interval", () => {
+  // Helper: get target line weights from the built options
+  const getTargetWeights = (opts: ReturnType<typeof buildChartOptions>) => {
+    const targetLine = opts.series[2] as
+      | { data: [string, number][] }
+      | undefined;
+    if (!targetLine?.data?.length) return { min: Infinity, max: -Infinity };
+    const weights = targetLine.data.map((p) => p[1]);
+    return { min: Math.min(...weights), max: Math.max(...weights) };
   };
 
-  test("target below data: yAxis.min extends downward to cover target weights", () => {
-    // Data is heavier than the target (weight-loss goal, common case)
+  test("target below data: yAxis extends to cover target weights in zoom interval", () => {
     const config = {
       startWeight: 120,
       startDate: "2025-01-01",
       targetWeight: 80,
       targetDate: "2026-01-01",
     };
-    // Trend around 115 kg — target line will be around 88–96 kg, well below data
     const entries = [
       { date: "2025-06-01", weight: 115.5, trend: 115.0 },
       { date: "2025-06-02", weight: 114.8, trend: 114.9 },
@@ -402,25 +388,24 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       targetConfig: config,
       showTargetLine: true,
     });
-    const { yMin, yMax, startWeight, targetWeight } = checkYAxis(
-      opts,
-      114.9,
-      115.1,
-      config,
-    );
-    expect(yMin).toBeLessThanOrEqual(targetWeight - 1);
-    expect(yMax).toBeGreaterThanOrEqual(startWeight + 1);
+    const targetWeights = getTargetWeights(opts);
+    const yAxis = opts.yAxis as {
+      min: (v: { min: number }) => number;
+      max: (v: { max: number }) => number;
+    };
+    const yMin = yAxis.min({ min: 114.9 });
+    const yMax = yAxis.max({ max: 115.1 });
+    expect(yMin).toBeLessThanOrEqual(targetWeights.min - 1);
+    expect(yMax).toBeGreaterThanOrEqual(targetWeights.max + 1);
   });
 
-  test("target above data: yAxis.max extends upward to cover target weights", () => {
-    // Data is lighter than the target (weight-gain goal, e.g. athlete bulking)
+  test("target above data: yAxis extends to cover target weights in zoom interval", () => {
     const config = {
       startWeight: 60,
       startDate: "2025-01-01",
       targetWeight: 80,
       targetDate: "2026-01-01",
     };
-    // Trend around 65 kg — target line will be above data range
     const entries = [
       { date: "2025-06-01", weight: 65.5, trend: 65.0 },
       { date: "2025-06-02", weight: 64.8, trend: 64.9 },
@@ -438,25 +423,24 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       targetConfig: config,
       showTargetLine: true,
     });
-    const { yMin, yMax, startWeight, targetWeight } = checkYAxis(
-      opts,
-      64.9,
-      65.1,
-      config,
-    );
-    expect(yMin).toBeLessThanOrEqual(startWeight - 1);
-    expect(yMax).toBeGreaterThanOrEqual(targetWeight + 1);
+    const targetWeights = getTargetWeights(opts);
+    const yAxis = opts.yAxis as {
+      min: (v: { min: number }) => number;
+      max: (v: { max: number }) => number;
+    };
+    const yMin = yAxis.min({ min: 64.9 });
+    const yMax = yAxis.max({ max: 65.1 });
+    expect(yMin).toBeLessThanOrEqual(targetWeights.min - 1);
+    expect(yMax).toBeGreaterThanOrEqual(targetWeights.max + 1);
   });
 
-  test("target within data range: extent uses target weights bounds", () => {
-    // Data range already encompasses the target line
+  test("target within data range: extent covers both data and target weights", () => {
     const config = {
       startWeight: 100,
       startDate: "2025-01-01",
       targetWeight: 80,
       targetDate: "2026-01-01",
     };
-    // Wide data range — target line endpoints (~88–96) are well inside
     const entries = [
       { date: "2025-06-01", weight: 80.0, trend: 80.0 },
       { date: "2025-06-02", weight: 95.0, trend: 95.0 },
@@ -474,15 +458,15 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       targetConfig: config,
       showTargetLine: true,
     });
-    const { yMin, yMax, startWeight, targetWeight } = checkYAxis(
-      opts,
-      80.0,
-      100.0,
-      config,
-    );
-    // Should use target weights as bounds
-    expect(yMin).toBeLessThanOrEqual(targetWeight - 1);
-    expect(yMax).toBeGreaterThanOrEqual(startWeight + 1);
+    const targetWeights = getTargetWeights(opts);
+    const yAxis = opts.yAxis as {
+      min: (v: { min: number }) => number;
+      max: (v: { max: number }) => number;
+    };
+    const yMin = yAxis.min({ min: 80.0 });
+    const yMax = yAxis.max({ max: 100.0 });
+    expect(yMin).toBeLessThanOrEqual(Math.min(80.0, targetWeights.min) - 1);
+    expect(yMax).toBeGreaterThanOrEqual(Math.max(100.0, targetWeights.max) + 1);
   });
 });
 
