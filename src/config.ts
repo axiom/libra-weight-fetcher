@@ -1,6 +1,6 @@
 export const targetWeightConfig = {
-  startWeight: 123,
-  startDate: "2024-10-29",
+  startWeight: 121,
+  startDate: "2026-01-01",
   targetWeight: 88,
-  targetDate: "2026-06-08",
+  targetDate: "2027-06-08",
 };
