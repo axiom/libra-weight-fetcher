@@ -1,4 +1,4 @@
-import type { WeightEntry } from "../../shared";
+import { DAY_MS, type WeightEntry } from "../../shared";
 import WeightChangeKPI from "./WeightChangeKPI";
 
 interface Props {
@@ -11,7 +11,7 @@ export default function YearToDateChangeKPI(props: Props) {
   const today = new Date();
   const startOfYear = new Date(today.getFullYear(), 0, 0);
   const days = Math.floor(
-    (today.getTime() - startOfYear.getTime()) / 86_400_000,
+    (today.getTime() - startOfYear.getTime()) / DAY_MS,
   );
 
   return (

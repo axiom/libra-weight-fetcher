@@ -1,4 +1,4 @@
-import type { WeightEntry } from "../../shared";
+import { DAY_MS, type WeightEntry } from "../../shared";
 
 export interface DaysSinceResult {
   days: number;
@@ -14,8 +14,6 @@ export interface ValueAtDate {
   value: number;
   date: string;
 }
-
-const DAY_MS = 86_400_000;
 
 function getWeightsInPeriod(
   entries: WeightEntry[],

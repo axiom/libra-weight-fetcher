@@ -4,6 +4,8 @@ export interface WeightEntry {
   trend: number;
 }
 
+export const DAY_MS = 86_400_000;
+
 export const formatDate = (dateStr: string): string =>
   new Date(dateStr).toLocaleDateString("en-GB", {
     month: "short",
