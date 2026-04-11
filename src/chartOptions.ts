@@ -23,6 +23,7 @@ export interface TargetConfig {
 
 export interface ChartOptions {
   backgroundColor: string;
+  animation?: boolean;
   darkMode?: boolean;
   grid: GridComponentOption;
   tooltip: TooltipComponentOption;
@@ -127,6 +128,7 @@ export const buildChartOptions = (
 
   return {
     darkMode: darkMode,
+    animation: false,
     backgroundColor: "transparent",
     grid: {
       left: "2%",

@@ -10,9 +10,7 @@ interface Props {
 export default function YearToDateChangeKPI(props: Props) {
   const today = new Date();
   const startOfYear = new Date(today.getFullYear(), 0, 0);
-  const days = Math.floor(
-    (today.getTime() - startOfYear.getTime()) / DAY_MS,
-  );
+  const days = Math.floor((today.getTime() - startOfYear.getTime()) / DAY_MS);
 
   return (
     <WeightChangeKPI
