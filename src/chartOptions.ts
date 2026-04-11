@@ -234,6 +234,6 @@ export const buildChartOptions = (
           opacity: 0.5,
         },
       },
-    ] as unknown as ChartOptions["series"],
+    ] satisfies [LineSeriesOption, ScatterSeriesOption, LineSeriesOption?],
   };
 };

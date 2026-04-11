@@ -101,9 +101,11 @@ const defaultSettings: Settings = {
 
 const STORAGE_KEY = "libra-weight-fetcher-settings";
 
-const allowedSmoothers = new Set(
-  Object.keys(defaultSmoothingOptions) as SmoothingType[],
-);
+const smoothingOptionKeys = Object.keys(
+  defaultSmoothingOptions,
+) as (keyof SmoothingOptions)[];
+
+const allowedSmoothers = new Set<string>(smoothingOptionKeys);
 
 const parseSmoothingChain = (value: unknown): SmoothingType[] => {
   const raw = Array.isArray(value)
@@ -115,9 +117,7 @@ const parseSmoothingChain = (value: unknown): SmoothingType[] => {
   return raw
     .split(",")
     .map((entry) => entry.trim())
-    .filter((entry): entry is SmoothingType =>
-      allowedSmoothers.has(entry as SmoothingType),
-    );
+    .filter((entry): entry is SmoothingType => allowedSmoothers.has(entry));
 };
 
 function getInitialSettings(): Settings {
@@ -152,17 +152,17 @@ function getInitialSettings(): Settings {
           smoothingOptions = {
             ...defaultSmoothingOptions,
             ...Object.fromEntries(
-              (Object.keys(defaultSmoothingOptions) as SmoothingType[]).map(
-                (key) => [
-                  key,
-                  {
-                    ...defaultSmoothingOptions[key],
-                    ...(parsed.smoothingOptions[key] ?? {}),
-                  },
-                ],
-              ),
+              smoothingOptionKeys.map((key) => [
+                key,
+                {
+                  ...defaultSmoothingOptions[key],
+                  ...((parsed.smoothingOptions as Record<string, unknown>)[
+                    key
+                  ] ?? {}),
+                },
+              ]),
             ),
-          } as SmoothingOptions;
+          };
         }
         if (smoothingFromUrl.length === 0) {
           const smoothingFromStorage = parseSmoothingChain(parsed.smoothing);
@@ -258,9 +258,9 @@ export const updateSetting = <K extends keyof Settings>(
           url.searchParams.delete("end");
         }
       } else if (key === "dataDays") {
-        url.searchParams.set("d", (value as number).toString());
+        url.searchParams.set("d", String(value as number));
       } else if (key === "weightMeasurements") {
-        url.searchParams.set("w", (value as number).toString());
+        url.searchParams.set("w", String(value as number));
       } else if (key === "smoothing") {
         url.searchParams.set("smoothing", (value as SmoothingType[]).join(","));
       }

@@ -4,9 +4,9 @@ import { createEffect } from "solid-js";
 import { buildChartOptions, prepareChartData } from "../chartOptions";
 import { zoomParamsFromSlider } from "../chartUtils";
 import { targetWeightConfig } from "../config";
+import { getDarkMode, updateTrend } from "../shared";
 import { settings, updateSettings } from "../stores/settings";
 import { useWeightData } from "../stores/weightData";
-import { getDarkMode, updateTrend } from "../shared";
 
 type Props = {
   hideDataZoom?: boolean;

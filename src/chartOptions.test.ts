@@ -1,3 +1,4 @@
+import type { LineSeriesOption, ScatterSeriesOption } from "echarts";
 import { describe, expect, test } from "vitest";
 import { buildChartOptions, prepareChartData } from "./chartOptions";
 
@@ -84,7 +85,8 @@ describe("buildChartOptions – top-level structure", () => {
       showTargetLine: false,
     });
     expect(opts.series).toHaveLength(3);
-    expect((opts.series[2] as { data: unknown[] }).data).toHaveLength(0);
+    const s2 = opts.series[2] as LineSeriesOption | undefined;
+    expect(s2?.data).toHaveLength(0);
   });
 
   test("does NOT include a top-level dataset (ECharts 6.0 bug guard)", () => {
@@ -113,19 +115,20 @@ describe("buildChartOptions – top-level structure", () => {
 
 describe("buildChartOptions – series data", () => {
   test("series[0] has inline data (not encode)", () => {
-    const s0 = BASE_OPTIONS.series[0] as Record<string, unknown>;
+    const s0 = BASE_OPTIONS.series[0] as LineSeriesOption;
     expect(s0.data).toBeDefined();
     expect(s0.encode).toBeUndefined();
   });
 
   test("series[1] has inline data (not encode)", () => {
-    const s1 = BASE_OPTIONS.series[1] as Record<string, unknown>;
+    const s1 = BASE_OPTIONS.series[1] as ScatterSeriesOption;
     expect(s1.data).toBeDefined();
     expect(s1.encode).toBeUndefined();
   });
 
   test("series[0] data encodes [date, trend] pairs", () => {
-    const data = BASE_OPTIONS.series[0].data as [string, number][];
+    const s0 = BASE_OPTIONS.series[0] as LineSeriesOption;
+    const data = s0.data as [string, number][];
     expect(data).toHaveLength(ENTRIES.length);
     expect(data[0]).toEqual(["2025-06-01", 95.0]);
     expect(data[1]).toEqual(["2025-06-02", 95.0]);
@@ -133,7 +136,8 @@ describe("buildChartOptions – series data", () => {
   });
 
   test("series[1] data encodes [date, weight] pairs", () => {
-    const data = BASE_OPTIONS.series[1].data as [string, number][];
+    const s1 = BASE_OPTIONS.series[1] as ScatterSeriesOption;
+    const data = s1.data as [string, number][];
     expect(data).toHaveLength(ENTRIES.length);
     expect(data[0]).toEqual(["2025-06-01", 94.0]);
     expect(data[1]).toEqual(["2025-06-02", 95.5]);
