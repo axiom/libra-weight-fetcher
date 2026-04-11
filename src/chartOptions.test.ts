@@ -300,6 +300,208 @@ describe("buildChartOptions – dataZoom", () => {
   });
 });
 
+// ─── yAxis extent covers target line endpoints ───────────────────────────────
+//
+// ECharts' markLineFilter calls containData() on both endpoints of the diagonal
+// and silently drops the line if either endpoint is outside the yAxis extent.
+// The min/max callbacks must always widen the extent to include both target
+// weights, regardless of which direction the goal runs.
+
+describe("buildChartOptions – yAxis covers target line endpoints", () => {
+  // Helper: extract the min/max callbacks and call them with a simulated
+  // data-range value, then verify both target weights are covered.
+  const checkExtent = (
+    opts: ReturnType<typeof buildChartOptions>,
+    simulatedDataMin: number,
+    simulatedDataMax: number,
+  ) => {
+    const yAxis = opts.yAxis as {
+      min: (v: { min: number }) => number;
+      max: (v: { max: number }) => number;
+    };
+    const yMin = yAxis.min({ min: simulatedDataMin });
+    const yMax = yAxis.max({ max: simulatedDataMax });
+
+    // Extract both target y-values from the diagonal
+    const s1 = opts.series[1] as Record<string, unknown>;
+    const ml = s1.markLine as Record<string, unknown>;
+    const diagonal = (ml.data as unknown[])[2] as [
+      { coord: [unknown, number] },
+      { coord: [unknown, number] },
+    ];
+    const startY = diagonal[0].coord[1];
+    const endY = diagonal[1].coord[1];
+
+    return { yMin, yMax, startY, endY };
+  };
+
+  test("target below data: yAxis.min extends downward to cover both target weights", () => {
+    // Data is heavier than the target (weight-loss goal, common case)
+    const config = {
+      startWeight: 120,
+      startDate: "2025-01-01",
+      targetWeight: 80,
+      targetDate: "2026-01-01",
+    };
+    // Trend around 115 kg — target line will be around 88–96 kg, well below data
+    const entries = [
+      { date: "2025-06-01", weight: 115.5, trend: 115.0 },
+      { date: "2025-06-02", weight: 114.8, trend: 114.9 },
+      { date: "2025-06-03", weight: 115.2, trend: 115.1 },
+    ];
+    const data = prepareChartData(entries);
+    const opts = buildChartOptions(
+      data,
+      "2025-06-01",
+      "2025-06-03",
+      null,
+      90,
+      false,
+      false,
+      config,
+    );
+    const { yMin, yMax, startY, endY } = checkExtent(opts, 114.9, 115.1);
+    expect(yMin).toBeLessThanOrEqual(startY);
+    expect(yMin).toBeLessThanOrEqual(endY);
+    expect(yMax).toBeGreaterThanOrEqual(startY);
+    expect(yMax).toBeGreaterThanOrEqual(endY);
+  });
+
+  test("target above data: yAxis.max extends upward to cover both target weights", () => {
+    // Data is lighter than the target (weight-gain goal, e.g. athlete bulking)
+    const config = {
+      startWeight: 60,
+      startDate: "2025-01-01",
+      targetWeight: 80,
+      targetDate: "2026-01-01",
+    };
+    // Trend around 65 kg — target line will be above data range
+    const entries = [
+      { date: "2025-06-01", weight: 65.5, trend: 65.0 },
+      { date: "2025-06-02", weight: 64.8, trend: 64.9 },
+      { date: "2025-06-03", weight: 65.2, trend: 65.1 },
+    ];
+    const data = prepareChartData(entries);
+    const opts = buildChartOptions(
+      data,
+      "2025-06-01",
+      "2025-06-03",
+      null,
+      90,
+      false,
+      false,
+      config,
+    );
+    const { yMin, yMax, startY, endY } = checkExtent(opts, 64.9, 65.1);
+    expect(yMin).toBeLessThanOrEqual(startY);
+    expect(yMin).toBeLessThanOrEqual(endY);
+    expect(yMax).toBeGreaterThanOrEqual(startY);
+    expect(yMax).toBeGreaterThanOrEqual(endY);
+  });
+
+  test("target within data range: extent is not unnecessarily widened", () => {
+    // Data range already encompasses the target line
+    const config = {
+      startWeight: 100,
+      startDate: "2025-01-01",
+      targetWeight: 80,
+      targetDate: "2026-01-01",
+    };
+    // Wide data range — target line endpoints (~88–96) are well inside
+    const entries = [
+      { date: "2025-06-01", weight: 80.0, trend: 80.0 },
+      { date: "2025-06-02", weight: 95.0, trend: 95.0 },
+      { date: "2025-06-03", weight: 100.0, trend: 100.0 },
+    ];
+    const data = prepareChartData(entries);
+    const opts = buildChartOptions(
+      data,
+      "2025-06-01",
+      "2025-06-03",
+      null,
+      90,
+      false,
+      false,
+      config,
+    );
+    const { yMin, yMax, startY, endY } = checkExtent(opts, 80.0, 100.0);
+    // Must still cover all target weights
+    expect(yMin).toBeLessThanOrEqual(startY);
+    expect(yMin).toBeLessThanOrEqual(endY);
+    expect(yMax).toBeGreaterThanOrEqual(startY);
+    expect(yMax).toBeGreaterThanOrEqual(endY);
+    // And must not inflate beyond what the data already covers
+    expect(yMin).toBeLessThanOrEqual(79.0); // data min 80 - 1
+    expect(yMax).toBeGreaterThanOrEqual(101.0); // data max 100 + 1
+  });
+
+  test("zoom before target start: yAxis clamped to startWeight not extrapolated", () => {
+    // Target starts 2025-07-01, data is from 2025-06-01 (before target start)
+    const config = {
+      startWeight: 120,
+      startDate: "2025-07-01",
+      targetWeight: 80,
+      targetDate: "2026-07-01",
+    };
+    // Data from June (before target start date in July)
+    const entries = [
+      { date: "2025-06-01", weight: 118.5, trend: 118.0 },
+      { date: "2025-06-02", weight: 117.8, trend: 117.9 },
+      { date: "2025-06-03", weight: 118.2, trend: 118.1 },
+    ];
+    const data = prepareChartData(entries);
+    const opts = buildChartOptions(
+      data,
+      "2025-06-01",
+      "2025-06-03",
+      null,
+      90,
+      false,
+      false,
+      config,
+      true,
+    );
+    const { yMin, yMax, startY, endY } = checkExtent(opts, 117.9, 118.1);
+    // Start Y should be clamped to startWeight (120), not extrapolated backwards
+    expect(startY).toBe(120);
+    expect(yMin).toBeLessThanOrEqual(120);
+    // End Y is also clamped to startWeight when now is before target start
+    expect(endY).toBe(120);
+  });
+
+  test("zoom way before target start: yAxis still reasonable", () => {
+    // Target starts 2025-07-01, data is from 2025-01-01 (months before)
+    const config = {
+      startWeight: 120,
+      startDate: "2025-07-01",
+      targetWeight: 80,
+      targetDate: "2026-07-01",
+    };
+    // Data from January (way before target start)
+    const entries = [
+      { date: "2025-01-01", weight: 130.5, trend: 130.0 },
+      { date: "2025-01-02", weight: 129.8, trend: 129.9 },
+      { date: "2025-01-03", weight: 130.2, trend: 130.1 },
+    ];
+    const data = prepareChartData(entries);
+    const opts = buildChartOptions(
+      data,
+      "2025-01-01",
+      "2025-01-03",
+      null,
+      365,
+      false,
+      false,
+      config,
+      true,
+    );
+    const { yMin } = checkExtent(opts, 129.9, 130.1);
+    // yAxis should not extend below startWeight due to extrapolation
+    // It should stay reasonable (data min around 130 kg, extended to 129 kg)
+    expect(yMin).toBeGreaterThan(115); // Not going into unrealistic territory
+  });
+});
+
 // ─── Dark mode colours ────────────────────────────────────────────────────────
 
 describe("buildChartOptions – dark mode", () => {

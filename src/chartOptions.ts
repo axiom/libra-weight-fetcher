@@ -61,10 +61,11 @@ export const buildChartOptions = (
   const targetDate = new Date(targetConfig.targetDate);
 
   const targetProgress = computeTargetProgress(now, startDate, targetDate);
+  const targetProgressClamped = Math.max(0, targetProgress);
   const dailyTargetWeight = computeTargetWeight(
     startWeight,
     targetWeight,
-    targetProgress,
+    targetProgressClamped,
   );
 
   const zoomStartProgress = computeTargetProgress(
@@ -72,10 +73,11 @@ export const buildChartOptions = (
     startDate,
     targetDate,
   );
+  const zoomStartProgressClamped = Math.max(0, zoomStartProgress);
   const zoomStartWeight = computeTargetWeight(
     startWeight,
     targetWeight,
-    zoomStartProgress,
+    zoomStartProgressClamped,
   );
 
   const colors = darkMode
@@ -125,8 +127,10 @@ export const buildChartOptions = (
     yAxis: {
       show: false,
       type: "value",
-      min: (value: { min: number }) => value.min - 1,
-      max: (value: { max: number }) => value.max + 1,
+      min: (value: { min: number }) =>
+        Math.min(value.min, zoomStartWeight, dailyTargetWeight) - 1,
+      max: (value: { max: number }) =>
+        Math.max(value.max, zoomStartWeight, dailyTargetWeight) + 1,
     },
     series: [
       {
