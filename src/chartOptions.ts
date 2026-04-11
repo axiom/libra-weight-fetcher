@@ -36,6 +36,19 @@ export interface ChartOptions {
   dataset?: undefined;
 }
 
+export interface BuildChartOptionsParams {
+  data: [string, number, number, boolean][];
+  firstDate: string;
+  latestDate: string;
+  endDate: string | null;
+  dataDays: number;
+  darkMode: boolean;
+  hideDataZoom: boolean;
+  targetConfig: TargetConfig;
+  showTargetLine: boolean;
+  noTargetLine?: boolean;
+}
+
 // Transforms already-smoothed WeightEntry[] into chart tuples.
 // Smoothing is handled by the weightData store.
 export const prepareChartData = (
@@ -49,16 +62,22 @@ export const prepareChartData = (
   ]);
 
 export const buildChartOptions = (
-  data: [string, number, number, boolean][],
-  firstDate: string,
-  latestDate: string,
-  endDate: string | null,
-  dataDays: number,
-  darkMode: boolean,
-  hideDataZoom: boolean,
-  targetConfig: TargetConfig,
-  showTargetLine: boolean,
+  params: BuildChartOptionsParams,
 ): ChartOptions => {
+  const {
+    data,
+    firstDate,
+    latestDate,
+    endDate,
+    dataDays,
+    darkMode,
+    hideDataZoom,
+    targetConfig,
+    showTargetLine,
+    noTargetLine,
+  } = params;
+  const shouldShowTargetLine = showTargetLine && !noTargetLine;
+
   const trendData: [string, number][] = data.map((d) => [d[0], d[2]]);
   const weightData: [string, number][] = data.map((d) => [d[0], d[1]]);
 
@@ -104,7 +123,7 @@ export const buildChartOptions = (
     zoomStartProgressClamped,
   );
 
-  const targetLineData: [string, number][] = showTargetLine
+  const targetLineData: [string, number][] = shouldShowTargetLine
     ? generateTargetLineData(
         startWeight,
         startDate,
@@ -164,11 +183,11 @@ export const buildChartOptions = (
       show: false,
       type: "value",
       min: (value: { min: number }) =>
-        showTargetLine
+        shouldShowTargetLine
           ? Math.min(value.min, startWeight, targetWeight) - 1
           : value.min - 1,
       max: (value: { max: number }) =>
-        showTargetLine
+        shouldShowTargetLine
           ? Math.max(value.max, startWeight, targetWeight) + 1
           : value.max + 1,
     },
@@ -218,7 +237,7 @@ export const buildChartOptions = (
           ],
         },
       },
-      showTargetLine
+      shouldShowTargetLine
         ? {
             type: "line",
             name: "Target",

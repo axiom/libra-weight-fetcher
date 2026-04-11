@@ -9,6 +9,7 @@ import { useWeightData } from "../stores/weightData";
 
 type Props = {
   hideDataZoom?: boolean;
+  noTargetLine?: boolean;
 };
 
 export default function Chart(props: Props) {
@@ -35,17 +36,18 @@ export default function Chart(props: Props) {
     const firstDate = w[0]?.date ?? "";
     const latestDate =
       w.at(-1)?.date ?? new Date().toISOString().split("T")[0] ?? "";
-    const option = buildChartOptions(
+    const option = buildChartOptions({
       data,
       firstDate,
       latestDate,
-      currentSettings.endDate,
-      currentSettings.dataDays,
+      endDate: currentSettings.endDate,
+      dataDays: currentSettings.dataDays,
       darkMode,
-      props.hideDataZoom ?? false,
-      targetWeightConfig,
-      currentSettings.showTargetLine,
-    );
+      hideDataZoom: props.hideDataZoom ?? false,
+      targetConfig: targetWeightConfig,
+      showTargetLine: currentSettings.showTargetLine,
+      noTargetLine: props.noTargetLine,
+    });
     chart.setOption(option as unknown as Parameters<typeof chart.setOption>[0]);
 
     const latestWeight = data[data.length - 1];
@@ -104,17 +106,18 @@ export default function Chart(props: Props) {
     const firstDate = w[0]?.date ?? "";
     const latestDate =
       w.at(-1)?.date ?? new Date().toISOString().split("T")[0] ?? "";
-    const option = buildChartOptions(
+    const option = buildChartOptions({
       data,
       firstDate,
       latestDate,
-      currentSettings.endDate,
-      currentSettings.dataDays,
+      endDate: currentSettings.endDate,
+      dataDays: currentSettings.dataDays,
       darkMode,
-      props.hideDataZoom ?? false,
-      targetWeightConfig,
-      currentSettings.showTargetLine,
-    );
+      hideDataZoom: props.hideDataZoom ?? false,
+      targetConfig: targetWeightConfig,
+      showTargetLine: currentSettings.showTargetLine,
+      noTargetLine: props.noTargetLine,
+    });
     chart.setOption(option as unknown as Parameters<typeof chart.setOption>[0]);
 
     const latestWeight = data[data.length - 1];

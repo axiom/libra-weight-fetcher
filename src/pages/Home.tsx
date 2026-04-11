@@ -46,7 +46,7 @@ export default function Home() {
       </div>
 
       <div class="h-[500px]">
-        <Chart hideDataZoom={true} />
+        <Chart hideDataZoom={true} noTargetLine={true} />
       </div>
     </div>
   );

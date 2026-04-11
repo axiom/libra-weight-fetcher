@@ -21,17 +21,17 @@ const ENTRIES = [
 
 const DATA = prepareChartData(ENTRIES);
 
-const BASE_OPTIONS = buildChartOptions(
-  DATA,
-  "2025-06-01",
-  "2025-06-03",
-  null, // endDate
-  90, // dataDays
-  false, // darkMode
-  false, // hideDataZoom
-  TEST_CONFIG,
-  true, // showTargetLine
-);
+const BASE_OPTIONS = buildChartOptions({
+  data: DATA,
+  firstDate: "2025-06-01",
+  latestDate: "2025-06-03",
+  endDate: null,
+  dataDays: 90,
+  darkMode: false,
+  hideDataZoom: false,
+  targetConfig: TEST_CONFIG,
+  showTargetLine: true,
+});
 
 // ─── prepareChartData ─────────────────────────────────────────────────────────
 
@@ -73,17 +73,17 @@ describe("buildChartOptions – top-level structure", () => {
   });
 
   test("returns two series when target line is disabled", () => {
-    const opts = buildChartOptions(
-      DATA,
-      "2025-06-01",
-      "2025-06-03",
-      null,
-      90,
-      false,
-      false,
-      TEST_CONFIG,
-      false,
-    );
+    const opts = buildChartOptions({
+      data: DATA,
+      firstDate: "2025-06-01",
+      latestDate: "2025-06-03",
+      endDate: null,
+      dataDays: 90,
+      darkMode: false,
+      hideDataZoom: false,
+      targetConfig: TEST_CONFIG,
+      showTargetLine: false,
+    });
     expect(opts.series).toHaveLength(2);
   });
 
@@ -243,36 +243,107 @@ describe("buildChartOptions – target line series", () => {
   });
 });
 
+// ─── noTargetLine parameter ──────────────────────────────────────────────────
+
+describe("buildChartOptions – noTargetLine", () => {
+  test("returns 2 series when noTargetLine={true} overrides showTargetLine={true}", () => {
+    const opts = buildChartOptions({
+      data: DATA,
+      firstDate: "2025-06-01",
+      latestDate: "2025-06-03",
+      endDate: null,
+      dataDays: 90,
+      darkMode: false,
+      hideDataZoom: false,
+      targetConfig: TEST_CONFIG,
+      showTargetLine: true,
+      noTargetLine: true,
+    });
+    expect(opts.series).toHaveLength(2);
+  });
+
+  test("returns 2 series when noTargetLine={true} with showTargetLine={false}", () => {
+    const opts = buildChartOptions({
+      data: DATA,
+      firstDate: "2025-06-01",
+      latestDate: "2025-06-03",
+      endDate: null,
+      dataDays: 90,
+      darkMode: false,
+      hideDataZoom: false,
+      targetConfig: TEST_CONFIG,
+      showTargetLine: false,
+      noTargetLine: true,
+    });
+    expect(opts.series).toHaveLength(2);
+  });
+
+  test("yAxis does not extend for target weights when noTargetLine={true}", () => {
+    const config = {
+      startWeight: 120,
+      startDate: "2025-01-01",
+      targetWeight: 80,
+      targetDate: "2026-01-01",
+    };
+    const entries = [
+      { date: "2025-06-01", weight: 115.5, trend: 115.0 },
+      { date: "2025-06-02", weight: 114.8, trend: 114.9 },
+      { date: "2025-06-03", weight: 115.2, trend: 115.1 },
+    ];
+    const data = prepareChartData(entries);
+    const opts = buildChartOptions({
+      data,
+      firstDate: "2025-06-01",
+      latestDate: "2025-06-03",
+      endDate: null,
+      dataDays: 90,
+      darkMode: false,
+      hideDataZoom: false,
+      targetConfig: config,
+      showTargetLine: true,
+      noTargetLine: true,
+    });
+    const yAxis = opts.yAxis as {
+      min: (v: { min: number }) => number;
+      max: (v: { max: number }) => number;
+    };
+    const yMin = yAxis.min({ min: 114.9 });
+    const yMax = yAxis.max({ max: 115.1 });
+    expect(yMin).toBeCloseTo(114.9 - 1);
+    expect(yMax).toBeCloseTo(115.1 + 1);
+  });
+});
+
 // ─── dataZoom visibility ──────────────────────────────────────────────────────
 
 describe("buildChartOptions – dataZoom", () => {
   test("dataZoom[0].show is true when hideDataZoom is false", () => {
-    const opts = buildChartOptions(
-      DATA,
-      "2025-06-01",
-      "2025-06-03",
-      null,
-      90,
-      false,
-      false,
-      TEST_CONFIG,
-      true,
-    );
+    const opts = buildChartOptions({
+      data: DATA,
+      firstDate: "2025-06-01",
+      latestDate: "2025-06-03",
+      endDate: null,
+      dataDays: 90,
+      darkMode: false,
+      hideDataZoom: false,
+      targetConfig: TEST_CONFIG,
+      showTargetLine: true,
+    });
     expect(opts.dataZoom[0].show).toBe(true);
   });
 
   test("dataZoom[0].show is false when hideDataZoom is true", () => {
-    const opts = buildChartOptions(
-      DATA,
-      "2025-06-01",
-      "2025-06-03",
-      null,
-      90,
-      false,
-      true,
-      TEST_CONFIG,
-      true,
-    );
+    const opts = buildChartOptions({
+      data: DATA,
+      firstDate: "2025-06-01",
+      latestDate: "2025-06-03",
+      endDate: null,
+      dataDays: 90,
+      darkMode: false,
+      hideDataZoom: true,
+      targetConfig: TEST_CONFIG,
+      showTargetLine: true,
+    });
     expect(opts.dataZoom[0].show).toBe(false);
   });
 });
@@ -320,17 +391,17 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       { date: "2025-06-03", weight: 115.2, trend: 115.1 },
     ];
     const data = prepareChartData(entries);
-    const opts = buildChartOptions(
+    const opts = buildChartOptions({
       data,
-      "2025-06-01",
-      "2025-06-03",
-      null,
-      90,
-      false,
-      false,
-      config,
-      true,
-    );
+      firstDate: "2025-06-01",
+      latestDate: "2025-06-03",
+      endDate: null,
+      dataDays: 90,
+      darkMode: false,
+      hideDataZoom: false,
+      targetConfig: config,
+      showTargetLine: true,
+    });
     const { yMin, yMax, startWeight, targetWeight } = checkYAxis(
       opts,
       114.9,
@@ -356,17 +427,17 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       { date: "2025-06-03", weight: 65.2, trend: 65.1 },
     ];
     const data = prepareChartData(entries);
-    const opts = buildChartOptions(
+    const opts = buildChartOptions({
       data,
-      "2025-06-01",
-      "2025-06-03",
-      null,
-      90,
-      false,
-      false,
-      config,
-      true,
-    );
+      firstDate: "2025-06-01",
+      latestDate: "2025-06-03",
+      endDate: null,
+      dataDays: 90,
+      darkMode: false,
+      hideDataZoom: false,
+      targetConfig: config,
+      showTargetLine: true,
+    });
     const { yMin, yMax, startWeight, targetWeight } = checkYAxis(
       opts,
       64.9,
@@ -392,17 +463,17 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       { date: "2025-06-03", weight: 100.0, trend: 100.0 },
     ];
     const data = prepareChartData(entries);
-    const opts = buildChartOptions(
+    const opts = buildChartOptions({
       data,
-      "2025-06-01",
-      "2025-06-03",
-      null,
-      90,
-      false,
-      false,
-      config,
-      true,
-    );
+      firstDate: "2025-06-01",
+      latestDate: "2025-06-03",
+      endDate: null,
+      dataDays: 90,
+      darkMode: false,
+      hideDataZoom: false,
+      targetConfig: config,
+      showTargetLine: true,
+    });
     const { yMin, yMax, startWeight, targetWeight } = checkYAxis(
       opts,
       80.0,
@@ -419,28 +490,28 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
 
 describe("buildChartOptions – dark mode", () => {
   test("trend line color differs between dark and light mode", () => {
-    const light = buildChartOptions(
-      DATA,
-      "2025-06-01",
-      "2025-06-03",
-      null,
-      90,
-      false,
-      false,
-      TEST_CONFIG,
-      true,
-    );
-    const dark = buildChartOptions(
-      DATA,
-      "2025-06-01",
-      "2025-06-03",
-      null,
-      90,
-      true,
-      false,
-      TEST_CONFIG,
-      true,
-    );
+    const light = buildChartOptions({
+      data: DATA,
+      firstDate: "2025-06-01",
+      latestDate: "2025-06-03",
+      endDate: null,
+      dataDays: 90,
+      darkMode: false,
+      hideDataZoom: false,
+      targetConfig: TEST_CONFIG,
+      showTargetLine: true,
+    });
+    const dark = buildChartOptions({
+      data: DATA,
+      firstDate: "2025-06-01",
+      latestDate: "2025-06-03",
+      endDate: null,
+      dataDays: 90,
+      darkMode: true,
+      hideDataZoom: false,
+      targetConfig: TEST_CONFIG,
+      showTargetLine: true,
+    });
     const lightColor = light.series[0].lineStyle!.color;
     const darkColor = dark.series[0].lineStyle!.color;
     expect(lightColor).not.toBe(darkColor);
