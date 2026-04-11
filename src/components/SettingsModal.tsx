@@ -287,7 +287,7 @@ export default function SettingsModal() {
           if (e.target === dialogRef) close();
         }}
         onKeyDown={() => {}}
-        class="backdrop:bg-black/50 bg-white dark:bg-gray-900 rounded-lg shadow-xl p-0 max-w-md w-[90vw] border-2 border-gray-300 dark:border-gray-600"
+        class="backdrop:bg-black/50 bg-white dark:bg-gray-900 rounded-lg shadow-xl p-0 max-w-md w-[90vw] border-2 border-gray-300 dark:border-gray-600 fixed inset-0 m-auto"
       >
         <div class="flex flex-col">
           <div class="flex items-center justify-between px-6 py-4 border-b border-gray-300 dark:border-gray-600">
