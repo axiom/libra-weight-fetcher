@@ -1,3 +1,12 @@
+import type {
+  GridComponentOption,
+  LineSeriesOption,
+  ScatterSeriesOption,
+  SliderDataZoomComponentOption,
+  TooltipComponentOption,
+  XAXisComponentOption,
+  YAXisComponentOption,
+} from "echarts";
 import {
   computeTargetProgress,
   computeTargetWeight,
@@ -11,6 +20,18 @@ export interface TargetConfig {
   startDate: string;
   targetWeight: number;
   targetDate: string;
+}
+
+export interface ChartOptions {
+  darkMode: boolean;
+  backgroundColor: string;
+  grid: GridComponentOption;
+  tooltip: TooltipComponentOption;
+  dataZoom: SliderDataZoomComponentOption[];
+  xAxis: XAXisComponentOption;
+  yAxis: YAXisComponentOption;
+  series: [LineSeriesOption, ScatterSeriesOption];
+  dataset?: undefined;
 }
 
 // Transforms already-smoothed WeightEntry[] into chart tuples.
@@ -35,7 +56,7 @@ export const buildChartOptions = (
   hideDataZoom: boolean,
   targetConfig: TargetConfig,
   showTargetLine: boolean,
-) => {
+): ChartOptions => {
   const trendData: [string, number][] = data.map((d) => [d[0], d[2]]);
   const weightData: [string, number][] = data.map((d) => [d[0], d[1]]);
 
@@ -105,7 +126,8 @@ export const buildChartOptions = (
     },
     tooltip: {
       trigger: "axis",
-      valueFormatter: (value: number) => `${value.toFixed(1)} kg`,
+      valueFormatter: (value: unknown) =>
+        typeof value === "number" ? `${value.toFixed(1)} kg` : String(value),
       order: "valueDesc",
     },
     dataZoom: [
@@ -178,10 +200,10 @@ export const buildChartOptions = (
             color: colors.markLine,
           },
           data: (() => {
-            const base = [
+            const base: { type: "max" | "min"; name: string }[] = [
               { type: "max", name: "Max" },
               { type: "min", name: "Min" },
-            ] as const;
+            ];
             if (!showTargetLine) return base;
             return [
               ...base,
@@ -194,7 +216,7 @@ export const buildChartOptions = (
                   coord: [now, dailyTargetWeight],
                 },
               ],
-            ] as const;
+            ];
           })(),
         },
       },

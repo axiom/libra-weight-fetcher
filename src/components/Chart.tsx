@@ -1,3 +1,4 @@
+import type { EChartsOption } from "echarts";
 import * as echarts from "echarts";
 import { createEffect, onMount } from "solid-js";
 import { buildChartOptions, prepareChartData } from "../chartOptions";
@@ -45,7 +46,7 @@ export default function Chart(props: Props) {
       targetWeightConfig,
       currentSettings.showTargetLine,
     );
-    chart.setOption(option);
+    chart.setOption(option as unknown as Parameters<typeof chart.setOption>[0]);
 
     const latestWeight = data[data.length - 1];
     if (latestWeight) {
@@ -114,7 +115,7 @@ export default function Chart(props: Props) {
       targetWeightConfig,
       currentSettings.showTargetLine,
     );
-    chart.setOption(option);
+    chart.setOption(option as unknown as Parameters<typeof chart.setOption>[0]);
 
     const latestWeight = data[data.length - 1];
     if (latestWeight) {

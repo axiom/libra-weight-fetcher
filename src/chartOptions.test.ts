@@ -73,7 +73,7 @@ describe("buildChartOptions – top-level structure", () => {
   });
 
   test("does NOT include a top-level dataset (ECharts 6.0 bug guard)", () => {
-    expect((BASE_OPTIONS as Record<string, unknown>).dataset).toBeUndefined();
+    expect(BASE_OPTIONS.dataset).toBeUndefined();
   });
 
   test("series[0] is type 'line' (trend)", () => {
@@ -534,12 +534,8 @@ describe("buildChartOptions – dark mode", () => {
       TEST_CONFIG,
       true,
     );
-    const lightColor = (
-      light.series[0] as Record<string, Record<string, unknown>>
-    ).lineStyle.color;
-    const darkColor = (
-      dark.series[0] as Record<string, Record<string, unknown>>
-    ).lineStyle.color;
+    const lightColor = light.series[0].lineStyle!.color;
+    const darkColor = dark.series[0].lineStyle!.color;
     expect(lightColor).not.toBe(darkColor);
   });
 });
