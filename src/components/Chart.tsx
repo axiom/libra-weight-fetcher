@@ -33,11 +33,8 @@ const buildChartOptions = (
   darkMode: boolean,
   hideDataZoom: boolean,
 ) => {
-  const chartData: [string, number, number][] = data.map((d) => [
-    d[0],
-    d[1],
-    d[2],
-  ]);
+  const trendData: [string, number][] = data.map((d) => [d[0], d[2]]);
+  const weightData: [string, number][] = data.map((d) => [d[0], d[1]]);
 
   // Always use the actual latest weight date for target line and percentage calculations
   const actualLatestDate = latestDate;
@@ -101,14 +98,6 @@ const buildChartOptions = (
       right: "2%",
       bottom: 120,
     },
-    dataset: {
-      source: chartData,
-      dimensions: [
-        { name: "date", displayName: "Datum", type: "time" },
-        { name: "weight", displayName: "Vikt", type: "float" },
-        { name: "trend", displayName: "Trend", type: "float" },
-      ],
-    },
     tooltip: {
       trigger: "axis",
       valueFormatter: (value: number) => `${value.toFixed(1)} kg`,
@@ -140,10 +129,9 @@ const buildChartOptions = (
     series: [
       {
         type: "line",
+        name: "Trend",
         showSymbol: false,
-        encode: {
-          y: "trend",
-        },
+        data: trendData,
         lineStyle: {
           width: 4,
           color: colors.line,
@@ -165,9 +153,8 @@ const buildChartOptions = (
       },
       {
         type: "scatter",
-        encode: {
-          y: "weight",
-        },
+        name: "Vikt",
+        data: weightData,
         symbol: "diamond",
         itemStyle: {
           color: ({ dataIndex }: { dataIndex: number }) =>
