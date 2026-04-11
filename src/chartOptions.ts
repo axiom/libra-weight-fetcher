@@ -34,6 +34,7 @@ export const buildChartOptions = (
   darkMode: boolean,
   hideDataZoom: boolean,
   targetConfig: TargetConfig,
+  showTargetLine: boolean,
 ) => {
   const trendData: [string, number][] = data.map((d) => [d[0], d[2]]);
   const weightData: [string, number][] = data.map((d) => [d[0], d[1]]);
@@ -128,9 +129,13 @@ export const buildChartOptions = (
       show: false,
       type: "value",
       min: (value: { min: number }) =>
-        Math.min(value.min, zoomStartWeight, dailyTargetWeight) - 1,
+        showTargetLine
+          ? Math.min(value.min, zoomStartWeight, dailyTargetWeight) - 1
+          : value.min - 1,
       max: (value: { max: number }) =>
-        Math.max(value.max, zoomStartWeight, dailyTargetWeight) + 1,
+        showTargetLine
+          ? Math.max(value.max, zoomStartWeight, dailyTargetWeight) + 1
+          : value.max + 1,
     },
     series: [
       {
@@ -172,19 +177,25 @@ export const buildChartOptions = (
           lineStyle: {
             color: colors.markLine,
           },
-          data: [
-            { type: "max", name: "Max" },
-            { type: "min", name: "Min" },
-            [
-              {
-                lineStyle: { color: "red" },
-                coord: [zoomStart, zoomStartWeight],
-              },
-              {
-                coord: [now, dailyTargetWeight],
-              },
-            ],
-          ],
+          data: (() => {
+            const base = [
+              { type: "max", name: "Max" },
+              { type: "min", name: "Min" },
+            ] as const;
+            if (!showTargetLine) return base;
+            return [
+              ...base,
+              [
+                {
+                  lineStyle: { color: "red" },
+                  coord: [zoomStart, zoomStartWeight],
+                },
+                {
+                  coord: [now, dailyTargetWeight],
+                },
+              ],
+            ] as const;
+          })(),
         },
       },
     ],

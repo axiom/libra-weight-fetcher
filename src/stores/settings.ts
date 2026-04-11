@@ -67,6 +67,7 @@ export interface Settings {
   dataDays: number;
   endDate: string | null;
   weightMeasurements: number;
+  showTargetLine: boolean;
 }
 
 export const FALLBACK_SMOOTHER: SmoothingType = "ema";
@@ -95,6 +96,7 @@ const defaultSettings: Settings = {
   dataDays: 90,
   endDate: null,
   weightMeasurements: 50,
+  showTargetLine: true,
 };
 
 const STORAGE_KEY = "libra-weight-fetcher-settings";
@@ -133,6 +135,7 @@ function getInitialSettings(): Settings {
     parseInt(params.get("w") ?? "", 10) || defaultSettings.weightMeasurements;
   const endDate = params.get("end");
   const dataDaysParam = parseInt(params.get("d") ?? "", 10);
+  let settingsShowTargetLine = defaultSettings.showTargetLine;
 
   let smoothingOptions = defaultSmoothingOptions;
   let dataDays = dataDaysParam || defaultSettings.dataDays;
@@ -171,6 +174,10 @@ function getInitialSettings(): Settings {
         if (!dataDaysParam && typeof parsed.dataDays === "number") {
           dataDays = parsed.dataDays;
         }
+        // Load showTargetLine from localStorage
+        if (typeof parsed.showTargetLine === "boolean") {
+          settingsShowTargetLine = parsed.showTargetLine;
+        }
       } catch {
         // ignore parse errors
       }
@@ -183,6 +190,7 @@ function getInitialSettings(): Settings {
     dataDays,
     endDate,
     weightMeasurements,
+    showTargetLine: settingsShowTargetLine,
   };
 }
 
@@ -197,6 +205,7 @@ const saveToStorage = (updates: {
   smoothing?: SmoothingType[];
   smoothingOptions?: SmoothingOptions;
   dataDays?: number;
+  showTargetLine?: boolean;
 }) => {
   if (typeof window === "undefined") return;
   try {
@@ -236,6 +245,8 @@ export const updateSetting = <K extends keyof Settings>(
       saveToStorage({ smoothing: value as SmoothingType[] });
     } else if (key === "dataDays") {
       saveDateRangeToStorage(value as number);
+    } else if (key === "showTargetLine") {
+      saveToStorage({ showTargetLine: value as boolean });
     }
 
     if (typeof window !== "undefined") {

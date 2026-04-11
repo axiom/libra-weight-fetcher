@@ -30,6 +30,7 @@ const BASE_OPTIONS = buildChartOptions(
   false, // darkMode
   false, // hideDataZoom
   TEST_CONFIG,
+  true, // showTargetLine
 );
 
 // ─── prepareChartData ─────────────────────────────────────────────────────────
@@ -281,6 +282,7 @@ describe("buildChartOptions – dataZoom", () => {
       false,
       false,
       TEST_CONFIG,
+      true,
     );
     expect(opts.dataZoom[0].show).toBe(true);
   });
@@ -295,6 +297,7 @@ describe("buildChartOptions – dataZoom", () => {
       false,
       true,
       TEST_CONFIG,
+      true,
     );
     expect(opts.dataZoom[0].show).toBe(false);
   });
@@ -359,6 +362,7 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       false,
       false,
       config,
+      true,
     );
     const { yMin, yMax, startY, endY } = checkExtent(opts, 114.9, 115.1);
     expect(yMin).toBeLessThanOrEqual(startY);
@@ -391,6 +395,7 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       false,
       false,
       config,
+      true,
     );
     const { yMin, yMax, startY, endY } = checkExtent(opts, 64.9, 65.1);
     expect(yMin).toBeLessThanOrEqual(startY);
@@ -423,6 +428,7 @@ describe("buildChartOptions – yAxis covers target line endpoints", () => {
       false,
       false,
       config,
+      true,
     );
     const { yMin, yMax, startY, endY } = checkExtent(opts, 80.0, 100.0);
     // Must still cover all target weights
@@ -515,6 +521,7 @@ describe("buildChartOptions – dark mode", () => {
       false,
       false,
       TEST_CONFIG,
+      true,
     );
     const dark = buildChartOptions(
       DATA,
@@ -525,6 +532,7 @@ describe("buildChartOptions – dark mode", () => {
       true,
       false,
       TEST_CONFIG,
+      true,
     );
     const lightColor = (
       light.series[0] as Record<string, Record<string, unknown>>

@@ -43,6 +43,7 @@ export default function Chart(props: Props) {
       darkMode,
       props.hideDataZoom ?? false,
       targetWeightConfig,
+      currentSettings.showTargetLine,
     );
     chart.setOption(option);
 
@@ -111,6 +112,7 @@ export default function Chart(props: Props) {
       darkMode,
       props.hideDataZoom ?? false,
       targetWeightConfig,
+      currentSettings.showTargetLine,
     );
     chart.setOption(option);
 

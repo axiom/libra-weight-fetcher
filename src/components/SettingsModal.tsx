@@ -40,6 +40,7 @@ export default function SettingsModal() {
     settings().smoothingOptions,
   );
   let originalDateRange: number = settings().dataDays;
+  let originalShowTargetLine = settings().showTargetLine;
 
   const [localSmoothing, setLocalSmoothing] = createSignal<SmoothingType[]>([
     ...settings().smoothing,
@@ -49,6 +50,9 @@ export default function SettingsModal() {
   );
   const [localDateRange, setLocalDateRange] = createSignal<number>(
     settings().dataDays,
+  );
+  const [localShowTargetLine, setLocalShowTargetLine] = createSignal<boolean>(
+    settings().showTargetLine,
   );
   const [expandedIndex, setExpandedIndex] = createSignal(0);
   const [smootherToAdd, setSmootherToAdd] = createSignal<SmoothingType>(
@@ -60,6 +64,7 @@ export default function SettingsModal() {
     originalSmoothing = [...current.smoothing];
     originalOptions = cloneSmoothingOptions(current.smoothingOptions);
     originalDateRange = current.dataDays;
+    originalShowTargetLine = current.showTargetLine;
 
     setLocalSmoothing(
       originalSmoothing.length > 0
@@ -68,6 +73,7 @@ export default function SettingsModal() {
     );
     setLocalOptions(cloneSmoothingOptions(originalOptions));
     setLocalDateRange(originalDateRange);
+    setLocalShowTargetLine(originalShowTargetLine);
     setExpandedIndex(0);
     setSmootherToAdd(smootherDefinitions[0]?.id ?? FALLBACK_SMOOTHER);
     dialogRef?.showModal();
@@ -83,6 +89,8 @@ export default function SettingsModal() {
     updateSetting("smoothingOptions", cloneSmoothingOptions(originalOptions));
     updateSetting("dataDays", originalDateRange);
     setLocalDateRange(originalDateRange);
+    updateSetting("showTargetLine", originalShowTargetLine);
+    setLocalShowTargetLine(originalShowTargetLine);
     dialogRef?.close();
   };
 
@@ -92,6 +100,7 @@ export default function SettingsModal() {
     originalSmoothing = smoothingChain;
     originalOptions = cloneSmoothingOptions(localOptions());
     originalDateRange = localDateRange();
+    originalShowTargetLine = localShowTargetLine();
     dialogRef?.close();
   };
 
@@ -292,7 +301,7 @@ export default function SettingsModal() {
         <div class="flex flex-col">
           <div class="flex items-center justify-between px-6 py-4 border-b border-gray-300 dark:border-gray-600">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Smoothing Settings
+              Settings
             </h2>
             <button
               type="button"
@@ -327,6 +336,24 @@ export default function SettingsModal() {
                 }}
                 class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
               />
+            </div>
+
+            <div>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={localShowTargetLine()}
+                  onChange={(e) => {
+                    const checked = e.currentTarget.checked;
+                    setLocalShowTargetLine(checked);
+                    updateSetting("showTargetLine", checked);
+                  }}
+                  class="w-4 h-4 text-orange-500 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500"
+                />
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Show target pace line
+                </span>
+              </label>
             </div>
 
             <div class="space-y-2">
