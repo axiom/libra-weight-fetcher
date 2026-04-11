@@ -1,5 +1,10 @@
 import type { WeightEntry } from "../../shared";
 
+export interface DaysSinceResult {
+  days: number;
+  sentiment: "good" | "fair" | "bad" | "neutral";
+}
+
 export interface StreakResult {
   days: number;
   endDate: string;
@@ -168,4 +173,19 @@ export function computeMaxWeight(
   if (period.length === 0) return null;
   const entry = period.reduce((max, e) => (e.trend > max.trend ? e : max));
   return { value: entry.trend, date: entry.date };
+}
+
+export function computeDaysSinceLastWeighIn(
+  entries: WeightEntry[],
+  now: Date = new Date(),
+): DaysSinceResult | null {
+  if (entries.length === 0) return null;
+  const lastEntry = entries[entries.length - 1];
+  const lastDate = new Date(lastEntry.date);
+  const days = Math.floor((now.getTime() - lastDate.getTime()) / DAY_MS);
+
+  const sentiment =
+    days <= 2 ? "good" : days <= 7 ? "fair" : days <= 0 ? "good" : "bad";
+
+  return { days, sentiment };
 }

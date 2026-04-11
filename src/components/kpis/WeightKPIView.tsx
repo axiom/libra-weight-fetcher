@@ -1,6 +1,6 @@
 import type { ParentProps } from "solid-js";
 
-export type KPISentiment = "good" | "bad" | "neutral";
+export type KPISentiment = "good" | "bad" | "fair" | "neutral";
 
 interface Props {
   label: string;
@@ -26,6 +26,12 @@ function NeutralValue(props: ParentProps) {
   return <span class="text-gray-900 dark:text-gray-100">{props.children}</span>;
 }
 
+function FairValue(props: ParentProps) {
+  return (
+    <span class="text-orange-600 dark:text-orange-400">{props.children}</span>
+  );
+}
+
 export default function WeightKPIView(props: Props) {
   const badgeClass = () => {
     switch (props.sentiment) {
@@ -33,6 +39,8 @@ export default function WeightKPIView(props: Props) {
         return "text-green-700 bg-green-100";
       case "bad":
         return "text-red-700 bg-red-100";
+      case "fair":
+        return "text-orange-700 bg-orange-100";
       default:
         return "text-gray-700 bg-gray-200";
     }
@@ -62,6 +70,8 @@ export default function WeightKPIView(props: Props) {
           <BadValue>{props.value}</BadValue>
         ) : props.sentiment === "good" ? (
           <GoodValue>{props.value}</GoodValue>
+        ) : props.sentiment === "fair" ? (
+          <FairValue>{props.value}</FairValue>
         ) : (
           <NeutralValue>{props.value}</NeutralValue>
         )}

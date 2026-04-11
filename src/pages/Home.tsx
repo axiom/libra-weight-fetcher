@@ -4,6 +4,7 @@ import {
   CurrentGainStreakKPI,
   CurrentLossStreakKPI,
   CurrentWeightKPI,
+  DaysSinceWeighInKPI,
   HighestWeightKPI,
   LongestGainStreakKPI,
   LongestLossStreakKPI,
@@ -24,6 +25,7 @@ export default function Home() {
         }}
       >
         <CurrentWeightKPI />
+        <DaysSinceWeighInKPI />
         <CurrentLossStreakKPI />
         <CurrentGainStreakKPI />
         <LongestLossStreakKPI />
