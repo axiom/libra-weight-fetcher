@@ -1,10 +1,5 @@
 import type { ParentProps } from "solid-js";
 
-export interface KPIBadge {
-  text: string;
-  className: string;
-}
-
 export type KPISentiment = "good" | "bad" | "neutral";
 
 interface Props {
@@ -12,8 +7,8 @@ interface Props {
   value: string;
   icon: string;
   sentiment?: KPISentiment;
-  badge: KPIBadge | null;
-  meta: string | null;
+  badgeText?: string;
+  meta?: string | null;
   class?: string;
 }
 
@@ -32,6 +27,17 @@ function NeutralValue(props: ParentProps) {
 }
 
 export default function WeightKPIView(props: Props) {
+  const badgeClass = () => {
+    switch (props.sentiment) {
+      case "good":
+        return "text-green-700 bg-green-100";
+      case "bad":
+        return "text-red-700 bg-red-100";
+      default:
+        return "text-gray-700 bg-gray-200";
+    }
+  };
+
   return (
     <div
       class={`relative overflow-hidden rounded-2xl p-4 bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 shadow-md hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-orange-100/80 to-amber-100/80 dark:from-orange-900/30 dark:to-amber-900/30 min-w-[min-content] ${props.class ?? ""}`}
@@ -41,11 +47,11 @@ export default function WeightKPIView(props: Props) {
           {props.label}
         </div>
         <div>
-          {props.badge ? (
+          {props.badgeText ? (
             <span
-              class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${props.badge.className}`}
+              class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badgeClass()}`}
             >
-              {props.badge.text}
+              {props.badgeText}
             </span>
           ) : null}
         </div>

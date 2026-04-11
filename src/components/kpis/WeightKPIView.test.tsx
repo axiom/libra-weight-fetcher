@@ -9,7 +9,6 @@ describe("WeightKPIView", () => {
         label="Current Weight"
         value="85.5 kg"
         icon="⚖️"
-        badge={null}
         meta={null}
       />
     ));
@@ -23,7 +22,6 @@ describe("WeightKPIView", () => {
         label="Current Weight"
         value="85.5 kg"
         icon="⚖️"
-        badge={null}
         meta={null}
       />
     ));
@@ -38,7 +36,7 @@ describe("WeightKPIView", () => {
         value="-2.5 kg"
         icon="📉"
         sentiment="neutral"
-        badge={{ text: "Cutting", className: "text-green-700 bg-green-100" }}
+        badgeText="Cutting"
         meta="30-day window"
       />
     ));
@@ -53,7 +51,6 @@ describe("WeightKPIView", () => {
         value="-2.5 kg"
         icon="📉"
         sentiment="neutral"
-        badge={null}
         meta="30-day window"
       />
     ));
@@ -61,13 +58,12 @@ describe("WeightKPIView", () => {
     expect(getByText("30-day window")).toBeDefined();
   });
 
-  it("does not render badge when null", () => {
+  it("does not render badge when not provided", () => {
     const { queryByText } = render(() => (
       <WeightKPIView
         label="Current Weight"
         value="85.5 kg"
         icon="⚖️"
-        badge={null}
         meta={null}
       />
     ));
@@ -81,7 +77,6 @@ describe("WeightKPIView", () => {
         label="Current Weight"
         value="85.5 kg"
         icon="⚖️"
-        badge={null}
         meta={null}
       />
     ));

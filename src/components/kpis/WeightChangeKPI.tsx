@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js";
 import type { WeightEntry } from "../../shared";
 import { useWeightData } from "../../stores/weightData";
-import WeightKPIView, { type KPIBadge } from "./WeightKPIView";
+import WeightKPIView from "./WeightKPIView";
 import { computeWeightChange } from "./weightKpi.logic";
 
 interface Props {
@@ -16,16 +16,6 @@ export default function WeightChangeKPI(props: Props) {
   const entries = () => props.weights ?? weightData();
 
   const value = createMemo(() => computeWeightChange(entries(), props.days));
-
-  const badge = createMemo((): KPIBadge | null => {
-    const v = value();
-    if (v === null)
-      return { text: "No data", className: "text-gray-500 bg-gray-200/70" };
-    if (v < 0)
-      return { text: "Cutting", className: "text-green-700 bg-green-100" };
-    if (v > 0) return { text: "Gaining", className: "text-red-700 bg-red-100" };
-    return { text: "Stable", className: "text-gray-700 bg-gray-200" };
-  });
 
   const formatted = createMemo(() => {
     const v = value();
@@ -42,6 +32,14 @@ export default function WeightChangeKPI(props: Props) {
     return "neutral";
   });
 
+  const badgeText = createMemo(() => {
+    const v = value();
+    if (v === null) return "No data";
+    if (v < 0) return "Cutting";
+    if (v > 0) return "Gaining";
+    return "Stable";
+  });
+
   const icon = createMemo(() => {
     const v = value();
     if (v === null) return "➖";
@@ -56,7 +54,7 @@ export default function WeightChangeKPI(props: Props) {
       value={formatted()}
       sentiment={sentiment()}
       icon={icon()}
-      badge={badge()}
+      badgeText={badgeText()}
       meta={`${props.days}-day window`}
       class={props.class}
     />

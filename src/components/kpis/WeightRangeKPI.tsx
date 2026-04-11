@@ -27,7 +27,6 @@ export default function WeightRangeKPI(props: Props) {
       label={props.label}
       value={formatted()}
       icon="↔️"
-      badge={null}
       meta={`${props.days}-day window`}
       class={props.class}
     />

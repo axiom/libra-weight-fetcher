@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js";
 import type { WeightEntry } from "../../shared";
 import { useWeightData } from "../../stores/weightData";
-import WeightKPIView, { type KPIBadge } from "./WeightKPIView";
+import WeightKPIView from "./WeightKPIView";
 import { computeLongestGainStreak } from "./weightKpi.logic";
 
 function formatDate(dateStr: string): string {
@@ -23,13 +23,6 @@ export default function LongestGainStreakKPI(props: Props) {
 
   const streak = createMemo(() => computeLongestGainStreak(entries()));
 
-  const badge = createMemo((): KPIBadge => {
-    const s = streak();
-    return s && s.days > 0
-      ? { text: "Record", className: "text-amber-800 bg-amber-100" }
-      : { text: "No streak", className: "text-gray-500 bg-gray-100" };
-  });
-
   const baseLabel = () => props.label ?? "Longest Gain Streak";
   const label = createMemo(() => {
     const s = streak();
@@ -46,13 +39,18 @@ export default function LongestGainStreakKPI(props: Props) {
     return s && s.days > 0 ? "bad" : "neutral";
   };
 
+  const badgeText = () => {
+    const s = streak();
+    return s && s.days > 0 ? "Record" : "No streak";
+  };
+
   return (
     <WeightKPIView
       label={label()}
       value={formatted()}
       sentiment={sentiment()}
       icon="😬"
-      badge={badge()}
+      badgeText={badgeText()}
       meta={null}
       class={props.class}
     />

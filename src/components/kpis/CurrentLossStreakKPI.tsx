@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js";
 import type { WeightEntry } from "../../shared";
 import { useWeightData } from "../../stores/weightData";
-import WeightKPIView, { type KPIBadge } from "./WeightKPIView";
+import WeightKPIView from "./WeightKPIView";
 import { computeLossStreak } from "./weightKpi.logic";
 
 interface Props {
@@ -16,12 +16,7 @@ export default function CurrentLossStreakKPI(props: Props) {
 
   const days = createMemo(() => computeLossStreak(entries()));
 
-  const badge = createMemo(
-    (): KPIBadge =>
-      days() > 0
-        ? { text: "Active", className: "text-gray-700 bg-gray-200" }
-        : { text: "Idle", className: "text-gray-500 bg-gray-100" },
-  );
+  const badgeText = () => (days() > 0 ? "Active" : "Idle");
 
   return (
     <WeightKPIView
@@ -29,7 +24,7 @@ export default function CurrentLossStreakKPI(props: Props) {
       value={`${days()} days`}
       sentiment={days() <= 0 ? "bad" : "good"}
       icon={days() > 0 ? "📉" : "➖"}
-      badge={badge()}
+      badgeText={badgeText()}
       meta={null}
       class={props.class}
     />
