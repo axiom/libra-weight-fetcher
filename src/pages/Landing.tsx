@@ -24,8 +24,8 @@ export default function Landing() {
 
         <div class="grid grid-cols-2 gap-4 py-6">
           <CurrentWeightKPI />
-          <KgsToTargetKPI />
           <WeightChangeKPI days={30} label="Last 30 Days" />
+          <KgsToTargetKPI />
           <ProjectedDaysKPI />
         </div>
       </div>
