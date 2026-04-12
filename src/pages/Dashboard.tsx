@@ -104,8 +104,20 @@ export default function Dashboard() {
 }
 
 function SectionHeading(props: { title: string }) {
+  const colors: Record<string, string> = {
+    Now: "bg-[var(--color-accent-subtle)] text-[var(--color-accent-hover)]",
+    Trends: "bg-[var(--color-accent-2-subtle)] text-[var(--color-accent-2-hover)]",
+    Streaks: "bg-[var(--color-accent-subtle)] text-[var(--color-accent-hover)]",
+    Goals: "bg-[var(--color-accent-2-subtle)] text-[var(--color-accent-2-hover)]",
+    Monthly: "bg-[var(--color-accent-subtle)] text-[var(--color-accent-hover)]",
+    "Long Term": "bg-[var(--color-accent-2-subtle)] text-[var(--color-accent-2-hover)]",
+    Ranges: "bg-[var(--color-accent-subtle)] text-[var(--color-accent-hover)]",
+    "All Time": "bg-[var(--color-accent-2-subtle)] text-[var(--color-accent-2-hover)]",
+  };
+  const colorClass = colors[props.title] || "bg-[var(--color-border-subtle)] text-[var(--color-text-muted)]";
+
   return (
-    <h2 class="text-sm font-medium text-[var(--color-text-muted)] uppercase tracking-wide mt-4 first:mt-0">
+    <h2 class={`section-header ${colorClass}`}>
       {props.title}
     </h2>
   );

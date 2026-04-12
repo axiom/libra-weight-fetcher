@@ -2,33 +2,42 @@
   color-scheme: light dark;
 
   /* Base colors — automatically switch with OS preference */
-  --color-bg: light-dark(#FAFAFA, #0A0A0A);
-  --color-surface: light-dark(#FFFFFF, #171717);
-  --color-surface-elevated: light-dark(#FFFFFF, #1F1F1F);
-  --color-border: light-dark(#E5E5E5, #262626);
-  --color-border-subtle: light-dark(#F0F0F0, #1F1F1F);
+  --color-bg: light-dark(#fafafa, #0a0a0a);
+  --color-surface: light-dark(#ffffff, #171717);
+  --color-surface-elevated: light-dark(#ffffff, #1f1f1f);
+  --color-border: light-dark(#e5e5e5, #262626);
+  --color-border-subtle: light-dark(#f0f0f0, #1f1f1f);
 
-  --color-text: light-dark(#171717, #FAFAFA);
-  --color-text-secondary: light-dark(#525252, #D4D4D4);
-  --color-text-muted: light-dark(#737373, #A3A3A3);
+  --color-text: light-dark(#171717, #fafafa);
+  --color-text-secondary: light-dark(#525252, #d4d4d4);
+  --color-text-muted: light-dark(#737373, #a3a3a3);
 
-  /* Accent colors — blue theme */
-  --color-accent: light-dark(#3B82F6, #60A5FA);
-  --color-accent-hover: light-dark(#2563EB, #93C5FD);
-  --color-accent-subtle: light-dark(#EFF6FF, #1E3A5F);
-  --color-accent-muted: light-dark(#DBEAFE, #1E3A5F);
+  /* Accent colors — teal + orange theme */
+  --color-accent: light-dark(#14b8a6, #2dd4bf);
+  --color-accent-hover: light-dark(#0d9488, #5eead4);
+  --color-accent-subtle: light-dark(#f0fdfa, #134e4a);
+  --color-accent-muted: light-dark(#ccfbf1, #042f2e);
+
+  /* Secondary accent — orange */
+  --color-accent-2: light-dark(#f97316, #fb923c);
+  --color-accent-2-hover: light-dark(#ea580c, #fdba74);
+  --color-accent-2-subtle: light-dark(#fff7ed, #431407);
+  --color-accent-2-muted: light-dark(#ffedd5, #7c2d12);
 
   /* Status colors */
-  --color-success: light-dark(#16A34A, #22C55E);
-  --color-success-subtle: light-dark(#DCFCE7, #14532D);
-  --color-warning: light-dark(#EAB308, #FACC15);
-  --color-warning-subtle: light-dark(#FEF9C3, #713F12);
-  --color-danger: light-dark(#DC2626, #EF4444);
-  --color-danger-subtle: light-dark(#FEE2E2, #7F1D1D);
+  --color-success: light-dark(#16a34a, #22c55e);
+  --color-success-subtle: light-dark(#dcfce7, #14532d);
+  --color-warning: light-dark(#eab308, #facc15);
+  --color-warning-subtle: light-dark(#fef9c3, #713f12);
+  --color-danger: light-dark(#dc2626, #ef4444);
+  --color-danger-subtle: light-dark(#fee2e2, #7f1d1d);
 
   /* Typography */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", "SF Mono", Menlo, monospace;
+  --font-sans:
+    system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto,
+    sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "JetBrains Mono", "SF Mono", Menlo, monospace;
 
   /* Spacing */
   --radius-sm: 0.375rem;
@@ -40,7 +49,8 @@
   /* Shadows — light mode defaults */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -52,8 +62,14 @@ html {
   font-family: var(--font-sans);
   font-size: 16px;
   background: var(--color-bg);
+  background-image:
+    linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px);
+  background-size: 12px 12px;
   color: var(--color-text);
-  transition: background var(--transition-normal), color var(--transition-normal);
+  transition:
+    background var(--transition-normal),
+    color var(--transition-normal);
 }
 
 body {
@@ -117,7 +133,9 @@ body {
   padding: 0.5rem 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background var(--transition-fast), transform var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .btn-accent:hover {
@@ -155,15 +173,18 @@ body {
 @media (prefers-color-scheme: dark) {
   :root:not([style*="color-scheme: light"]) {
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+    --shadow-md:
+      0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg:
+      0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
   }
 }
 
 :root[style*="color-scheme: dark"] {
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
 }
 
 /* Trend background */
