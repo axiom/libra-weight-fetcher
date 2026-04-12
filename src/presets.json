@@ -3,14 +3,34 @@
     "name": "Best (Eval Winner)",
     "chain": ["henderson", "kalman-causal"],
     "options": {
-      "median": { "windowSize": 7 },
-      "ema": { "alpha": 0.2 },
-      "wma": { "windowSize": 7 },
-      "holt": { "alpha": 0.2, "beta": 0.02 },
-      "trimmed-mean": { "windowSize": 7, "trimCount": 1 },
-      "savitzky-golay": { "windowSize": 7, "order": 2 },
-      "loess": { "bandwidth": 0.3 },
-      "gaussian": { "windowSize": 7, "sigma": 2 },
+      "median": {
+        "windowSize": 7
+      },
+      "ema": {
+        "alpha": 0.2
+      },
+      "wma": {
+        "windowSize": 7
+      },
+      "holt": {
+        "alpha": 0.2,
+        "beta": 0.02
+      },
+      "trimmed-mean": {
+        "windowSize": 7,
+        "trimCount": 1
+      },
+      "savitzky-golay": {
+        "windowSize": 7,
+        "order": 2
+      },
+      "loess": {
+        "bandwidth": 0.3
+      },
+      "gaussian": {
+        "windowSize": 7,
+        "sigma": 2
+      },
       "kalman": {
         "processNoise": 0.1,
         "measurementNoise": 1,
@@ -21,22 +41,47 @@
         "measurementNoise": 1,
         "initialVariance": 1
       },
-      "henderson": { "windowSize": 13 },
-      "robust-loess": { "bandwidth": 0.3, "iterations": 3 }
+      "henderson": {
+        "windowSize": 13
+      },
+      "robust-loess": {
+        "bandwidth": 0.3,
+        "iterations": 3
+      }
     }
   },
   {
     "name": "Holt Dual Smoothing",
     "chain": ["ema", "holt"],
     "options": {
-      "median": { "windowSize": 7 },
-      "ema": { "alpha": 0.05 },
-      "wma": { "windowSize": 7 },
-      "holt": { "alpha": 0.21, "beta": 0.02 },
-      "trimmed-mean": { "windowSize": 7, "trimCount": 1 },
-      "savitzky-golay": { "windowSize": 7, "order": 2 },
-      "loess": { "bandwidth": 0.3 },
-      "gaussian": { "windowSize": 7, "sigma": 2 },
+      "median": {
+        "windowSize": 7
+      },
+      "ema": {
+        "alpha": 0.05
+      },
+      "wma": {
+        "windowSize": 7
+      },
+      "holt": {
+        "alpha": 0.21,
+        "beta": 0.02
+      },
+      "trimmed-mean": {
+        "windowSize": 7,
+        "trimCount": 1
+      },
+      "savitzky-golay": {
+        "windowSize": 7,
+        "order": 2
+      },
+      "loess": {
+        "bandwidth": 0.3
+      },
+      "gaussian": {
+        "windowSize": 7,
+        "sigma": 2
+      },
       "kalman": {
         "processNoise": 0.1,
         "measurementNoise": 1,
@@ -47,22 +92,47 @@
         "measurementNoise": 1,
         "initialVariance": 1
       },
-      "henderson": { "windowSize": 13 },
-      "robust-loess": { "bandwidth": 0.3, "iterations": 3 }
+      "henderson": {
+        "windowSize": 13
+      },
+      "robust-loess": {
+        "bandwidth": 0.3,
+        "iterations": 3
+      }
     }
   },
   {
     "name": "Triple Chain",
     "chain": ["kalman", "wma", "ema"],
     "options": {
-      "median": { "windowSize": 7 },
-      "ema": { "alpha": 0.15 },
-      "wma": { "windowSize": 7 },
-      "holt": { "alpha": 0.2, "beta": 0.02 },
-      "trimmed-mean": { "windowSize": 7, "trimCount": 1 },
-      "savitzky-golay": { "windowSize": 7, "order": 2 },
-      "loess": { "bandwidth": 0.3 },
-      "gaussian": { "windowSize": 7, "sigma": 2 },
+      "median": {
+        "windowSize": 7
+      },
+      "ema": {
+        "alpha": 0.15
+      },
+      "wma": {
+        "windowSize": 7
+      },
+      "holt": {
+        "alpha": 0.2,
+        "beta": 0.02
+      },
+      "trimmed-mean": {
+        "windowSize": 7,
+        "trimCount": 1
+      },
+      "savitzky-golay": {
+        "windowSize": 7,
+        "order": 2
+      },
+      "loess": {
+        "bandwidth": 0.3
+      },
+      "gaussian": {
+        "windowSize": 7,
+        "sigma": 2
+      },
       "kalman": {
         "processNoise": 0.1,
         "measurementNoise": 1,
@@ -73,22 +143,47 @@
         "measurementNoise": 1,
         "initialVariance": 1
       },
-      "henderson": { "windowSize": 13 },
-      "robust-loess": { "bandwidth": 0.3, "iterations": 3 }
+      "henderson": {
+        "windowSize": 13
+      },
+      "robust-loess": {
+        "bandwidth": 0.3,
+        "iterations": 3
+      }
     }
   },
   {
-    "name": "Classic EMA",
-    "chain": ["ema"],
+    "name": "Holt → Kalman → S-G",
+    "chain": ["holt", "kalman", "savitzky-golay"],
     "options": {
-      "median": { "windowSize": 7 },
-      "ema": { "alpha": 0.2 },
-      "wma": { "windowSize": 7 },
-      "holt": { "alpha": 0.2, "beta": 0.02 },
-      "trimmed-mean": { "windowSize": 7, "trimCount": 1 },
-      "savitzky-golay": { "windowSize": 7, "order": 2 },
-      "loess": { "bandwidth": 0.3 },
-      "gaussian": { "windowSize": 7, "sigma": 2 },
+      "median": {
+        "windowSize": 5
+      },
+      "ema": {
+        "alpha": 0.15
+      },
+      "wma": {
+        "windowSize": 7
+      },
+      "holt": {
+        "alpha": 0.21,
+        "beta": 0.015
+      },
+      "trimmed-mean": {
+        "windowSize": 7,
+        "trimCount": 1
+      },
+      "savitzky-golay": {
+        "windowSize": 7,
+        "order": 2
+      },
+      "loess": {
+        "bandwidth": 0.3
+      },
+      "gaussian": {
+        "windowSize": 7,
+        "sigma": 2
+      },
       "kalman": {
         "processNoise": 0.1,
         "measurementNoise": 1,
@@ -99,8 +194,370 @@
         "measurementNoise": 1,
         "initialVariance": 1
       },
-      "henderson": { "windowSize": 13 },
-      "robust-loess": { "bandwidth": 0.3, "iterations": 3 }
+      "henderson": {
+        "windowSize": 13
+      },
+      "robust-loess": {
+        "bandwidth": 0.2,
+        "iterations": 3
+      }
+    }
+  },
+  {
+    "name": "EMA → Median → Henderson",
+    "chain": ["ema", "median", "henderson"],
+    "options": {
+      "median": {
+        "windowSize": 5
+      },
+      "ema": {
+        "alpha": 0.15
+      },
+      "wma": {
+        "windowSize": 7
+      },
+      "holt": {
+        "alpha": 0.21,
+        "beta": 0.015
+      },
+      "trimmed-mean": {
+        "windowSize": 7,
+        "trimCount": 1
+      },
+      "savitzky-golay": {
+        "windowSize": 7,
+        "order": 2
+      },
+      "loess": {
+        "bandwidth": 0.3
+      },
+      "gaussian": {
+        "windowSize": 7,
+        "sigma": 2
+      },
+      "kalman": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "kalman-causal": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "henderson": {
+        "windowSize": 13
+      },
+      "robust-loess": {
+        "bandwidth": 0.2,
+        "iterations": 3
+      }
+    }
+  },
+  {
+    "name": "EMA → Henderson",
+    "chain": ["ema", "henderson"],
+    "options": {
+      "median": {
+        "windowSize": 5
+      },
+      "ema": {
+        "alpha": 0.15
+      },
+      "wma": {
+        "windowSize": 7
+      },
+      "holt": {
+        "alpha": 0.21,
+        "beta": 0.015
+      },
+      "trimmed-mean": {
+        "windowSize": 7,
+        "trimCount": 1
+      },
+      "savitzky-golay": {
+        "windowSize": 7,
+        "order": 2
+      },
+      "loess": {
+        "bandwidth": 0.3
+      },
+      "gaussian": {
+        "windowSize": 7,
+        "sigma": 2
+      },
+      "kalman": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "kalman-causal": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "henderson": {
+        "windowSize": 13
+      },
+      "robust-loess": {
+        "bandwidth": 0.2,
+        "iterations": 3
+      }
+    }
+  },
+  {
+    "name": "Holt → Kalman → Kalman Causal",
+    "chain": ["holt", "kalman", "kalman-causal"],
+    "options": {
+      "median": {
+        "windowSize": 5
+      },
+      "ema": {
+        "alpha": 0.15
+      },
+      "wma": {
+        "windowSize": 7
+      },
+      "holt": {
+        "alpha": 0.21,
+        "beta": 0.015
+      },
+      "trimmed-mean": {
+        "windowSize": 7,
+        "trimCount": 1
+      },
+      "savitzky-golay": {
+        "windowSize": 7,
+        "order": 2
+      },
+      "loess": {
+        "bandwidth": 0.3
+      },
+      "gaussian": {
+        "windowSize": 7,
+        "sigma": 2
+      },
+      "kalman": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "kalman-causal": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "henderson": {
+        "windowSize": 13
+      },
+      "robust-loess": {
+        "bandwidth": 0.2,
+        "iterations": 3
+      }
+    }
+  },
+  {
+    "name": "EMA → Henderson → WMA",
+    "chain": ["ema", "henderson", "wma"],
+    "options": {
+      "median": {
+        "windowSize": 5
+      },
+      "ema": {
+        "alpha": 0.15
+      },
+      "wma": {
+        "windowSize": 7
+      },
+      "holt": {
+        "alpha": 0.21,
+        "beta": 0.015
+      },
+      "trimmed-mean": {
+        "windowSize": 7,
+        "trimCount": 1
+      },
+      "savitzky-golay": {
+        "windowSize": 7,
+        "order": 2
+      },
+      "loess": {
+        "bandwidth": 0.3
+      },
+      "gaussian": {
+        "windowSize": 7,
+        "sigma": 2
+      },
+      "kalman": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "kalman-causal": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "henderson": {
+        "windowSize": 13
+      },
+      "robust-loess": {
+        "bandwidth": 0.2,
+        "iterations": 3
+      }
+    }
+  },
+  {
+    "name": "EMA → Kalman Causal",
+    "chain": ["ema", "kalman-causal"],
+    "options": {
+      "median": {
+        "windowSize": 5
+      },
+      "ema": {
+        "alpha": 0.15
+      },
+      "wma": {
+        "windowSize": 7
+      },
+      "holt": {
+        "alpha": 0.21,
+        "beta": 0.015
+      },
+      "trimmed-mean": {
+        "windowSize": 7,
+        "trimCount": 1
+      },
+      "savitzky-golay": {
+        "windowSize": 7,
+        "order": 2
+      },
+      "loess": {
+        "bandwidth": 0.3
+      },
+      "gaussian": {
+        "windowSize": 7,
+        "sigma": 2
+      },
+      "kalman": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "kalman-causal": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "henderson": {
+        "windowSize": 13
+      },
+      "robust-loess": {
+        "bandwidth": 0.2,
+        "iterations": 3
+      }
+    }
+  },
+  {
+    "name": "EMA → Holt",
+    "chain": ["ema", "holt"],
+    "options": {
+      "median": {
+        "windowSize": 5
+      },
+      "ema": {
+        "alpha": 0.14
+      },
+      "wma": {
+        "windowSize": 7
+      },
+      "holt": {
+        "alpha": 0.21,
+        "beta": 0.015
+      },
+      "trimmed-mean": {
+        "windowSize": 7,
+        "trimCount": 1
+      },
+      "savitzky-golay": {
+        "windowSize": 7,
+        "order": 2
+      },
+      "loess": {
+        "bandwidth": 0.3
+      },
+      "gaussian": {
+        "windowSize": 7,
+        "sigma": 2
+      },
+      "kalman": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "kalman-causal": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "henderson": {
+        "windowSize": 13
+      },
+      "robust-loess": {
+        "bandwidth": 0.2,
+        "iterations": 3
+      }
+    }
+  },
+  {
+    "name": "Henderson → Holt",
+    "chain": ["henderson", "holt"],
+    "options": {
+      "median": {
+        "windowSize": 5
+      },
+      "ema": {
+        "alpha": 0.15
+      },
+      "wma": {
+        "windowSize": 7
+      },
+      "holt": {
+        "alpha": 0.22,
+        "beta": 0.021
+      },
+      "trimmed-mean": {
+        "windowSize": 7,
+        "trimCount": 1
+      },
+      "savitzky-golay": {
+        "windowSize": 7,
+        "order": 2
+      },
+      "loess": {
+        "bandwidth": 0.3
+      },
+      "gaussian": {
+        "windowSize": 7,
+        "sigma": 2
+      },
+      "kalman": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "kalman-causal": {
+        "processNoise": 0.1,
+        "measurementNoise": 1,
+        "initialVariance": 1
+      },
+      "henderson": {
+        "windowSize": 19
+      },
+      "robust-loess": {
+        "bandwidth": 0.2,
+        "iterations": 3
+      }
     }
   }
 ]
