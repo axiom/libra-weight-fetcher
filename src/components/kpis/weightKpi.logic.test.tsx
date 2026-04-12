@@ -188,6 +188,6 @@ describe("linearTrendProjection", () => {
     const result = linearTrendProjection(weights, 80);
     expect(result).not.toBeNull();
     expect(result?.days).toBeGreaterThan(0);
-    expect(result?.algorithm).toBe("linear-trend");
+     expect(result?.algorithm).toBe("If You Keep Going");
   });
 });

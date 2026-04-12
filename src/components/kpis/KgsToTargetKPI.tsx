@@ -3,6 +3,7 @@ import type { WeightEntry } from "../../shared";
 import { useWeightData } from "../../stores/weightData";
 import WeightKPIView from "./WeightKPIView";
 import { computeKgsToTarget } from "./weightKpi.logic";
+import { targetWeightConfig } from "../../config";
 
 interface Props {
   weights?: WeightEntry[];
@@ -38,7 +39,7 @@ export default function KgsToTargetKPI(props: Props) {
     const v = value();
     if (v === null) return "No data";
     if (v === 0) return "At goal!";
-    return "To go";
+    return "Still Owe";
   });
 
   const icon = createMemo(() => {
@@ -48,15 +49,18 @@ export default function KgsToTargetKPI(props: Props) {
     return "📏";
   });
 
-  return (
-    <WeightKPIView
-      label="Kgs to Target"
-      value={formattedValue()}
-      unit={unit()}
-      sentiment={sentiment()}
-      icon={icon()}
-      badgeText={badgeText()}
-      class={props.class}
-    />
-  );
+  const meta = () => `Target: ${targetWeightConfig.targetWeight}kg`;
+
+   return (
+     <WeightKPIView
+       label="Damage to Fix"
+       value={formattedValue()}
+       unit={unit()}
+       sentiment={sentiment()}
+       icon={icon()}
+       badgeText={badgeText()}
+       meta={meta()}
+       class={props.class}
+     />
+   );
 }

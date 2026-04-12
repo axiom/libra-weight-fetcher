@@ -1,5 +1,5 @@
 import { createMemo } from "solid-js";
-import type { WeightEntry } from "../../shared";
+import { formatDate, type WeightEntry } from "../../shared";
 import { useWeightData } from "../../stores/weightData";
 import WeightKPIView from "./WeightKPIView";
 import { computeCurrentWeight } from "./weightKpi.logic";
@@ -25,13 +25,20 @@ export default function CurrentWeightKPI(props: Props) {
 
   const icon = () => (value() !== null ? "⚖️" : "➖");
 
-  return (
-    <WeightKPIView
-      label={props.label ?? "Current Weight"}
-      value={formattedValue()}
-      unit={unit()}
-      icon={icon()}
-      class={props.class}
-    />
-  );
+  const meta = createMemo(() => {
+    const entries = props.weights ?? weightData();
+    const lastEntry = entries[entries.length - 1];
+    return lastEntry ? `Last weighed in: ${formatDate(lastEntry.date)}` : undefined;
+  });
+
+   return (
+     <WeightKPIView
+       label={props.label ?? "How Heavy Right Now"}
+       value={formattedValue()}
+       unit={unit()}
+       icon={icon()}
+       meta={meta()}
+       class={props.class}
+     />
+   );
 }

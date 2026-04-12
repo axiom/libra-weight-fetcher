@@ -1,5 +1,5 @@
 import { createMemo } from "solid-js";
-import type { WeightEntry } from "../../shared";
+import { formatDate, type WeightEntry } from "../../shared";
 import { useWeightData } from "../../stores/weightData";
 import WeightKPIView from "./WeightKPIView";
 import {
@@ -53,15 +53,22 @@ export default function ProjectedDaysKPI(props: Props) {
 
   const icon = createMemo(() => "🔮");
 
-  return (
-    <WeightKPIView
-      label="Projected Days to Target"
-      value={formattedValue()}
-      unit={unit()}
-      sentiment={sentiment()}
-      icon={icon()}
-      badgeText={badgeText()}
-      class={props.class}
-    />
-  );
+  const meta = createMemo(() => {
+    const entries = (props.weights ?? weightData());
+    const lastEntry = entries[entries.length - 1];
+    return lastEntry ? `Assuming you keep up from ${formatDate(lastEntry.date)}` : undefined;
+  });
+
+   return (
+     <WeightKPIView
+       label="Days to Glory"
+       value={formattedValue()}
+       unit={unit()}
+       sentiment={sentiment()}
+       icon={icon()}
+       badgeText={badgeText()}
+       meta={meta()}
+       class={props.class}
+     />
+   );
 }

@@ -233,7 +233,7 @@ export function linearTrendProjection(
   const kgsToTarget = currentWeight - targetWeight;
   const days = Math.ceil(kgsToTarget / -slope);
 
-  return { days, algorithm: "linear-trend" };
+  return { days, algorithm: "If You Keep Going" };
 }
 
 export function computeDaysToTargetDate(): number {

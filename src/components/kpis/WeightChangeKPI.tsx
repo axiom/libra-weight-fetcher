@@ -41,9 +41,9 @@ export default function WeightChangeKPI(props: Props) {
   const badgeText = createMemo(() => {
     const v = value();
     if (v === null) return "No data";
-    if (v < 0) return "Cutting";
-    if (v > 0) return "Gaining";
-    return "Stable";
+    if (v < 0) return "Suffering";
+    if (v > 0) return "Yolo Mode";
+    return "Treading Water";
   });
 
   const icon = createMemo(() => {

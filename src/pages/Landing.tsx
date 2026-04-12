@@ -12,10 +12,13 @@ export default function Landing() {
       <div class="max-w-2xl w-full text-center space-y-8">
         <div class="space-y-2">
           <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-[var(--color-text)]">
-            Track Your Progress
+            The Scale Doesn't Lie
           </h1>
           <p class="text-lg text-[var(--color-text-muted)]">
-            Your weight tracking journey, beautifully visualized
+            But chips and candy sure do make you lie to yourself.
+          </p>
+          <p class="text-sm text-[var(--color-text-muted)] italic mt-4">
+            Your funeral—your diet choices.
           </p>
         </div>
 
