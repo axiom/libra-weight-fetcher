@@ -14,14 +14,15 @@ const sampleOptions: SmoothingOptions = {
   "trimmed-mean": { windowSize: 7, trimCount: 1 },
   "savitzky-golay": { windowSize: 7, order: 2 },
   loess: { bandwidth: 0.3 },
-  "holt-winters": {
-    weeklyAlpha: 0.2,
-    weeklyBeta: 0.05,
-    weeklyGamma: 0.1,
-    yearlyAlpha: 0.1,
-    yearlyBeta: 0.05,
-    yearlyGamma: 0.05,
+  gaussian: { windowSize: 7, sigma: 2 },
+  kalman: { processNoise: 0.1, measurementNoise: 1.0, initialVariance: 1.0 },
+  "kalman-causal": {
+    processNoise: 0.1,
+    measurementNoise: 1.0,
+    initialVariance: 1.0,
   },
+  henderson: { windowSize: 13 },
+  "robust-loess": { bandwidth: 0.3, iterations: 3 },
 };
 
 const allSmoothers: SmoothingType[] = [
@@ -32,7 +33,11 @@ const allSmoothers: SmoothingType[] = [
   "trimmed-mean",
   "savitzky-golay",
   "loess",
-  "holt-winters",
+  "gaussian",
+  "kalman",
+  "kalman-causal",
+  "henderson",
+  "robust-loess",
 ];
 
 describe("smootherRegistry", () => {

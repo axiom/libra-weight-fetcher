@@ -1,9 +1,13 @@
 import {
   createEmaSmoothing,
+  createGaussianSmoother,
+  createHendersonSmoother,
   createHoltSmoothing,
-  createHoltWintersSmoothing,
+  createKalmanCausalSmoother,
+  createKalmanSmoother,
   createLoessSmoother,
   createMedianSmoother,
+  createRobustLoessSmoother,
   createSavitzkyGolaySmoothing,
   createTrimmedMeanSmoother,
   createWmaSmoother,
@@ -224,73 +228,181 @@ export const smootherDefinitions: SmootherDefinition[] = [
     create: (opts) => createLoessSmoother({ bandwidth: opts.loess.bandwidth }),
   },
   {
-    id: "holt-winters",
-    name: "Holt-Winters",
+    id: "gaussian",
+    name: "Gaussian",
     description:
-      "Triple exponential smoothing with weekly and yearly seasonal components.",
+      "Gaussian-weighted moving average. Bell-curve weights, smoother than WMA.",
     groups: [
       {
-        title: "Weekly Parameters",
-        compact: true,
         fields: [
           {
-            key: "weeklyAlpha",
-            label: "Alpha",
-            min: 0.02,
-            max: 0.6,
-            step: 0.01,
-            fallback: 0.2,
+            key: "windowSize",
+            label: "Window Size (odd number, 3-31)",
+            min: 3,
+            max: 31,
+            step: 2,
+            fallback: 7,
+            integer: true,
           },
           {
-            key: "weeklyBeta",
-            label: "Beta",
-            min: 0.001,
-            max: 0.2,
-            step: 0.005,
-            fallback: 0.05,
-          },
-          {
-            key: "weeklyGamma",
-            label: "Gamma",
-            min: 0.001,
-            max: 0.3,
-            step: 0.005,
-            fallback: 0.1,
-          },
-        ],
-      },
-      {
-        title: "Yearly Parameters",
-        compact: true,
-        fields: [
-          {
-            key: "yearlyAlpha",
-            label: "Alpha",
-            min: 0.01,
-            max: 0.3,
-            step: 0.01,
-            fallback: 0.1,
-          },
-          {
-            key: "yearlyBeta",
-            label: "Beta",
-            min: 0.001,
-            max: 0.1,
-            step: 0.002,
-            fallback: 0.05,
-          },
-          {
-            key: "yearlyGamma",
-            label: "Gamma",
-            min: 0.001,
-            max: 0.15,
-            step: 0.002,
-            fallback: 0.05,
+            key: "sigma",
+            label: "Sigma (0.5-5.0, spread of Gaussian)",
+            min: 0.5,
+            max: 5,
+            step: 0.1,
+            fallback: 2,
           },
         ],
       },
     ],
-    create: (opts) => createHoltWintersSmoothing(opts["holt-winters"]),
+    create: (opts) =>
+      createGaussianSmoother({
+        windowSize: oddWindow(opts.gaussian.windowSize),
+        sigma: opts.gaussian.sigma,
+      }),
+  },
+  {
+    id: "kalman",
+    name: "Kalman (RTS)",
+    description:
+      "Rauch-Tung-Striebel smoother. Two-pass Kalman filter for best offline results.",
+    groups: [
+      {
+        fields: [
+          {
+            key: "processNoise",
+            label: "Process Noise (0.01-2.0, how fast weight can change)",
+            min: 0.01,
+            max: 2,
+            step: 0.01,
+            fallback: 0.1,
+          },
+          {
+            key: "measurementNoise",
+            label: "Measurement Noise (0.1-10.0, scale noise)",
+            min: 0.1,
+            max: 10,
+            step: 0.1,
+            fallback: 1.0,
+          },
+          {
+            key: "initialVariance",
+            label: "Initial Variance (0.1-10.0)",
+            min: 0.1,
+            max: 10,
+            step: 0.1,
+            fallback: 1.0,
+          },
+        ],
+      },
+    ],
+    create: (opts) =>
+      createKalmanSmoother({
+        processNoise: opts.kalman.processNoise,
+        measurementNoise: opts.kalman.measurementNoise,
+        initialVariance: opts.kalman.initialVariance,
+      }),
+  },
+  {
+    id: "kalman-causal",
+    name: "Kalman (Causal)",
+    description:
+      "Single-pass Kalman filter. Real-time causal smoothing, no future lookahead.",
+    groups: [
+      {
+        fields: [
+          {
+            key: "processNoise",
+            label: "Process Noise (0.01-2.0, how fast weight can change)",
+            min: 0.01,
+            max: 2,
+            step: 0.01,
+            fallback: 0.1,
+          },
+          {
+            key: "measurementNoise",
+            label: "Measurement Noise (0.1-10.0, scale noise)",
+            min: 0.1,
+            max: 10,
+            step: 0.1,
+            fallback: 1.0,
+          },
+          {
+            key: "initialVariance",
+            label: "Initial Variance (0.1-10.0)",
+            min: 0.1,
+            max: 10,
+            step: 0.1,
+            fallback: 1.0,
+          },
+        ],
+      },
+    ],
+    create: (opts) =>
+      createKalmanCausalSmoother({
+        processNoise: opts["kalman-causal"].processNoise,
+        measurementNoise: opts["kalman-causal"].measurementNoise,
+        initialVariance: opts["kalman-causal"].initialVariance,
+      }),
+  },
+  {
+    id: "henderson",
+    name: "Henderson",
+    description:
+      "Henderson moving average. Designed for time series smoothing, optimized cubic weights.",
+    groups: [
+      {
+        fields: [
+          {
+            key: "windowSize",
+            label: "Window Size (7, 9, 13, or 23)",
+            min: 7,
+            max: 23,
+            step: 2,
+            fallback: 13,
+            integer: true,
+          },
+        ],
+      },
+    ],
+    create: (opts) =>
+      createHendersonSmoother({
+        windowSize: opts.henderson.windowSize,
+      }),
+  },
+  {
+    id: "robust-loess",
+    name: "Robust LOESS",
+    description:
+      "Robust local regression. Iteratively downweights outliers, good for meal-spike rejection.",
+    groups: [
+      {
+        fields: [
+          {
+            key: "bandwidth",
+            label: "Bandwidth (0.1-0.8, fraction of data)",
+            min: 0.1,
+            max: 0.8,
+            step: 0.05,
+            fallback: 0.3,
+          },
+          {
+            key: "iterations",
+            label: "Iterations (1-5, outlier rejection rounds)",
+            min: 1,
+            max: 5,
+            step: 1,
+            fallback: 3,
+            integer: true,
+          },
+        ],
+      },
+    ],
+    create: (opts) =>
+      createRobustLoessSmoother({
+        bandwidth: opts["robust-loess"].bandwidth,
+        iterations: opts["robust-loess"].iterations,
+      }),
   },
 ];
 

@@ -8,7 +8,11 @@ export type SmoothingType =
   | "trimmed-mean"
   | "savitzky-golay"
   | "loess"
-  | "holt-winters";
+  | "gaussian"
+  | "kalman"
+  | "kalman-causal"
+  | "henderson"
+  | "robust-loess";
 
 export interface MedianOptions {
   windowSize: number;
@@ -41,13 +45,24 @@ export interface LoessOptions {
   bandwidth: number;
 }
 
-export interface HoltWintersOptions {
-  weeklyAlpha: number;
-  weeklyBeta: number;
-  weeklyGamma: number;
-  yearlyAlpha: number;
-  yearlyBeta: number;
-  yearlyGamma: number;
+export interface GaussianOptions {
+  windowSize: number;
+  sigma: number;
+}
+
+export interface KalmanOptions {
+  processNoise: number;
+  measurementNoise: number;
+  initialVariance: number;
+}
+
+export interface HendersonOptions {
+  windowSize: number;
+}
+
+export interface RobustLoessOptions {
+  bandwidth: number;
+  iterations: number;
 }
 
 export interface SmoothingOptions {
@@ -58,7 +73,11 @@ export interface SmoothingOptions {
   "trimmed-mean": TrimmedMeanOptions;
   "savitzky-golay": SavitzkyGolayOptions;
   loess: LoessOptions;
-  "holt-winters": HoltWintersOptions;
+  gaussian: GaussianOptions;
+  kalman: KalmanOptions;
+  "kalman-causal": KalmanOptions;
+  henderson: HendersonOptions;
+  "robust-loess": RobustLoessOptions;
 }
 
 export interface Settings {
@@ -80,14 +99,11 @@ const defaultSmoothingOptions: SmoothingOptions = {
   "trimmed-mean": { windowSize: 7, trimCount: 1 },
   "savitzky-golay": { windowSize: 7, order: 2 },
   loess: { bandwidth: 0.3 },
-  "holt-winters": {
-    weeklyAlpha: 0.2,
-    weeklyBeta: 0.05,
-    weeklyGamma: 0.1,
-    yearlyAlpha: 0.1,
-    yearlyBeta: 0.05,
-    yearlyGamma: 0.05,
-  },
+  gaussian: { windowSize: 7, sigma: 2 },
+  kalman: { processNoise: 0.1, measurementNoise: 1.0, initialVariance: 1.0 },
+  "kalman-causal": { processNoise: 0.1, measurementNoise: 1.0, initialVariance: 1.0 },
+  henderson: { windowSize: 13 },
+  "robust-loess": { bandwidth: 0.3, iterations: 3 },
 };
 
 const defaultSettings: Settings = {
@@ -101,9 +117,20 @@ const defaultSettings: Settings = {
 
 const STORAGE_KEY = "libra-weight-fetcher-settings";
 
-const smoothingOptionKeys = Object.keys(
-  defaultSmoothingOptions,
-) as (keyof SmoothingOptions)[];
+const smoothingOptionKeys: (keyof SmoothingOptions)[] = [
+  "median",
+  "ema",
+  "wma",
+  "holt",
+  "trimmed-mean",
+  "savitzky-golay",
+  "loess",
+  "gaussian",
+  "kalman",
+  "kalman-causal",
+  "henderson",
+  "robust-loess",
+];
 
 const allowedSmoothers = new Set<string>(smoothingOptionKeys);
 

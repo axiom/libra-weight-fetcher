@@ -475,3 +475,404 @@ export const createLoessSmoother = (
     });
   };
 };
+
+export interface GaussianOptions {
+  windowSize?: number;
+  sigma?: number;
+}
+
+export const createGaussianSmoother = (
+  opts: GaussianOptions = {},
+): WeightSmoother => {
+  const { windowSize = 7, sigma = 2 } = opts;
+
+  const computeGaussianWeights = (half: number, sigmaVal: number): number[] => {
+    const weights: number[] = [];
+    for (let i = -half; i <= half; i++) {
+      const g = Math.exp(-(i * i) / (2 * sigmaVal * sigmaVal));
+      weights.push(g);
+    }
+    return weights;
+  };
+
+  return (weights: number[]): number[] => {
+    const n = weights.length;
+    if (n === 0) return [];
+    if (n === 1) return [...weights];
+
+    const half = Math.floor(windowSize / 2);
+    const baseWeights = computeGaussianWeights(half, sigma);
+
+    return weights.map((_, i) => {
+      const start = Math.max(0, i - half);
+      const end = Math.min(n - 1, i + half);
+      const windowLen = end - start + 1;
+      const weightsSubset = baseWeights.slice(
+        half - (i - start),
+        half - (i - start) + windowLen,
+      );
+
+      let sum = 0;
+      let totalWeight = 0;
+      for (let j = start; j <= end; j++) {
+        const w = weights[j];
+        const weight = weightsSubset[j - start];
+        sum += w * weight;
+        totalWeight += weight;
+      }
+      return totalWeight > 0 ? sum / totalWeight : weights[i];
+    });
+  };
+};
+
+export interface KalmanOptions {
+  processNoise?: number;
+  measurementNoise?: number;
+  initialVariance?: number;
+}
+
+const kalmanForward = (
+  weights: number[],
+  processNoise: number,
+  measurementNoise: number,
+  initialVariance: number,
+): { estimates: number[]; variances: number[] } => {
+  const n = weights.length;
+  if (n === 0) return { estimates: [], variances: [] };
+
+  const estimates: number[] = new Array(n);
+  const variances: number[] = new Array(n);
+
+  let x = weights[0];
+  let p = initialVariance;
+
+  estimates[0] = x;
+  variances[0] = p;
+
+  for (let i = 1; i < n; i++) {
+    const z = weights[i];
+
+    p = p + processNoise;
+    const k = p / (p + measurementNoise);
+    x = x + k * (z - x);
+    p = (1 - k) * p;
+
+    estimates[i] = x;
+    variances[i] = p;
+  }
+
+  return { estimates, variances };
+};
+
+export const createKalmanSmoother = (
+  opts: KalmanOptions = {},
+): WeightSmoother => {
+  const {
+    processNoise = 0.1,
+    measurementNoise = 1.0,
+    initialVariance = 1.0,
+  } = opts;
+
+  return (weights: number[]): number[] => {
+    const n = weights.length;
+    if (n === 0) return [];
+    if (n === 1) return [...weights];
+
+    const { estimates, variances } = kalmanForward(
+      weights,
+      processNoise,
+      measurementNoise,
+      initialVariance,
+    );
+
+    const result: number[] = new Array(n);
+    result[n - 1] = estimates[n - 1];
+
+    for (let i = n - 2; i >= 0; i--) {
+      const p = variances[i];
+      const gain = p / (p + processNoise);
+
+      const predicted = estimates[i] + gain * (result[i + 1] - estimates[i]);
+      result[i] = predicted;
+    }
+
+    return result;
+  };
+};
+
+export const createKalmanCausalSmoother = (
+  opts: KalmanOptions = {},
+): WeightSmoother => {
+  const {
+    processNoise = 0.1,
+    measurementNoise = 1.0,
+    initialVariance = 1.0,
+  } = opts;
+
+  return (weights: number[]): number[] => {
+    const n = weights.length;
+    if (n === 0) return [];
+    if (n === 1) return [...weights];
+
+    const { estimates } = kalmanForward(
+      weights,
+      processNoise,
+      measurementNoise,
+      initialVariance,
+    );
+
+    return estimates;
+  };
+};
+
+export interface WhittakerOptions {
+  windowSize?: number;
+  lambda?: number;
+  order?: number;
+}
+
+const binomial = (n: number, k: number): number => {
+  if (k < 0 || k > n) return 0;
+  let res = 1;
+  for (let i = 0; i < k; i++) {
+    res = (res * (n - i)) / (i + 1);
+  }
+  return res;
+};
+
+const createDifferenceMatrix = (n: number, order: number): number[] => {
+  const size = n * order;
+  const d: number[] = new Array(size).fill(0);
+
+  for (let p = 1; p <= order; p++) {
+    for (let i = 0; i < n - p; i++) {
+      let coef = 0;
+      for (let k = 0; k <= p; k++) {
+        const sign = (p - k) % 2 === 0 ? 1 : -1;
+        coef += sign * binomial(p, k);
+      }
+      d[p * n + i] = coef;
+    }
+  }
+  return d;
+};
+
+const transpose = (m: number[], rows: number, cols: number): number[] => {
+  const t: number[] = new Array(rows * cols);
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      t[j * rows + i] = m[i * cols + j];
+    }
+  }
+  return t;
+};
+
+const multiplyMatrix = (
+  a: number[],
+  b: number[],
+  aRows: number,
+  aCols: number,
+  bCols: number,
+): number[] => {
+  const result: number[] = new Array(aRows * bCols).fill(0);
+  for (let i = 0; i < aRows; i++) {
+    for (let j = 0; j < bCols; j++) {
+      let sum = 0;
+      for (let k = 0; k < aCols; k++) {
+        sum += a[i * aCols + k] * b[k * bCols + j];
+      }
+      result[i * bCols + j] = sum;
+    }
+  }
+  return result;
+};
+
+const whittakerSmooth = (
+  data: number[],
+  lambda: number,
+  order: number,
+): number[] => {
+  const n = data.length;
+  if (n <= order + 1) return [...data];
+
+  const D = createDifferenceMatrix(n, order);
+  const DT = transpose(D, n, order);
+  const DTD = multiplyMatrix(DT, D, order, n, n);
+
+  const I: number[] = new Array(n * n).fill(0);
+  for (let i = 0; i < n; i++) {
+    I[i * n + i] = 1;
+  }
+
+  const A: number[] = new Array(n * n);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      A[i * n + j] = I[i * n + j] + lambda * DTD[i * n + j];
+    }
+  }
+
+  const y: number[] = data.map((v) => v);
+
+  const x: number[] = [...y];
+  for (let iter = 0; iter < 50; iter++) {
+    const newX: number[] = new Array(n).fill(0);
+    for (let i = 0; i < n; i++) {
+      const pivot = A[i * n + i];
+      if (Math.abs(pivot) < 1e-10) {
+        newX[i] = x[i];
+        continue;
+      }
+      let rhs = y[i];
+      for (let j = 0; j < n; j++) {
+        if (i !== j) {
+          rhs -= A[i * n + j] * x[j];
+        }
+      }
+      newX[i] = rhs / pivot;
+    }
+
+    let diff = 0;
+    for (let i = 0; i < n; i++) {
+      diff = Math.max(diff, Math.abs(newX[i] - x[i]));
+    }
+    for (let i = 0; i < n; i++) x[i] = newX[i];
+    if (diff < 1e-6) break;
+  }
+
+  return x.map((v) => (Number.isFinite(v) ? v : data[Math.floor(n / 2)]));
+};
+
+export const createWhittakerSmoother = (
+  opts: WhittakerOptions = {},
+): WeightSmoother => {
+  const { lambda = 1, order = 2 } = opts;
+
+  return (weights: number[]): number[] => {
+    return whittakerSmooth(weights, lambda, order);
+  };
+};
+
+export interface HendersonOptions {
+  windowSize?: number;
+}
+
+const HENDERSON_7 = [
+  -0.011, -0.018, 0.039, 0.167, 0.283, 0.339, 0.283, 0.167, 0.039, -0.018,
+  -0.011,
+];
+const HENDERSON_9 = [
+  -0.019, -0.024, 0.003, 0.077, 0.193, 0.281, 0.281, 0.193, 0.077, 0.003,
+  -0.024, -0.019,
+];
+const HENDERSON_13 = [
+  -0.026, -0.017, 0.003, 0.045, 0.102, 0.169, 0.226, 0.248, 0.226, 0.169, 0.102,
+  0.045, 0.003, -0.017, -0.026,
+];
+const HENDERSON_23 = [
+  -0.034, -0.025, -0.015, -0.004, 0.009, 0.027, 0.048, 0.072, 0.097, 0.121,
+  0.143, 0.161, 0.173, 0.178, 0.173, 0.161, 0.143, 0.121, 0.097, 0.072, 0.048,
+  0.027, 0.009, -0.004, -0.015, -0.025, -0.034,
+];
+
+export const createHendersonSmoother = (
+  opts: HendersonOptions = {},
+): WeightSmoother => {
+  const { windowSize = 13 } = opts;
+
+  const getWeights = (len: number): number[] => {
+    if (len <= 7)
+      return HENDERSON_7.slice(5 - Math.floor(len / 2), 5 + Math.ceil(len / 2));
+    if (len <= 9)
+      return HENDERSON_9.slice(6 - Math.floor(len / 2), 6 + Math.ceil(len / 2));
+    if (len <= 13)
+      return HENDERSON_13.slice(
+        7 - Math.floor(len / 2),
+        7 + Math.ceil(len / 2),
+      );
+    return HENDERSON_23.slice(
+      13 - Math.floor(len / 2),
+      13 + Math.ceil(len / 2),
+    );
+  };
+
+  return (weights: number[]): number[] => {
+    const n = weights.length;
+    if (n === 0) return [];
+    if (n === 1) return [...weights];
+
+    const half = Math.floor(windowSize / 2);
+
+    return weights.map((_, i) => {
+      const start = Math.max(0, i - half);
+      const end = Math.min(n - 1, i + half);
+      const windowLen = end - start + 1;
+      const windowWeights = getWeights(windowLen);
+
+      let sum = 0;
+      let totalWeight = 0;
+      for (let j = start; j <= end; j++) {
+        const weight = windowWeights[j - start];
+        sum += weights[j] * weight;
+        totalWeight += weight;
+      }
+      return totalWeight !== 0 ? sum / totalWeight : weights[i];
+    });
+  };
+};
+
+export interface RobustLoessOptions {
+  bandwidth?: number;
+  iterations?: number;
+}
+
+const bisquare = (r: number): number => {
+  const absR = Math.abs(r);
+  if (absR >= 1) return 0;
+  const temp = 1 - absR * absR;
+  return temp * temp;
+};
+
+export const createRobustLoessSmoother = (
+  opts: RobustLoessOptions = {},
+): WeightSmoother => {
+  const { bandwidth = 0.3, iterations = 3 } = opts;
+
+  return (weights: number[]): number[] => {
+    const n = weights.length;
+    if (n === 0) return [];
+    if (n === 1) return [...weights];
+
+    const windowSize = Math.max(3, Math.floor(n * bandwidth));
+    const half = Math.floor(windowSize / 2);
+
+    let current = [...weights];
+
+    for (let iter = 0; iter < iterations; iter++) {
+      const residuals = current.map((_, i) => weights[i] - current[i]);
+      const maxResidual = Math.max(...residuals.map(Math.abs), 1e-10);
+
+      const result: number[] = new Array(n);
+      for (let i = 0; i < n; i++) {
+        const start = Math.max(0, i - half);
+        const end = Math.min(n - 1, i + half);
+        const maxDist = Math.max(i - start, end - i);
+
+        let sumY = 0;
+        let sumW = 0;
+        for (let j = start; j <= end; j++) {
+          const dist = Math.abs(j - i) / (maxDist < 1 ? 1 : maxDist);
+          const triCube = (1 - dist ** 3) ** 3;
+          const r = residuals[j] / maxResidual;
+          const bi = bisquare(r);
+          const weight = triCube * bi;
+          sumY += weights[j] * weight;
+          sumW += weight;
+        }
+        result[i] = sumW > 0 ? sumY / sumW : current[i];
+      }
+      current = result;
+    }
+
+    return current;
+  };
+};

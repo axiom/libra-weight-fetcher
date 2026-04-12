@@ -21,7 +21,11 @@ const cloneSmoothingOptions = (source: SmoothingOptions): SmoothingOptions => ({
   "trimmed-mean": { ...source["trimmed-mean"] },
   "savitzky-golay": { ...source["savitzky-golay"] },
   loess: { ...source.loess },
-  "holt-winters": { ...source["holt-winters"] },
+  gaussian: { ...source.gaussian },
+  kalman: { ...source.kalman },
+  "kalman-causal": { ...source["kalman-causal"] },
+  henderson: { ...source.henderson },
+  "robust-loess": { ...source["robust-loess"] },
 });
 
 const parseFloatOr = (value: string, fallback: number) => {
