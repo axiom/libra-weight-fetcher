@@ -39,15 +39,20 @@ function getSystemTheme(): "light" | "dark" {
     : "light";
 }
 
-function applyTheme(theme: "light" | "dark") {
+function applyTheme(theme: Theme) {
   if (typeof document === "undefined") return;
-  document.documentElement.dataset.theme = theme;
+  if (theme === "auto") {
+    // Remove inline override — CSS light-dark() follows OS automatically
+    document.documentElement.style.removeProperty("color-scheme");
+  } else {
+    document.documentElement.style.colorScheme = theme;
+  }
 }
 
 export function ThemeProvider(props: ParentProps) {
   const [theme, setThemeState] = createSignal<Theme>(getStoredTheme());
   const [resolvedTheme, setResolvedTheme] = createSignal<"light" | "dark">(
-    theme() === "auto" ? getSystemTheme() : theme() as "light" | "dark",
+    theme() === "auto" ? getSystemTheme() : (theme() as "light" | "dark"),
   );
 
   const setTheme = (newTheme: Theme) => {
@@ -65,16 +70,15 @@ export function ThemeProvider(props: ParentProps) {
     const current = theme();
     const resolved = current === "auto" ? getSystemTheme() : current;
     setResolvedTheme(resolved);
-    applyTheme(resolved);
+    applyTheme(current);
   });
 
   onMount(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = () => {
       if (theme() === "auto") {
-        const systemTheme = getSystemTheme();
-        setResolvedTheme(systemTheme);
-        applyTheme(systemTheme);
+        setResolvedTheme(getSystemTheme());
+        // No DOM update needed — CSS handles it automatically in auto mode
       }
     };
     mediaQuery.addEventListener("change", handler);
@@ -91,13 +95,13 @@ export function ThemeProvider(props: ParentProps) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
-    const getSystemTheme = (): "light" | "dark" => {
+    const getSystemThemeFallback = (): "light" | "dark" => {
       return "light";
     };
     return {
       theme: () => "auto" as Theme,
       setTheme: () => {},
-      resolvedTheme: getSystemTheme,
+      resolvedTheme: getSystemThemeFallback,
     };
   }
   return context;
@@ -105,5 +109,8 @@ export function useTheme() {
 
 export function isDarkMode(): boolean {
   if (typeof window === "undefined") return false;
-  return document.documentElement.dataset.theme === "dark";
+  const cs = document.documentElement.style.colorScheme;
+  if (cs === "dark") return true;
+  if (cs === "light") return false;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }

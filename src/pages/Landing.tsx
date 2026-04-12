@@ -36,44 +36,44 @@ export default function Landing() {
       <div class="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <div class="max-w-2xl w-full text-center space-y-8">
           <div class="space-y-2">
-            <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-[var(--color-text)]">
               Track Your Progress
             </h1>
-            <p class="text-lg text-zinc-500 dark:text-zinc-400">
+            <p class="text-lg text-[var(--color-text-muted)]">
               Your weight tracking journey, beautifully visualized
             </p>
           </div>
 
           <div class="grid grid-cols-2 gap-4 py-6">
             <div class="card-hover p-6">
-              <div class="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
+              <div class="text-sm text-[var(--color-text-muted)] mb-1">
                 Current Weight
               </div>
-              <div class="text-3xl font-bold font-mono-nums text-zinc-900 dark:text-zinc-100">
+              <div class="text-3xl font-bold font-mono-nums text-[var(--color-text)]">
                 <Show
                   when={currentWeight() !== null}
-                  fallback={<span class="text-zinc-400">--</span>}
+                  fallback={<span class="text-[var(--color-text-muted)]">--</span>}
                 >
                   {currentWeight()!.toFixed(1)}
                 </Show>
-                <span class="text-lg font-normal text-zinc-400 ml-1">kg</span>
+                <span class="text-lg font-normal text-[var(--color-text-muted)] ml-1">kg</span>
               </div>
             </div>
 
             <div class="card-hover p-6">
-              <div class="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
+              <div class="text-sm text-[var(--color-text-muted)] mb-1">
                 Target
               </div>
-              <div class="text-3xl font-bold font-mono-nums text-zinc-900 dark:text-zinc-100">
+              <div class="text-3xl font-bold font-mono-nums text-[var(--color-text)]">
                 {targetWeightConfig.targetWeight}
-                <span class="text-lg font-normal text-zinc-400 ml-1">kg</span>
+                <span class="text-lg font-normal text-[var(--color-text-muted)] ml-1">kg</span>
               </div>
             </div>
 
             <div class="card-hover p-6">
-              <div class="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
+              <div class="text-sm text-[var(--color-text-muted)] mb-1">
                 <Show when={isAtGoal()} fallback={<span>To Goal</span>}>
-                  <span class="text-emerald-600 dark:text-emerald-400">
+                  <span class="text-[var(--color-success)]">
                     At Goal!
                   </span>
                 </Show>
@@ -81,38 +81,38 @@ export default function Landing() {
               <div class="text-3xl font-bold font-mono-nums">
                 <Show
                   when={kgsToTarget() !== null}
-                  fallback={<span class="text-zinc-400">--</span>}
+                  fallback={<span class="text-[var(--color-text-muted)]">--</span>}
                 >
                   <span
                     class={
                       kgsToTarget()! > 0
-                        ? "text-accent"
-                        : "text-emerald-600 dark:text-emerald-400"
+                        ? "text-[var(--color-accent)]"
+                        : "text-[var(--color-success)]"
                     }
                   >
                     {kgsToTarget()!.toFixed(1)}
                   </span>
                 </Show>
-                <span class="text-lg font-normal text-zinc-400 ml-1">kg</span>
+                <span class="text-lg font-normal text-[var(--color-text-muted)] ml-1">kg</span>
               </div>
             </div>
 
             <div class="card-hover p-6">
-              <div class="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
+              <div class="text-sm text-[var(--color-text-muted)] mb-1">
                 Last 30 Days
               </div>
               <div class="text-3xl font-bold font-mono-nums">
                 <Show
                   when={lastChange() !== null}
-                  fallback={<span class="text-zinc-400">--</span>}
+                  fallback={<span class="text-[var(--color-text-muted)]">--</span>}
                 >
                   <span
                     class={
                       changeDirection() === "down"
-                        ? "text-emerald-600 dark:text-emerald-400"
+                        ? "text-[var(--color-success)]"
                         : changeDirection() === "up"
-                          ? "text-red-600 dark:text-red-400"
-                          : "text-zinc-900 dark:text-zinc-100"
+                          ? "text-[var(--color-danger)]"
+                          : "text-[var(--color-text)]"
                     }
                   >
                     {changeDirection() === "down"
@@ -123,7 +123,7 @@ export default function Landing() {
                     {Math.abs(lastChange()!).toFixed(1)}
                   </span>
                 </Show>
-                <span class="text-lg font-normal text-zinc-400 ml-1">kg</span>
+                <span class="text-lg font-normal text-[var(--color-text-muted)] ml-1">kg</span>
               </div>
             </div>
           </div>
@@ -142,7 +142,7 @@ function MiniChart() {
 
   return (
     <div class="h-full w-full card p-4">
-      <div class="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">
+      <div class="text-sm font-medium text-[var(--color-text-muted)] mb-2">
         Recent Trend
       </div>
       <div class="h-[calc(100%-2rem)]">
@@ -172,7 +172,7 @@ function MiniChartInner() {
 
   if (chartData().length === 0) {
     return (
-      <div class="h-full flex items-center justify-center text-zinc-400 dark:text-zinc-500">
+      <div class="h-full flex items-center justify-center text-[var(--color-text-muted)]">
         No data yet
       </div>
     );
@@ -246,4 +246,3 @@ function MiniChartInner() {
     </div>
   );
 }
-

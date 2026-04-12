@@ -18,7 +18,9 @@ export default function RequiredChangePerWeekKPI(props: Props) {
   const formattedValue = createMemo(() => {
     const v = value();
     if (v === null) return "N/A";
-    return v.toFixed(2);
+    if (v > 0) return `↑ ${v.toFixed(2)}`;
+    if (v < 0) return `↓ ${Math.abs(v).toFixed(2)}`;
+    return "→ 0.00";
   });
 
   const unit = createMemo(() => {

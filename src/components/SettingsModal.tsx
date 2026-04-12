@@ -222,8 +222,8 @@ export default function SettingsModal() {
           for={inputId}
           class={
             compact
-              ? "block text-xs text-zinc-500 dark:text-zinc-400 mb-1"
-              : "block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1"
+              ? "block text-xs text-[var(--color-text-muted)] mb-1"
+              : "block text-sm font-medium text-[var(--color-text-secondary)] mb-1"
           }
         >
           {field.label}
@@ -258,7 +258,7 @@ export default function SettingsModal() {
           {(group) => (
             <div class={group.title ? "pt-1" : ""}>
               <Show when={group.title}>
-                <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                <p class="text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                   {group.title}
                 </p>
               </Show>
@@ -295,18 +295,18 @@ export default function SettingsModal() {
           if (e.target === dialogRef) close();
         }}
         onKeyDown={() => {}}
-        class="backdrop:bg-black/60 bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-0 max-w-md w-[90vw] border border-zinc-200 dark:border-zinc-700 fixed inset-0 m-auto"
+        class="backdrop:bg-black/60 bg-[var(--color-surface)] rounded-xl shadow-xl p-0 max-w-md w-[90vw] border border-[var(--color-border)] fixed inset-0 m-auto"
       >
         <div class="flex flex-col max-h-[80vh]">
-          <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
-            <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
+            <h2 class="text-lg font-semibold text-[var(--color-text)]">
               Settings
             </h2>
             <button
               type="button"
               onClick={close}
               onKeyDown={(e) => e.key === "Enter" && close()}
-              class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 text-2xl leading-none"
+              class="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-2xl leading-none"
               aria-label="Close"
             >
               ×
@@ -315,7 +315,7 @@ export default function SettingsModal() {
 
           <div class="p-6 space-y-5 overflow-y-auto">
             <fieldset>
-              <legend class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+              <legend class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                 Theme
               </legend>
               <div class="flex gap-2">
@@ -326,8 +326,8 @@ export default function SettingsModal() {
                       onClick={() => setTheme(option)}
                       class={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                         theme() === option
-                          ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900"
-                          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                          ? "bg-[var(--color-text)] text-[var(--color-surface)]"
+                          : "bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
                       }`}
                     >
                       {option === "auto" ? "Auto" : option === "light" ? "☀ Light" : "☾ Dark"}
@@ -340,7 +340,7 @@ export default function SettingsModal() {
             <div>
               <label
                 for="dataDays"
-                class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1"
+                class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1"
               >
                 Date Range: {localDateRange()} days
               </label>
@@ -356,7 +356,7 @@ export default function SettingsModal() {
                   setLocalDateRange(value);
                   updateSetting("dataDays", value);
                 }}
-                class="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent"
+                class="w-full h-2 bg-[var(--color-border)] rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)]"
               />
             </div>
 
@@ -370,16 +370,16 @@ export default function SettingsModal() {
                     setLocalShowTargetLine(checked);
                     updateSetting("showTargetLine", checked);
                   }}
-                  class="w-4 h-4 text-accent border-zinc-300 dark:border-zinc-600 rounded focus:ring-accent focus:ring-2"
+                  class="w-4 h-4 text-[var(--color-accent)] border-[var(--color-border)] rounded focus:ring-[var(--color-accent)] focus:ring-2"
                 />
-                <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <span class="text-sm font-medium text-[var(--color-text-secondary)]">
                   Show target pace line
                 </span>
               </label>
             </div>
 
             <div class="space-y-2">
-              <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <p class="text-sm font-medium text-[var(--color-text-secondary)]">
                 Smoother Chain
               </p>
 
@@ -387,7 +387,7 @@ export default function SettingsModal() {
                 <div class="flex-1">
                   <label
                     for="add-smoother"
-                    class="block text-xs text-zinc-500 dark:text-zinc-400 mb-1"
+                    class="block text-xs text-[var(--color-text-muted)] mb-1"
                   >
                     Add smoother
                   </label>
@@ -424,24 +424,24 @@ export default function SettingsModal() {
                       countInstances(smoother()) > 1;
 
                     return (
-                      <li class="border rounded-md border-zinc-200 dark:border-zinc-700">
+                      <li class="border rounded-md border-[var(--color-border)]">
                         <div class="flex items-center gap-2 p-2">
                           <button
                             type="button"
                             onClick={() => setExpandedIndex(index)}
-                            class="flex-1 text-left px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                            class="flex-1 text-left px-2 py-1 rounded hover:bg-[var(--color-border-subtle)]"
                           >
                             <div class="flex items-center gap-2">
-                              <span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                              <span class="text-sm font-medium text-[var(--color-text)]">
                                 {index + 1}. {definition()?.name ?? smoother()}
                               </span>
                               <Show when={hasSharedParameters()}>
-                                <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
+                                <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)]">
                                   shared
                                 </span>
                               </Show>
                             </div>
-                            <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            <p class="text-xs text-[var(--color-text-muted)] mt-0.5">
                               {definition()?.description ?? ""}
                             </p>
                           </button>
@@ -454,7 +454,7 @@ export default function SettingsModal() {
                                 moveSmoother(index, -1);
                               }}
                               disabled={index === 0}
-                              class="px-2 py-0.5 text-xs rounded border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                              class="px-2 py-0.5 text-xs rounded border border-[var(--color-border)] text-[var(--color-text-secondary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--color-border-subtle)]"
                               aria-label={`Move ${definition()?.name ?? smoother()} up`}
                             >
                               ↑
@@ -466,7 +466,7 @@ export default function SettingsModal() {
                                 moveSmoother(index, 1);
                               }}
                               disabled={index === localSmoothing().length - 1}
-                              class="px-2 py-0.5 text-xs rounded border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                              class="px-2 py-0.5 text-xs rounded border border-[var(--color-border)] text-[var(--color-text-secondary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--color-border-subtle)]"
                               aria-label={`Move ${definition()?.name ?? smoother()} down`}
                             >
                               ↓
@@ -479,7 +479,7 @@ export default function SettingsModal() {
                               e.stopPropagation();
                               removeSmoother(index);
                             }}
-                            class="px-2 py-1 text-sm rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400"
+                            class="px-2 py-1 text-sm rounded hover:bg-[var(--color-danger-subtle)] text-[var(--color-danger)]"
                             aria-label={`Remove ${definition()?.name ?? smoother()}`}
                           >
                             ✕
@@ -487,7 +487,7 @@ export default function SettingsModal() {
                         </div>
 
                         <Show when={isExpanded()}>
-                          <div class="px-3 pb-3 pt-1 border-t border-zinc-200 dark:border-zinc-700 space-y-3">
+                          <div class="px-3 pb-3 pt-1 border-t border-[var(--color-border)] space-y-3">
                             {renderOptions(smoother(), index)}
                           </div>
                         </Show>
@@ -499,7 +499,7 @@ export default function SettingsModal() {
             </div>
           </div>
 
-          <div class="flex justify-end gap-2 px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
+          <div class="flex justify-end gap-2 px-6 py-4 border-t border-[var(--color-border)]">
             <button
               type="button"
               onClick={close}
