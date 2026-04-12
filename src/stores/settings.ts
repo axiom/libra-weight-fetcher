@@ -82,6 +82,8 @@ export interface SmoothingOptions {
   "robust-loess": RobustLoessOptions;
 }
 
+export type SettingsTab = "display" | "smoothing" | "presets";
+
 export interface Settings {
   smoothing: SmoothingType[];
   smoothingOptions: SmoothingOptions;
@@ -89,6 +91,7 @@ export interface Settings {
   endDate: string | null;
   weightMeasurements: number;
   showTargetLine: boolean;
+  lastSettingsTab: SettingsTab;
 }
 
 export interface SmoothingPreset {
@@ -133,6 +136,7 @@ const defaultSettings: Settings = {
   endDate: null,
   weightMeasurements: 50,
   showTargetLine: true,
+  lastSettingsTab: "display",
 };
 
 const STORAGE_KEY = "libra-weight-fetcher-settings";
@@ -183,6 +187,7 @@ function getInitialSettings(): Settings {
   const endDate = params.get("end");
   const dataDaysParam = parseInt(params.get("d") ?? "", 10);
   let settingsShowTargetLine = defaultSettings.showTargetLine;
+  let lastSettingsTab: SettingsTab = defaultSettings.lastSettingsTab;
 
   let smoothingOptions = defaultSmoothingOptions;
   let dataDays = dataDaysParam || defaultSettings.dataDays;
@@ -225,6 +230,10 @@ function getInitialSettings(): Settings {
         if (typeof parsed.showTargetLine === "boolean") {
           settingsShowTargetLine = parsed.showTargetLine;
         }
+        // Load lastSettingsTab from localStorage
+        if (parsed.lastSettingsTab === "display" || parsed.lastSettingsTab === "smoothing" || parsed.lastSettingsTab === "presets") {
+          lastSettingsTab = parsed.lastSettingsTab;
+        }
       } catch {
         // ignore parse errors
       }
@@ -238,6 +247,7 @@ function getInitialSettings(): Settings {
     endDate,
     weightMeasurements,
     showTargetLine: settingsShowTargetLine,
+    lastSettingsTab,
   };
 }
 
@@ -253,6 +263,7 @@ const saveToStorage = (updates: {
   smoothingOptions?: SmoothingOptions;
   dataDays?: number;
   showTargetLine?: boolean;
+  lastSettingsTab?: SettingsTab;
 }) => {
   if (typeof window === "undefined") return;
   try {
@@ -294,6 +305,8 @@ export const updateSetting = <K extends keyof Settings>(
       saveDateRangeToStorage(value as number);
     } else if (key === "showTargetLine") {
       saveToStorage({ showTargetLine: value as boolean });
+    } else if (key === "lastSettingsTab") {
+      saveToStorage({ lastSettingsTab: value as SettingsTab });
     }
 
     if (typeof window !== "undefined") {

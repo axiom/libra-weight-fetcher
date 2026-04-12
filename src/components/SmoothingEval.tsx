@@ -385,7 +385,7 @@ export default function SmoothingEval() {
               <tbody>
                 <For each={leaderboard()}>
                   {({ candidate, score }, idx) => (
-                    <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
                       <td class="p-2">{idx() + 1}</td>
                       <td class="p-2 font-medium">{candidate.label}</td>
                       <td class="p-2 text-right">{score.elo}</td>

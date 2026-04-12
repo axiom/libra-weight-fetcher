@@ -6,7 +6,7 @@
   --color-surface: light-dark(#ffffff, #171717);
   --color-surface-elevated: light-dark(#ffffff, #1f1f1f);
   --color-border: light-dark(#e5e5e5, #262626);
-  --color-border-subtle: light-dark(#f0f0f0, #1f1f1f);
+  --color-border-subtle: light-dark(#f0f0f0, #171717);
 
   --color-text: light-dark(#171717, #fafafa);
   --color-text-secondary: light-dark(#525252, #d4d4d4);
