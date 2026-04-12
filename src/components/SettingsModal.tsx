@@ -11,6 +11,7 @@ import {
   settings,
   updateSetting,
 } from "../stores/settings";
+import { useTheme, type Theme } from "../context/ThemeContext";
 
 const cloneSmoothingOptions = (source: SmoothingOptions): SmoothingOptions => ({
   median: { ...source.median },
@@ -40,7 +41,7 @@ export default function SettingsModal() {
     settings().smoothingOptions,
   );
   let originalDateRange: number = settings().dataDays;
-  let originalShowTargetLine = settings().showTargetLine;
+  let originalShowTargetLine: boolean = settings().showTargetLine;
 
   const [localSmoothing, setLocalSmoothing] = createSignal<SmoothingType[]>([
     ...settings().smoothing,
@@ -58,6 +59,8 @@ export default function SettingsModal() {
   const [smootherToAdd, setSmootherToAdd] = createSignal<SmoothingType>(
     smootherDefinitions[0]?.id ?? FALLBACK_SMOOTHER,
   );
+
+  const { theme, setTheme } = useTheme();
 
   const open = () => {
     const current = settings();
@@ -219,8 +222,8 @@ export default function SettingsModal() {
           for={inputId}
           class={
             compact
-              ? "block text-xs text-gray-600 dark:text-gray-400 mb-1"
-              : "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              ? "block text-xs text-zinc-500 dark:text-zinc-400 mb-1"
+              : "block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1"
           }
         >
           {field.label}
@@ -239,11 +242,7 @@ export default function SettingsModal() {
               : parseFloatOr(raw, field.fallback);
             updateNumericOption(smoother, field.key, parsed);
           }}
-          class={
-            compact
-              ? "w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              : "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          }
+          class="input-field"
         />
       </div>
     );
@@ -259,7 +258,7 @@ export default function SettingsModal() {
           {(group) => (
             <div class={group.title ? "pt-1" : ""}>
               <Show when={group.title}>
-                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                   {group.title}
                 </p>
               </Show>
@@ -284,10 +283,10 @@ export default function SettingsModal() {
       <button
         type="button"
         onClick={open}
-        class="p-2 text-gray-600 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-500 transition-colors text-xl"
+        class="nav-link"
         aria-label="Settings"
       >
-        ⚙️
+        <span class="text-base">⚙</span>
       </button>
 
       <dialog
@@ -296,29 +295,52 @@ export default function SettingsModal() {
           if (e.target === dialogRef) close();
         }}
         onKeyDown={() => {}}
-        class="backdrop:bg-black/50 bg-white dark:bg-gray-900 rounded-lg shadow-xl p-0 max-w-md w-[90vw] border-2 border-gray-300 dark:border-gray-600 fixed inset-0 m-auto"
+        class="backdrop:bg-black/60 bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-0 max-w-md w-[90vw] border border-zinc-200 dark:border-zinc-700 fixed inset-0 m-auto"
       >
-        <div class="flex flex-col">
-          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-300 dark:border-gray-600">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div class="flex flex-col max-h-[80vh]">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
+            <h2 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
               Settings
             </h2>
             <button
               type="button"
               onClick={close}
               onKeyDown={(e) => e.key === "Enter" && close()}
-              class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl leading-none"
+              class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 text-2xl leading-none"
               aria-label="Close"
             >
               ×
             </button>
           </div>
 
-          <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div class="p-6 space-y-5 overflow-y-auto">
+            <fieldset>
+              <legend class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Theme
+              </legend>
+              <div class="flex gap-2">
+                <For each={["auto", "light", "dark"] as Theme[]}>
+                  {(option) => (
+                    <button
+                      type="button"
+                      onClick={() => setTheme(option)}
+                      class={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                        theme() === option
+                          ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900"
+                          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                      }`}
+                    >
+                      {option === "auto" ? "Auto" : option === "light" ? "☀ Light" : "☾ Dark"}
+                    </button>
+                  )}
+                </For>
+              </div>
+            </fieldset>
+
             <div>
               <label
                 for="dataDays"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1"
               >
                 Date Range: {localDateRange()} days
               </label>
@@ -334,7 +356,7 @@ export default function SettingsModal() {
                   setLocalDateRange(value);
                   updateSetting("dataDays", value);
                 }}
-                class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                class="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent"
               />
             </div>
 
@@ -348,16 +370,16 @@ export default function SettingsModal() {
                     setLocalShowTargetLine(checked);
                     updateSetting("showTargetLine", checked);
                   }}
-                  class="w-4 h-4 text-orange-500 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500"
+                  class="w-4 h-4 text-accent border-zinc-300 dark:border-zinc-600 rounded focus:ring-accent focus:ring-2"
                 />
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   Show target pace line
                 </span>
               </label>
             </div>
 
             <div class="space-y-2">
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 Smoother Chain
               </p>
 
@@ -365,7 +387,7 @@ export default function SettingsModal() {
                 <div class="flex-1">
                   <label
                     for="add-smoother"
-                    class="block text-xs text-gray-600 dark:text-gray-400 mb-1"
+                    class="block text-xs text-zinc-500 dark:text-zinc-400 mb-1"
                   >
                     Add smoother
                   </label>
@@ -375,7 +397,7 @@ export default function SettingsModal() {
                     onInput={(e) =>
                       setSmootherToAdd(e.currentTarget.value as SmoothingType)
                     }
-                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    class="input-field"
                   >
                     <For each={smootherDefinitions}>
                       {(definition) => (
@@ -387,7 +409,7 @@ export default function SettingsModal() {
                 <button
                   type="button"
                   onClick={addSmoother}
-                  class="px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors"
+                  class="btn-primary"
                 >
                   + Add
                 </button>
@@ -402,24 +424,24 @@ export default function SettingsModal() {
                       countInstances(smoother()) > 1;
 
                     return (
-                      <li class="border rounded-md border-gray-300 dark:border-gray-600">
+                      <li class="border rounded-md border-zinc-200 dark:border-zinc-700">
                         <div class="flex items-center gap-2 p-2">
                           <button
                             type="button"
                             onClick={() => setExpandedIndex(index)}
-                            class="flex-1 text-left px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                            class="flex-1 text-left px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
                           >
                             <div class="flex items-center gap-2">
-                              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              <span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                 {index + 1}. {definition()?.name ?? smoother()}
                               </span>
                               <Show when={hasSharedParameters()}>
-                                <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
-                                  shared params
+                                <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300">
+                                  shared
                                 </span>
                               </Show>
                             </div>
-                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                               {definition()?.description ?? ""}
                             </p>
                           </button>
@@ -432,9 +454,8 @@ export default function SettingsModal() {
                                 moveSmoother(index, -1);
                               }}
                               disabled={index === 0}
-                              class="px-2 py-0.5 text-xs rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800"
+                              class="px-2 py-0.5 text-xs rounded border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-800"
                               aria-label={`Move ${definition()?.name ?? smoother()} up`}
-                              title="Move up"
                             >
                               ↑
                             </button>
@@ -445,9 +466,8 @@ export default function SettingsModal() {
                                 moveSmoother(index, 1);
                               }}
                               disabled={index === localSmoothing().length - 1}
-                              class="px-2 py-0.5 text-xs rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-800"
+                              class="px-2 py-0.5 text-xs rounded border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-100 dark:hover:bg-zinc-800"
                               aria-label={`Move ${definition()?.name ?? smoother()} down`}
-                              title="Move down"
                             >
                               ↓
                             </button>
@@ -459,16 +479,15 @@ export default function SettingsModal() {
                               e.stopPropagation();
                               removeSmoother(index);
                             }}
-                            class="px-2 py-1 text-sm rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-300"
+                            class="px-2 py-1 text-sm rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400"
                             aria-label={`Remove ${definition()?.name ?? smoother()}`}
-                            title="Remove smoother"
                           >
-                            Remove
+                            ✕
                           </button>
                         </div>
 
                         <Show when={isExpanded()}>
-                          <div class="px-3 pb-3 pt-1 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                          <div class="px-3 pb-3 pt-1 border-t border-zinc-200 dark:border-zinc-700 space-y-3">
                             {renderOptions(smoother(), index)}
                           </div>
                         </Show>
@@ -480,18 +499,18 @@ export default function SettingsModal() {
             </div>
           </div>
 
-          <div class="flex justify-end gap-2 px-6 py-4 border-t border-gray-300 dark:border-gray-600">
+          <div class="flex justify-end gap-2 px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
             <button
               type="button"
               onClick={close}
-              class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+              class="btn-ghost"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={save}
-              class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md transition-colors"
+              class="btn-primary"
             >
               Save
             </button>

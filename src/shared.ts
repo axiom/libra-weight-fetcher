@@ -1,3 +1,5 @@
+import { isDarkMode } from "./context/ThemeContext";
+
 export interface WeightEntry {
   date: string;
   weight: number;
@@ -21,10 +23,9 @@ export const updateTrend = (
   if (currentTrendDom) {
     currentTrendDom.innerText = currentWeight;
   }
-  const trendToken = isFalling ? "📉" : "📈";
-  document.title = `🐼 ${trendToken} ${currentWeight}kg ${trendToken}`;
+  const trendToken = isFalling ? "↓" : "↑";
+  const emoji = isFalling ? "📉" : "📈";
+  document.title = `${emoji} ${trendToken} ${currentWeight}kg`;
 };
 
-export const getDarkMode = () => {
-  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
-};
+export const getDarkMode = isDarkMode;

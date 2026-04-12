@@ -4,7 +4,8 @@ import { createEffect } from "solid-js";
 import { buildChartOptions, prepareChartData } from "../chartOptions";
 import { zoomParamsFromSlider } from "../chartUtils";
 import { targetWeightConfig } from "../config";
-import { getDarkMode, updateTrend } from "../shared";
+import { useTheme } from "../context/ThemeContext";
+import { updateTrend } from "../shared";
 import { settings, updateSettings } from "../stores/settings";
 import { useWeightData } from "../stores/weightData";
 
@@ -15,6 +16,7 @@ type Props = {
 
 export default function Chart(props: Props) {
   const weightData = useWeightData();
+  const { resolvedTheme } = useTheme();
 
   createEffect(() => {
     const latestWeight = prepareChartData(weightData()).at(-1);
@@ -29,7 +31,7 @@ export default function Chart(props: Props) {
   const getOption = (): EChartsOption => {
     const currentSettings = settings();
     const w = weightData();
-    const darkMode = getDarkMode();
+    const darkMode = resolvedTheme() === "dark";
     const data = prepareChartData(w);
     const firstDate = w[0]?.date ?? "";
     const latestDate =
@@ -86,7 +88,7 @@ export default function Chart(props: Props) {
   return (
     <EChartsAutoSize
       option={getOption()}
-      theme={getDarkMode() ? "dark" : "light"}
+      theme={resolvedTheme() === "dark" ? "dark" : "light"}
       eventHandlers={props.hideDataZoom ? {} : { datazoom: handleDataZoom }}
     />
   );

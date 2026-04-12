@@ -1,38 +1,74 @@
 import { A, useLocation } from "@solidjs/router";
+import { Show } from "solid-js";
 import SettingsModal from "./SettingsModal";
+import { useTheme, type Theme } from "../context/ThemeContext";
+
+const navItems = [
+  { href: "/", label: "Home", icon: "⌂" },
+  { href: "/dashboard", label: "Dashboard", icon: "▦" },
+  { href: "/chart", label: "Chart", icon: "📈" },
+  { href: "/calendar", label: "Calendar", icon: "📅" },
+];
 
 export default function Navigation() {
   const location = useLocation();
-
-  const navItems = [
-    { href: "/", label: "🏠 Home" },
-    { href: "/chart", label: "📈 Chart" },
-    { href: "/calendar", label: "📅 Calendar" },
-  ];
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   const isActive = (path: string) => {
     const loc = location.pathname;
     return loc === path || loc === path + "/";
   };
 
+  const cycleTheme = () => {
+    const current = theme();
+    const next: Theme = current === "auto" ? "light" : current === "light" ? "dark" : "auto";
+    setTheme(next);
+  };
+
   return (
-    <nav class="w-full border-b-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 shadow-sm">
-      <div class="flex gap-6 px-8 py-4 max-w-5xl mx-auto items-center">
-        <div class="flex gap-6">
-          {navItems.map((item) => (
-            <A
-              href={item.href}
-              class="no-underline text-gray-900 dark:text-gray-100 font-medium py-2 border-b-2 border-transparent hover:border-orange-500 dark:hover:border-orange-500 transition-colors duration-200"
-              style={{
-                "border-color": isActive(item.href) ? "orange" : "transparent",
-              }}
+    <nav class="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <div class="flex items-center justify-between h-14">
+          <div class="flex items-center gap-1">
+            {navItems.map((item) => (
+              <A
+                href={item.href}
+                class="nav-link text-sm font-medium"
+                classList={{
+                  "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100": isActive(item.href),
+                }}
+              >
+                <span class="text-base">{item.icon}</span>
+                <span class="hidden sm:inline">{item.label}</span>
+              </A>
+            ))}
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={cycleTheme}
+              class="nav-link text-sm"
+              title={`Theme: ${theme()} (${resolvedTheme()})`}
             >
-              {item.label}
-            </A>
-          ))}
-        </div>
-        <div class="ml-auto" style={{ "margin-left": "auto" }}>
-          <SettingsModal />
+              <Show
+                when={theme() === "auto"}
+                fallback={
+                  <Show
+                    when={resolvedTheme() === "dark"}
+                    fallback={
+                      <span class="text-base" title="Light mode">☀</span>
+                    }
+                  >
+                    <span class="text-base" title="Dark mode">☾</span>
+                  </Show>
+                }
+              >
+                <span class="text-base" title="Auto mode">🖥</span>
+              </Show>
+            </button>
+            <SettingsModal />
+          </div>
         </div>
       </div>
     </nav>
