@@ -144,6 +144,12 @@ export default function SmoothingEval() {
     const s = scores();
     const all = candidates();
 
+    function totalMatchCount(id: string): number {
+      const sc = s[id];
+      if (!sc) return 0;
+      return sc.wins + sc.losses + sc.draws;
+    }
+
     function getDiversityScore(
       a: SmoothingCandidate,
       b: SmoothingCandidate,
@@ -158,30 +164,28 @@ export default function SmoothingEval() {
       return 0.5;
     }
 
+    // Fast-path: if any candidates have never played, pair two of them first
+    // so every new candidate gets a match before general matchmaking kicks in.
+    const unmatched = all.filter((c) => totalMatchCount(c.id) === 0);
+    if (unmatched.length >= 2) {
+      return { a: unmatched[0]!, b: unmatched[1]! };
+    }
+
     let bestPair: { a: SmoothingCandidate; b: SmoothingCandidate } | null =
       null;
     let bestScore = -Infinity;
 
     for (let i = 0; i < all.length; i++) {
       for (let j = i + 1; j < all.length; j++) {
-        const idA = all[i].id;
-        const idB = all[j].id;
-        const matchA = s[idA];
-        const matchB = s[idB];
         const totalMatches =
-          (matchA?.wins ?? 0) +
-          (matchA?.losses ?? 0) +
-          (matchA?.draws ?? 0) +
-          (matchB?.wins ?? 0) +
-          (matchB?.losses ?? 0) +
-          (matchB?.draws ?? 0);
+          totalMatchCount(all[i]!.id) + totalMatchCount(all[j]!.id);
 
-        const diversity = getDiversityScore(all[i], all[j]);
+        const diversity = getDiversityScore(all[i]!, all[j]!);
         const score = (1 / (totalMatches + 1)) * diversity;
 
         if (score > bestScore) {
           bestScore = score;
-          bestPair = { a: all[i], b: all[j] };
+          bestPair = { a: all[i]!, b: all[j]! };
         }
       }
     }

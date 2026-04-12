@@ -3,22 +3,24 @@ import type { SmoothingOptions, SmoothingType } from "./settings";
 import { updateSettings } from "./settings";
 import {
   type SmoothingCandidate,
+  type EvalScore,
   seedCandidates,
-  mutateCandidates,
+  nextGeneration,
 } from "../smootherCandidates";
 
 const STORAGE_KEY = "libra-weight-fetcher-eval";
 const INITIAL_ELO = 1200;
 const ELO_K = 32;
-const MUTATION_INTERVAL = 10;
-const TOP_N_FOR_MUTATION = 5;
+/** How many matches between each new generation */
+const GENERATION_INTERVAL = 10;
+/** Top candidates preserved unchanged into the next generation */
+const ELITE_SIZE = 10;
+/** Hard cap on the active candidate pool */
+const POPULATION_SIZE = 50;
+/** Minimum matches before a candidate can be culled */
+const MIN_MATCHES_TO_CULL = 3;
 
-export interface EvalScore {
-  elo: number;
-  wins: number;
-  losses: number;
-  draws: number;
-}
+export type { EvalScore } from "../smootherCandidates";
 
 export interface SmoothingPreset {
   name: string;
@@ -168,17 +170,15 @@ export function recordResult(a: string, b: string, winner: "a" | "b" | "draw") {
   const newMatchCount = matchCount() + 1;
   setMatchCount(newMatchCount);
 
-  if (newMatchCount % MUTATION_INTERVAL === 0) {
-    const currentCandidates = candidates();
-    const currentScores = scores();
-    const newMutations = mutateCandidates(
-      currentCandidates,
-      TOP_N_FOR_MUTATION,
-      currentScores,
+  if (newMatchCount % GENERATION_INTERVAL === 0) {
+    const nextGen = nextGeneration(
+      candidates(),
+      scores(),
+      ELITE_SIZE,
+      POPULATION_SIZE,
+      MIN_MATCHES_TO_CULL,
     );
-    if (newMutations.length > 0) {
-      setCandidates((prev) => [...prev, ...newMutations]);
-    }
+    setCandidates(nextGen);
   }
 
   persist();
