@@ -393,7 +393,7 @@ export interface SavitzkyGolayOptions {
 export const createSavitzkyGolaySmoothing = (
   opts: SavitzkyGolayOptions = {},
 ): WeightSmoother => {
-  const { windowSize = 7, order = 2 } = opts;
+  const { windowSize = 7, order: _order = 2 } = opts;
   const half = Math.floor(windowSize / 2);
 
   return (weights: number[]): number[] => {
@@ -423,7 +423,6 @@ export const createSavitzkyGolaySmoothing = (
         ws.push(1);
       }
 
-      const _smoothedOrder = Math.min(order, xs.length - 1);
       result[i] = fitQuadraticLocal(xs, ys, ws);
     }
 

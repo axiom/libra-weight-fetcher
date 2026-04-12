@@ -1,7 +1,8 @@
 import * as echarts from "echarts";
 import { onMount } from "solid-js";
 import type { WeightEntry } from "../shared";
-import { getDarkMode, updateTrend } from "../shared";
+import { updateTrend } from "../shared";
+import { useTheme } from "../context/ThemeContext";
 import { useWeightData } from "../stores/weightData";
 
 const computeMaxDiff = (w: WeightEntry[]): number => {
@@ -28,11 +29,12 @@ export default function Calendar() {
   let chart: echarts.ECharts | undefined;
 
   const weightData = useWeightData();
+  const { resolvedTheme } = useTheme();
 
   onMount(() => {
     if (!chartContainer) return;
 
-    const darkMode = getDarkMode();
+    const darkMode = resolvedTheme() === "dark";
     const entries = weightData();
     const maxDiff = computeMaxDiff(entries);
     const years = extractRecentYears(entries, 5);

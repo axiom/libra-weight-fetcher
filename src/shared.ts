@@ -1,5 +1,3 @@
-import { isDarkMode } from "./context/ThemeContext";
-
 export interface WeightEntry {
   date: string;
   weight: number;
@@ -27,5 +25,3 @@ export const updateTrend = (
   const emoji = isFalling ? "📉" : "📈";
   document.title = `${emoji} ${trendToken} ${currentWeight}kg`;
 };
-
-export const getDarkMode = isDarkMode;

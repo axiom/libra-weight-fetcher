@@ -1,4 +1,4 @@
-import { createSignal, onMount } from "solid-js";
+import { createSignal } from "solid-js";
 
 import defaultPresets from "../presets.json";
 
@@ -288,14 +288,6 @@ const saveToStorage = (updates: {
   } catch {
     // ignore storage errors
   }
-};
-
-export const useSettings = () => {
-  onMount(() => {
-    setSettings(getInitialSettings());
-  });
-
-  return settings;
 };
 
 const saveDateRangeToStorage = (dataDays: number) => {

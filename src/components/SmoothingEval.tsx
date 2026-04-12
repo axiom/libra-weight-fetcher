@@ -54,8 +54,6 @@ function getRecentEntries(
   });
 }
 
-const recentEntries = getRecentEntries(0, randomDays());
-
 function computeSmoothedData(
   entries: WeightEntry[],
   candidate: SmoothingCandidate,

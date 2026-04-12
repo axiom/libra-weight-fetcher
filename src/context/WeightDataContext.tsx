@@ -46,5 +46,3 @@ export function useWeightData() {
     throw new Error("useWeightData must be used within WeightDataProvider");
   return ctx;
 }
-
-export { useWeightData as useWeightDataContext };
