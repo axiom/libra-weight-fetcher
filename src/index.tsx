@@ -8,6 +8,7 @@ import { WeightDataProvider } from "./context/WeightDataContext";
 import CalendarPage from "./pages/Calendar";
 import ChartPage from "./pages/Chart";
 import Dashboard from "./pages/Dashboard";
+import EvalPage from "./pages/Eval";
 import Landing from "./pages/Landing";
 
 function Layout(props: { children?: any }) {
@@ -28,6 +29,7 @@ render(
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/chart" component={ChartPage} />
       <Route path="/calendar" component={CalendarPage} />
+      <Route path="/eval" component={EvalPage} />
     </Router>
   ),
   document.getElementById("root")!,

@@ -8,6 +8,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: "▦" },
   { href: "/chart", label: "Chart", icon: "📈" },
   { href: "/calendar", label: "Calendar", icon: "📅" },
+  { href: "/eval", label: "Eval", icon: "⚖" },
 ];
 
 export default function Navigation() {

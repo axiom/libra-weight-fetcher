@@ -6,20 +6,30 @@ import { zoomParamsFromSlider } from "../chartUtils";
 import { targetWeightConfig } from "../config";
 import { useTheme } from "../context/ThemeContext";
 import { updateTrend } from "../shared";
+import type { WeightEntry } from "../shared";
 import { settings, updateSettings } from "../stores/settings";
 import { useWeightData } from "../stores/weightData";
 
 type Props = {
   hideDataZoom?: boolean;
   noTargetLine?: boolean;
+  weightDataOverride?: () => WeightEntry[];
 };
 
 export default function Chart(props: Props) {
-  const weightData = useWeightData();
+  const defaultWeightData = useWeightData();
   const { resolvedTheme } = useTheme();
 
+  const weightData = (): WeightEntry[] => {
+    if (props.weightDataOverride) {
+      return props.weightDataOverride();
+    }
+    return defaultWeightData();
+  };
+
   createEffect(() => {
-    const latestWeight = prepareChartData(weightData()).at(-1);
+    const currentData = weightData();
+    const latestWeight = prepareChartData(currentData).at(-1);
     if (latestWeight) {
       updateTrend(
         [latestWeight[0], latestWeight[1], latestWeight[2]],
