@@ -28,13 +28,16 @@ export default function Home() {
             "repeat(auto-fit, minmax(min(33ch, 100%), 1fr))",
         }}
       >
-        <CurrentWeightKPI />
         <DaysSinceWeighInKPI />
+        <CurrentWeightKPI />
+        <AverageWeightKPI days={30} label="30-Day Avg" />
+
+        <WeightChangeKPI days={7} label="Last 7 Days" />
+        <WeightChangeKPI days={30} label="Last 30 Days" />
+        <WeightChangeKPI days={90} label="Last 90 Days" />
+
         <CurrentLossStreakKPI />
         <CurrentGainStreakKPI />
-        <LongestLossStreakKPI />
-        <LongestGainStreakKPI />
-        <AverageWeightKPI days={30} label="30-Day Avg" />
 
         <DaysToTargetKPI />
         <KgsToTargetKPI />
@@ -42,14 +45,15 @@ export default function Home() {
         <RequiredChangePerWeekKPI />
 
         <WeightChangeKPI days={30} label="This Month" />
-        <WeightChangeKPI days={7} label="Last 7 Days" />
-        <WeightChangeKPI days={90} label="Last 90 Days" />
 
         <WeightChangeKPI days={180} label="Last 180 Days" />
         <WeightChangeKPI days={365} label="Last 365 Days" />
         <YearToDateChangeKPI />
 
         <WeightRangeKPI days={180} label="180-Day Range" />
+
+        <LongestLossStreakKPI />
+        <LongestGainStreakKPI />
         <LowestWeightKPI />
         <HighestWeightKPI />
       </div>

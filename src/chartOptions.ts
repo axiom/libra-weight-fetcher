@@ -205,7 +205,10 @@ export const buildChartOptions = (
         type: "scatter",
         name: "Vikt",
         data: weightData,
-        symbol: "diamond",
+        symbol: "pin",
+        symbolRotate(_rawValue, { dataIndex }) {
+          return data[dataIndex]?.[3] ? 180 : 0;
+        },
         itemStyle: {
           color: ({ dataIndex }: { dataIndex: number }) =>
             data[dataIndex]?.[3] ? colors.floater : colors.sinker,

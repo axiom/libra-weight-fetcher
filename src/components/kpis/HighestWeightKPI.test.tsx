@@ -47,7 +47,7 @@ describe("HighestWeightKPI", () => {
       <HighestWeightKPI weights={mockWeights} />
     ));
 
-    expect(getByText(/\(Jan 2024\)/)).toBeDefined();
+    expect(getByText(/Jan 2024/)).toBeDefined();
   });
 
   it("renders up arrow icon", () => {

@@ -16,11 +16,14 @@ export default function LowestWeightKPI(props: Props) {
 
   const result = createMemo(() => computeMinWeight(entries()));
 
-  const label = createMemo(() => {
+  const label = () => {
+    return props.label ?? "Lightest Ever";
+  };
+
+  const meta = () => {
     const r = result();
-    const base = props.label ?? "Lowest Ever";
-    return r ? `${base} (${formatDate(r.date)})` : base;
-  });
+    return r ? formatDate(r.date) : undefined;
+  };
 
   const formattedValue = () => {
     const r = result();
@@ -34,6 +37,7 @@ export default function LowestWeightKPI(props: Props) {
       label={label()}
       value={formattedValue()}
       unit={unit()}
+      meta={meta()}
       icon="⬇️"
       class={props.class}
     />

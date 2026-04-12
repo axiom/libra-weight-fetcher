@@ -66,7 +66,10 @@ export default function WeightKPIView(props: Props) {
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-2 w-full items-baseline">
+      <div
+        class="grid gap-2 w-full items-baseline"
+        style="grid-template-columns: 65% auto"
+      >
         <div class="text-5xl font-semibold leading-tight relative z-10 whitespace-nowrap flex items-baseline gap-1 flex-justify-end w-full">
           {props.sentiment === "bad" ? (
             <BadValue>{props.value}</BadValue>

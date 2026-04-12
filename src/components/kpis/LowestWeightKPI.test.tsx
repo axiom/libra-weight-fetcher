@@ -16,7 +16,7 @@ describe("LowestWeightKPI", () => {
       <LowestWeightKPI weights={mockWeights} />
     ));
 
-    expect(getByText(/Lowest Ever/)).toBeDefined();
+    expect(getByText(/Lightest Ever/)).toBeDefined();
   });
 
   it("renders custom label correctly", () => {
@@ -27,7 +27,7 @@ describe("LowestWeightKPI", () => {
     expect(getByText(/Lowest/)).toBeDefined();
   });
 
-  it("renders lowest value formatted correctly", () => {
+  it("renders lightest value formatted correctly", () => {
     const { getByText } = render(() => (
       <LowestWeightKPI weights={mockWeights} />
     ));
@@ -47,7 +47,7 @@ describe("LowestWeightKPI", () => {
       <LowestWeightKPI weights={mockWeights} />
     ));
 
-    expect(getByText(/\(Jan 2024\)/)).toBeDefined();
+    expect(getByText(/Jan 2024/)).toBeDefined();
   });
 
   it("renders down arrow icon", () => {

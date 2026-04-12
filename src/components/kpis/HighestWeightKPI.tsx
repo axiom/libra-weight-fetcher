@@ -16,11 +16,14 @@ export default function HighestWeightKPI(props: Props) {
 
   const result = createMemo(() => computeMaxWeight(entries()));
 
-  const label = createMemo(() => {
+  const label = () => {
+    return props.label ?? "Heaviest Ever";
+  };
+
+  const meta = () => {
     const r = result();
-    const base = props.label ?? "Heaviest Ever";
-    return r ? `${base} (${formatDate(r.date)})` : base;
-  });
+    return r ? formatDate(r.date) : undefined;
+  };
 
   const formattedValue = () => {
     const r = result();
@@ -33,6 +36,7 @@ export default function HighestWeightKPI(props: Props) {
     <WeightKPIView
       label={label()}
       value={formattedValue()}
+      meta={meta()}
       unit={unit()}
       sentiment={result() ? "bad" : "neutral"}
       icon="⬆️"
