@@ -882,8 +882,15 @@ export function nextGeneration(
 
   const elites = ranked.slice(0, eliteSize);
 
-  // How many offspring slots remain after elites + protected?
-  const survivors = [...elites, ...protected_];
+  // Cap protected candidates so survivors never exceed populationSize.
+  // Keep those with the most matches first (closest to the cull threshold
+  // = most informative), then trim the rest.
+  const maxProtected = Math.max(0, populationSize - elites.length);
+  const cappedProtected = [...protected_]
+    .sort((a, b) => totalMatches(b.id) - totalMatches(a.id))
+    .slice(0, maxProtected);
+
+  const survivors = [...elites, ...cappedProtected];
   const offspringSlots = Math.max(0, populationSize - survivors.length);
 
   if (offspringSlots === 0) return survivors;

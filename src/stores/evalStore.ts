@@ -18,7 +18,7 @@ const ELITE_SIZE = 10;
 /** Hard cap on the active candidate pool */
 const POPULATION_SIZE = 50;
 /** Minimum matches before a candidate can be culled */
-const MIN_MATCHES_TO_CULL = 3;
+const MIN_MATCHES_TO_CULL = 1;
 
 export type { EvalScore } from "../smootherCandidates";
 
@@ -56,7 +56,20 @@ function loadFromStorage(): EvalStateData {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const data: EvalStateData = JSON.parse(stored);
+      // Migration: trim oversized pools left over from before the population
+      // cap was introduced. Sort by ELO descending (unscored candidates fall
+      // back to INITIAL_ELO), keep the top POPULATION_SIZE.
+      if (data.candidates && data.candidates.length > POPULATION_SIZE) {
+        data.candidates = [...data.candidates]
+          .sort(
+            (a, b) =>
+              (data.scores[b.id]?.elo ?? INITIAL_ELO) -
+              (data.scores[a.id]?.elo ?? INITIAL_ELO),
+          )
+          .slice(0, POPULATION_SIZE);
+      }
+      return data;
     }
   } catch {
     // ignore
