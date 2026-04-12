@@ -413,6 +413,16 @@ export function mutateCandidates(
     const definition = smootherById.get(chainType);
     if (!definition) continue;
 
+    const makeId = (chain: SmoothingType[], extra?: string) => {
+      const base = chain.join("-");
+      return extra ? `${base}-${extra}` : base;
+    };
+
+    const makeLabel = (chain: SmoothingType[], extra?: string) => {
+      const base = chain.join(" → ");
+      return extra ? `${base} ${extra}` : base;
+    };
+
     for (const group of definition.groups) {
       for (const field of group.fields) {
         const currentValue = parent.options[chainType]?.[
@@ -439,11 +449,14 @@ export function mutateCandidates(
             field.key
           ] = newValue;
 
-          const id = `${chainType}-${field.key}=${newValue}`;
+          const id = makeId(parent.chain, `${field.key}=${newValue}`);
           if (existingIds.has(id)) continue;
           existingIds.add(id);
 
-          const label = `${chainType} ${field.key.charAt(0).toUpperCase() + field.key.slice(1)}=${newValue}`;
+          const label = makeLabel(
+            parent.chain,
+            `${field.key.charAt(0).toUpperCase() + field.key.slice(1)}=${newValue}`,
+          );
           newCandidates.push({
             id,
             label,
@@ -454,26 +467,77 @@ export function mutateCandidates(
       }
     }
 
-    if (parent.chain.length === 1 && newCandidates.length < top.length * 2) {
-      for (const newType of allTypes) {
-        if (newType === chainType) continue;
-
-        const newChain = [...parent.chain, newType];
-        const id = newChain.join("-");
-
-        if (existingIds.has(id)) continue;
+    if (parent.chain.length === 2) {
+      const reversed = [...parent.chain].reverse();
+      const id = makeId(reversed);
+      if (!existingIds.has(id)) {
         existingIds.add(id);
-
         newCandidates.push({
           id,
-          label: `${parent.label} → ${newType}`,
-          chain: newChain,
+          label: makeLabel(reversed),
+          chain: reversed,
           options: JSON.parse(JSON.stringify(parent.options)),
         });
       }
+
+      for (let i = 0; i < 2; i++) {
+        const singleChain = [parent.chain[i]];
+        const id2 = makeId(singleChain);
+        if (!existingIds.has(id2)) {
+          existingIds.add(id2);
+          newCandidates.push({
+            id: id2,
+            label: makeLabel(singleChain),
+            chain: singleChain,
+            options: JSON.parse(JSON.stringify(parent.options)),
+          });
+        }
+      }
     }
 
-    if (newCandidates.length >= top.length * 2) break;
+    if (parent.chain.length <= 2) {
+      for (const newType of allTypes) {
+        if (parent.chain.includes(newType)) continue;
+        if (parent.chain.length === 2 && parent.chain.includes(newType))
+          continue;
+
+        for (let pos = 0; pos <= parent.chain.length; pos++) {
+          const newChain = [...parent.chain];
+          newChain.splice(pos, 0, newType);
+          const id = makeId(newChain);
+          if (existingIds.has(id)) continue;
+          existingIds.add(id);
+
+          newCandidates.push({
+            id,
+            label: makeLabel(newChain),
+            chain: newChain,
+            options: JSON.parse(JSON.stringify(parent.options)),
+          });
+        }
+      }
+
+      for (const newType of allTypes) {
+        if (newType === chainType) continue;
+
+        for (let i = 0; i < parent.chain.length; i++) {
+          const newChain = [...parent.chain];
+          newChain[i] = newType;
+          const id = makeId(newChain);
+          if (existingIds.has(id)) continue;
+          existingIds.add(id);
+
+          newCandidates.push({
+            id,
+            label: makeLabel(newChain),
+            chain: newChain,
+            options: JSON.parse(JSON.stringify(parent.options)),
+          });
+        }
+      }
+    }
+
+    if (newCandidates.length >= top.length * 3) break;
   }
 
   return newCandidates;
