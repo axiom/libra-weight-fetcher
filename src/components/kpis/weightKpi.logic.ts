@@ -122,6 +122,37 @@ export function computeLongestGainStreak(
   return getLongestStreak(entries, false);
 }
 
+export function computeDailyWeighInStreak(entries: WeightEntry[]): number {
+  if (entries.length === 0) return 0;
+
+  const sorted = [...entries].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
+
+  const now = new Date();
+  const lastWeighIn = new Date(sorted[sorted.length - 1].date);
+  const hoursSinceLastWeighIn = (now.getTime() - lastWeighIn.getTime()) / (1000 * 60 * 60);
+
+  if (hoursSinceLastWeighIn > 30) return 0;
+
+  let streak = 1;
+  for (let i = sorted.length - 1; i > 0; i -= 1) {
+    const currentDate = new Date(sorted[i].date);
+    const prevDate = new Date(sorted[i - 1].date);
+    const diffDays = Math.round(
+      (currentDate.getTime() - prevDate.getTime()) / DAY_MS,
+    );
+
+    if (diffDays === 1) {
+      streak += 1;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
 export function computeWeightChange(
   entries: WeightEntry[],
   days?: number,

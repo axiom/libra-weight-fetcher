@@ -4,6 +4,7 @@ import {
   CurrentGainStreakKPI,
   CurrentLossStreakKPI,
   CurrentWeightKPI,
+  DailyWeighInStreakKPI,
   DaysSinceWeighInKPI,
   DaysToTargetKPI,
   HighestWeightKPI,
@@ -54,6 +55,7 @@ export default function Dashboard() {
 
         <CurrentLossStreakKPI />
         <CurrentGainStreakKPI />
+        <DailyWeighInStreakKPI />
 
         <div class="col-span-full">
           <SectionHeading title="Goals" />

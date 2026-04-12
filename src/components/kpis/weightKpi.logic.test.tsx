@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { WeightEntry } from "../../shared";
-import { computeDaysSinceLastWeighIn } from "./weightKpi.logic";
+import { computeDaysSinceLastWeighIn, computeDailyWeighInStreak } from "./weightKpi.logic";
 import {
   computeDaysToTargetDate,
   computeKgsToTarget,
@@ -188,6 +188,101 @@ describe("linearTrendProjection", () => {
     const result = linearTrendProjection(weights, 80);
     expect(result).not.toBeNull();
     expect(result?.days).toBeGreaterThan(0);
-     expect(result?.algorithm).toBe("If You Keep Going");
+      expect(result?.algorithm).toBe("If You Keep Going");
+  });
+});
+
+describe("computeDailyWeighInStreak", () => {
+  const createDate = (daysAgo: number): Date => {
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
+    return date;
+  };
+
+  const createDateWithOffset = (daysAgo: number, hoursOffset: number): Date => {
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
+    date.setHours(date.getHours() + hoursOffset);
+    return date;
+  };
+
+  it("returns 0 for empty array", () => {
+    expect(computeDailyWeighInStreak([])).toBe(0);
+  });
+
+  it("returns 1 for single weigh-in within 30 hours", () => {
+    const weights: WeightEntry[] = [
+      { date: new Date().toISOString(), weight: 80, trend: 80 },
+    ];
+    expect(computeDailyWeighInStreak(weights)).toBe(1);
+  });
+
+  it("returns 0 for last weigh-in more than 30 hours ago", () => {
+    const twoDaysAgo = createDate(2);
+    const weights: WeightEntry[] = [
+      { date: twoDaysAgo.toISOString(), weight: 80, trend: 80 },
+    ];
+    expect(computeDailyWeighInStreak(weights)).toBe(0);
+  });
+
+  it("returns 0 for last weigh-in more than 30 hours ago (2 days ago)", () => {
+    const weights: WeightEntry[] = [
+      { date: createDate(2).toISOString(), weight: 80, trend: 80 },
+    ];
+    expect(computeDailyWeighInStreak(weights)).toBe(0);
+  });
+
+  it("returns 1 for last weigh-in exactly 30 hours ago", () => {
+    const now = new Date();
+    const thirtyHoursAgo = new Date(now.getTime() - 30 * 60 * 60 * 1000);
+    const weights: WeightEntry[] = [
+      { date: thirtyHoursAgo.toISOString(), weight: 80, trend: 80 },
+    ];
+    expect(computeDailyWeighInStreak(weights)).toBe(1);
+  });
+
+  it("returns 1 for last weigh-in exactly 29 hours ago", () => {
+    const now = new Date();
+    const twentyNineHoursAgo = new Date(now.getTime() - 29 * 60 * 60 * 1000);
+    const weights: WeightEntry[] = [
+      { date: twentyNineHoursAgo.toISOString(), weight: 80, trend: 80 },
+    ];
+    expect(computeDailyWeighInStreak(weights)).toBe(1);
+  });
+
+  it("returns streak of 2 for consecutive days", () => {
+    const yesterday = createDate(1);
+    const weights: WeightEntry[] = [
+      { date: createDate(2).toISOString(), weight: 81, trend: 81 },
+      { date: yesterday.toISOString(), weight: 80, trend: 80 },
+    ];
+    expect(computeDailyWeighInStreak(weights)).toBe(2);
+  });
+
+  it("returns streak of 3 for three consecutive days", () => {
+    const weights: WeightEntry[] = [
+      { date: createDate(3).toISOString(), weight: 82, trend: 82 },
+      { date: createDate(2).toISOString(), weight: 81, trend: 81 },
+      { date: createDate(1).toISOString(), weight: 80, trend: 80 },
+    ];
+    expect(computeDailyWeighInStreak(weights)).toBe(3);
+  });
+
+  it("breaks streak when there's a gap of more than 1 day", () => {
+    const weights: WeightEntry[] = [
+      { date: createDate(3).toISOString(), weight: 82, trend: 82 },
+      { date: createDate(1).toISOString(), weight: 80, trend: 80 },
+    ];
+    expect(computeDailyWeighInStreak(weights)).toBe(1);
+  });
+
+  it("breaks streak after gap even with more entries after", () => {
+    const weights: WeightEntry[] = [
+      { date: createDate(4).toISOString(), weight: 83, trend: 83 },
+      { date: createDate(3).toISOString(), weight: 82, trend: 82 },
+      { date: createDate(1).toISOString(), weight: 80, trend: 80 },
+      { date: createDate(0).toISOString(), weight: 79, trend: 79 },
+    ];
+    expect(computeDailyWeighInStreak(weights)).toBe(2);
   });
 });
