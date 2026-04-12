@@ -6,10 +6,13 @@ import {
 } from "../smootherRegistry";
 import {
   FALLBACK_SMOOTHER,
+  getBuiltInPresets,
   type SmoothingOptions,
+  type SmoothingPreset,
   type SmoothingType,
   settings,
   updateSetting,
+  updateSettings,
 } from "../stores/settings";
 import { useTheme, type Theme } from "../context/ThemeContext";
 
@@ -500,6 +503,37 @@ export default function SettingsModal() {
                   }}
                 </Index>
               </ul>
+            </div>
+
+            <div class="space-y-2 pt-4 border-t border-[var(--color-border)]">
+              <p class="text-sm font-medium text-[var(--color-text-secondary)]">
+                Built-in Presets
+              </p>
+              <div class="grid grid-cols-2 gap-2">
+                <For each={getBuiltInPresets()}>
+                  {(preset) => (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateSettings({
+                          smoothing: [...preset.chain],
+                          smoothingOptions: { ...preset.options },
+                        });
+                        setLocalSmoothing([...preset.chain]);
+                        setLocalOptions({ ...preset.options });
+                      }}
+                      class="text-left px-3 py-2 rounded border border-[var(--color-border)] hover:bg-[var(--color-border-subtle)] text-sm"
+                    >
+                      <div class="font-medium text-[var(--color-text)]">
+                        {preset.name}
+                      </div>
+                      <div class="text-xs text-[var(--color-text-muted)]">
+                        {preset.chain.join(" → ")}
+                      </div>
+                    </button>
+                  )}
+                </For>
+              </div>
             </div>
           </div>
 

@@ -31,7 +31,7 @@ import type { SmoothingCandidate } from "../smootherCandidates";
 const rawWeightEntries = rawWeights satisfies WeightEntry[];
 
 function randomDays(): number {
-  return Math.floor(Math.random() * (600 - 180 + 1)) + 180;
+  return Math.floor(Math.random() * (3650 - 180 + 1)) + 180;
 }
 
 function getRecentEntries(
@@ -144,7 +144,10 @@ export default function SmoothingEval() {
     const s = scores();
     const all = candidates();
 
-    function getDiversityScore(a: SmoothingCandidate, b: SmoothingCandidate): number {
+    function getDiversityScore(
+      a: SmoothingCandidate,
+      b: SmoothingCandidate,
+    ): number {
       const leadA = a.chain[0];
       const leadB = b.chain[0];
       if (leadA !== leadB) return 3;
@@ -155,7 +158,8 @@ export default function SmoothingEval() {
       return 0.5;
     }
 
-    let bestPair: { a: SmoothingCandidate; b: SmoothingCandidate } | null = null;
+    let bestPair: { a: SmoothingCandidate; b: SmoothingCandidate } | null =
+      null;
     let bestScore = -Infinity;
 
     for (let i = 0; i < all.length; i++) {

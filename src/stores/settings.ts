@@ -1,5 +1,7 @@
 import { createSignal, onMount } from "solid-js";
 
+import defaultPresets from "../presets.json";
+
 export type SmoothingType =
   | "median"
   | "ema"
@@ -89,6 +91,12 @@ export interface Settings {
   showTargetLine: boolean;
 }
 
+export interface SmoothingPreset {
+  name: string;
+  chain: SmoothingType[];
+  options: SmoothingOptions;
+}
+
 export const FALLBACK_SMOOTHER: SmoothingType = "ema";
 
 const defaultSmoothingOptions: SmoothingOptions = {
@@ -106,9 +114,21 @@ const defaultSmoothingOptions: SmoothingOptions = {
   "robust-loess": { bandwidth: 0.3, iterations: 3 },
 };
 
+export function getBuiltInPresets(): SmoothingPreset[] {
+  return defaultPresets as unknown as SmoothingPreset[];
+}
+
+export function getDefaultPreset(): SmoothingPreset {
+  const presets = getBuiltInPresets();
+  if (presets.length > 0) return presets[0] as SmoothingPreset;
+  return { name: "Default", chain: [FALLBACK_SMOOTHER], options: defaultSmoothingOptions };
+}
+
+const defaultPreset = getDefaultPreset();
+
 const defaultSettings: Settings = {
-  smoothing: [FALLBACK_SMOOTHER],
-  smoothingOptions: defaultSmoothingOptions,
+  smoothing: defaultPreset.chain,
+  smoothingOptions: defaultPreset.options,
   dataDays: 90,
   endDate: null,
   weightMeasurements: 50,
