@@ -144,9 +144,19 @@ export default function SmoothingEval() {
     const s = scores();
     const all = candidates();
 
-    let bestPair: { a: SmoothingCandidate; b: SmoothingCandidate } | null =
-      null;
-    let minMatches = Infinity;
+    function getDiversityScore(a: SmoothingCandidate, b: SmoothingCandidate): number {
+      const leadA = a.chain[0];
+      const leadB = b.chain[0];
+      if (leadA !== leadB) return 3;
+      if (a.chain.length !== b.chain.length || leadA === leadB) return 1;
+      if (a.chain.length > 1 && b.chain.length > 1) {
+        if (a.chain[1] !== b.chain[1]) return 2;
+      }
+      return 0.5;
+    }
+
+    let bestPair: { a: SmoothingCandidate; b: SmoothingCandidate } | null = null;
+    let bestScore = -Infinity;
 
     for (let i = 0; i < all.length; i++) {
       for (let j = i + 1; j < all.length; j++) {
@@ -162,8 +172,11 @@ export default function SmoothingEval() {
           (matchB?.losses ?? 0) +
           (matchB?.draws ?? 0);
 
-        if (totalMatches < minMatches) {
-          minMatches = totalMatches;
+        const diversity = getDiversityScore(all[i], all[j]);
+        const score = (1 / (totalMatches + 1)) * diversity;
+
+        if (score > bestScore) {
+          bestScore = score;
           bestPair = { a: all[i], b: all[j] };
         }
       }
