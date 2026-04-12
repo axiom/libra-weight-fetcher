@@ -1,5 +1,5 @@
 import type { WeightEntry } from "./shared";
-import { createSmootherByType } from "./smootherRegistry";
+import { createSmootherByType, smootherById } from "./smootherRegistry";
 import { composeSmoothers } from "./smoothing";
 import type { SmoothingOptions, SmoothingType } from "./stores/settings";
 
@@ -376,11 +376,108 @@ function generateRandomChains(
 
 const randomChains = generateRandomChains(42, 8);
 
-export const smoothingCandidates: SmoothingCandidate[] = [
+export const seedCandidates: SmoothingCandidate[] = [
   ...singleSmoothers,
   ...curatedChains,
   ...randomChains,
 ];
+
+export function mutateCandidates(
+  candidates: SmoothingCandidate[],
+  topN: number,
+  scores: Record<string, { elo: number }>,
+): SmoothingCandidate[] {
+  const top = [...candidates]
+    .sort((a, b) => (scores[b.id]?.elo ?? 1200) - (scores[a.id]?.elo ?? 1200))
+    .slice(0, topN);
+
+  const existingIds = new Set(candidates.map((c) => c.id));
+  const newCandidates: SmoothingCandidate[] = [];
+  const allTypes: SmoothingType[] = [
+    "ema",
+    "median",
+    "wma",
+    "holt",
+    "trimmed-mean",
+    "savitzky-golay",
+    "loess",
+    "gaussian",
+    "kalman",
+    "kalman-causal",
+    "henderson",
+    "robust-loess",
+  ];
+
+  for (const parent of top) {
+    const chainType = parent.chain[parent.chain.length - 1];
+    const definition = smootherById.get(chainType);
+    if (!definition) continue;
+
+    for (const group of definition.groups) {
+      for (const field of group.fields) {
+        const currentValue = parent.options[chainType]?.[
+          field.key as keyof SmoothingOptions[typeof chainType]
+        ] as number;
+        if (typeof currentValue !== "number") continue;
+
+        const step = field.step;
+        const lower = currentValue - step;
+        const upper = currentValue + step;
+
+        for (const newValueRaw of [lower, upper]) {
+          let newValue = newValueRaw;
+          if (field.integer) {
+            newValue = Math.round(newValue);
+          }
+          if (newValue < field.min || newValue > field.max) continue;
+          if (newValue === currentValue) continue;
+
+          const newOptions: SmoothingOptions = JSON.parse(
+            JSON.stringify(parent.options),
+          );
+          (newOptions[chainType] as unknown as Record<string, number>)[
+            field.key
+          ] = newValue;
+
+          const id = `${chainType}-${field.key}=${newValue}`;
+          if (existingIds.has(id)) continue;
+          existingIds.add(id);
+
+          const label = `${chainType} ${field.key.charAt(0).toUpperCase() + field.key.slice(1)}=${newValue}`;
+          newCandidates.push({
+            id,
+            label,
+            chain: [...parent.chain],
+            options: newOptions,
+          });
+        }
+      }
+    }
+
+    if (parent.chain.length === 1 && newCandidates.length < top.length * 2) {
+      for (const newType of allTypes) {
+        if (newType === chainType) continue;
+
+        const newChain = [...parent.chain, newType];
+        const id = newChain.join("-");
+
+        if (existingIds.has(id)) continue;
+        existingIds.add(id);
+
+        newCandidates.push({
+          id,
+          label: `${parent.label} → ${newType}`,
+          chain: newChain,
+          options: JSON.parse(JSON.stringify(parent.options)),
+        });
+      }
+    }
+
+    if (newCandidates.length >= top.length * 2) break;
+  }
+
+  return newCandidates;
+}
 
 export function applyCandidate(
   entries: WeightEntry[],

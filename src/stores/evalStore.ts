@@ -1,11 +1,13 @@
 import { createSignal } from "solid-js";
 import type { SmoothingOptions, SmoothingType } from "./settings";
 import { updateSettings } from "./settings";
-import { type SmoothingCandidate } from "../smootherCandidates";
+import { type SmoothingCandidate, seedCandidates, mutateCandidates } from "../smootherCandidates";
 
 const STORAGE_KEY = "libra-weight-fetcher-eval";
 const INITIAL_ELO = 1200;
 const ELO_K = 32;
+const MUTATION_INTERVAL = 10;
+const TOP_N_FOR_MUTATION = 5;
 
 export interface EvalScore {
   elo: number;
@@ -25,11 +27,13 @@ interface EvalStateData {
   scores: Record<string, EvalScore>;
   matchHistory: Array<{ a: string; b: string; winner: "a" | "b" | "draw"; ts: number }>;
   presets: SmoothingPreset[];
+  candidates: SmoothingCandidate[];
+  matchCount: number;
 }
 
 function loadFromStorage(): EvalStateData {
   if (typeof window === "undefined") {
-    return { scores: {}, matchHistory: [], presets: [] };
+    return { scores: {}, matchHistory: [], presets: [], candidates: seedCandidates, matchCount: 0 };
   }
 
   try {
@@ -40,7 +44,7 @@ function loadFromStorage(): EvalStateData {
   } catch {
     // ignore
   }
-  return { scores: {}, matchHistory: [], presets: [] };
+  return { scores: {}, matchHistory: [], presets: [], candidates: seedCandidates, matchCount: 0 };
 }
 
 function saveToStorage(data: EvalStateData) {
@@ -56,12 +60,16 @@ const initialData = loadFromStorage();
 const [scores, setScores] = createSignal<Record<string, EvalScore>>(initialData.scores);
 const [matchHistory, setMatchHistory] = createSignal<Array<{ a: string; b: string; winner: "a" | "b" | "draw"; ts: number }>>(initialData.matchHistory);
 const [presets, setPresets] = createSignal<SmoothingPreset[]>(initialData.presets);
+const [candidates, setCandidates] = createSignal<SmoothingCandidate[]>(initialData.candidates ?? seedCandidates);
+const [matchCount, setMatchCount] = createSignal<number>(initialData.matchCount ?? 0);
 
 function persist() {
   saveToStorage({
     scores: scores(),
     matchHistory: matchHistory(),
     presets: presets(),
+    candidates: candidates(),
+    matchCount: matchCount(),
   });
 }
 
@@ -121,6 +129,19 @@ export function recordResult(a: string, b: string, winner: "a" | "b" | "draw") {
   });
 
   setMatchHistory((prev) => [...prev, { a, b, winner, ts: Date.now() }]);
+
+  const newMatchCount = matchCount() + 1;
+  setMatchCount(newMatchCount);
+
+  if (newMatchCount % MUTATION_INTERVAL === 0) {
+    const currentCandidates = candidates();
+    const currentScores = scores();
+    const newMutations = mutateCandidates(currentCandidates, TOP_N_FOR_MUTATION, currentScores);
+    if (newMutations.length > 0) {
+      setCandidates((prev) => [...prev, ...newMutations]);
+    }
+  }
+
   persist();
 }
 
@@ -151,7 +172,9 @@ export function applyCandidate(candidate: SmoothingCandidate) {
 export function resetEval() {
   setScores({});
   setMatchHistory([]);
+  setCandidates(seedCandidates);
+  setMatchCount(0);
   persist();
 }
 
-export { scores, matchHistory, presets };
+export { scores, matchHistory, presets, candidates, matchCount };

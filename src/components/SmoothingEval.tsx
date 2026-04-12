@@ -1,4 +1,11 @@
-import { createMemo, createSignal, For, Show, onMount, onCleanup } from "solid-js";
+import {
+  createMemo,
+  createSignal,
+  For,
+  Show,
+  onMount,
+  onCleanup,
+} from "solid-js";
 import type { EChartsOption } from "echarts";
 import { EChartsAutoSize } from "echarts-solid";
 import { buildChartOptions, prepareChartData } from "../chartOptions";
@@ -6,10 +13,7 @@ import { targetWeightConfig } from "../config";
 import { useTheme } from "../context/ThemeContext";
 import rawWeights from "../weights.json";
 import type { WeightEntry } from "../shared";
-import {
-  smoothingCandidates,
-  applyCandidate as applySmoothedCandidate,
-} from "../smootherCandidates";
+import { applyCandidate as applySmoothedCandidate } from "../smootherCandidates";
 import {
   getScore,
   recordResult,
@@ -20,16 +24,23 @@ import {
   resetEval,
   scores,
   presets,
+  candidates,
 } from "../stores/evalStore";
 import type { SmoothingCandidate } from "../smootherCandidates";
 
 const rawWeightEntries = rawWeights satisfies WeightEntry[];
-const EVAL_DAYS = 180;
 
-function getRecentEntries(offsetDays: number): WeightEntry[] {
+function randomDays(): number {
+  return Math.floor(Math.random() * (600 - 180 + 1)) + 180;
+}
+
+function getRecentEntries(
+  offsetDays: number,
+  dataLengthDays: number,
+): WeightEntry[] {
   const now = new Date();
   const start = new Date(now);
-  start.setDate(start.getDate() - EVAL_DAYS - offsetDays);
+  start.setDate(start.getDate() - dataLengthDays - offsetDays);
   start.setHours(0, 0, 0, 0);
   const end = new Date(now);
   end.setDate(end.getDate() - offsetDays);
@@ -37,17 +48,18 @@ function getRecentEntries(offsetDays: number): WeightEntry[] {
   const startTime = start.getTime();
   const endTime = end.getTime();
 
-  return rawWeightEntries.filter(
-    (e) => {
-      const t = new Date(e.date).getTime();
-      return t >= startTime && t <= endTime;
-    },
-  );
+  return rawWeightEntries.filter((e) => {
+    const t = new Date(e.date).getTime();
+    return t >= startTime && t <= endTime;
+  });
 }
 
-const recentEntries = getRecentEntries(0);
+const recentEntries = getRecentEntries(0, randomDays());
 
-function computeSmoothedData(entries: WeightEntry[], candidate: SmoothingCandidate): WeightEntry[] {
+function computeSmoothedData(
+  entries: WeightEntry[],
+  candidate: SmoothingCandidate,
+): WeightEntry[] {
   return applySmoothedCandidate(entries, candidate);
 }
 
@@ -62,9 +74,12 @@ export default function SmoothingEval() {
     createSignal<SmoothingCandidate | null>(null);
   const [showLeaderboard, setShowLeaderboard] = createSignal(true);
   const [dateOffset, setDateOffset] = createSignal(0);
+  const [dataLengthDays, setDataLengthDays] = createSignal(randomDays());
   const { resolvedTheme } = useTheme();
 
-  const entries = createMemo(() => getRecentEntries(dateOffset()));
+  const entries = createMemo(() =>
+    getRecentEntries(dateOffset(), dataLengthDays()),
+  );
 
   const candidateA = createMemo(() => currentMatch()?.a);
   const candidateB = createMemo(() => currentMatch()?.b);
@@ -94,7 +109,7 @@ export default function SmoothingEval() {
       firstDate,
       latestDate,
       endDate: null,
-      dataDays: EVAL_DAYS,
+      dataDays: dataLengthDays(),
       darkMode,
       hideDataZoom: true,
       targetConfig: targetWeightConfig,
@@ -116,7 +131,7 @@ export default function SmoothingEval() {
       firstDate,
       latestDate,
       endDate: null,
-      dataDays: EVAL_DAYS,
+      dataDays: dataLengthDays(),
       darkMode,
       hideDataZoom: true,
       targetConfig: targetWeightConfig,
@@ -127,7 +142,7 @@ export default function SmoothingEval() {
 
   const getNextMatch = () => {
     const s = scores();
-    const all = smoothingCandidates;
+    const all = candidates();
 
     let bestPair: { a: SmoothingCandidate; b: SmoothingCandidate } | null =
       null;
@@ -163,6 +178,7 @@ export default function SmoothingEval() {
       setCurrentMatch(next);
       setMatchCount((c) => c + 1);
       setDateOffset((o) => (o + 30) % 365);
+      setDataLengthDays(randomDays());
     }
   };
 
@@ -198,7 +214,8 @@ export default function SmoothingEval() {
 
   const leaderboard = createMemo(() => {
     const s = scores();
-    return smoothingCandidates
+    const all = candidates();
+    return all
       .map((c) => ({
         candidate: c,
         score: getScore(c.id),
