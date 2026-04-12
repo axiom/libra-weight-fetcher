@@ -1,7 +1,11 @@
 import { createSignal } from "solid-js";
 import type { SmoothingOptions, SmoothingType } from "./settings";
 import { updateSettings } from "./settings";
-import { type SmoothingCandidate, seedCandidates, mutateCandidates } from "../smootherCandidates";
+import {
+  type SmoothingCandidate,
+  seedCandidates,
+  mutateCandidates,
+} from "../smootherCandidates";
 
 const STORAGE_KEY = "libra-weight-fetcher-eval";
 const INITIAL_ELO = 1200;
@@ -25,7 +29,12 @@ export interface SmoothingPreset {
 
 interface EvalStateData {
   scores: Record<string, EvalScore>;
-  matchHistory: Array<{ a: string; b: string; winner: "a" | "b" | "draw"; ts: number }>;
+  matchHistory: Array<{
+    a: string;
+    b: string;
+    winner: "a" | "b" | "draw";
+    ts: number;
+  }>;
   presets: SmoothingPreset[];
   candidates: SmoothingCandidate[];
   matchCount: number;
@@ -33,7 +42,13 @@ interface EvalStateData {
 
 function loadFromStorage(): EvalStateData {
   if (typeof window === "undefined") {
-    return { scores: {}, matchHistory: [], presets: [], candidates: seedCandidates, matchCount: 0 };
+    return {
+      scores: {},
+      matchHistory: [],
+      presets: [],
+      candidates: seedCandidates,
+      matchCount: 0,
+    };
   }
 
   try {
@@ -44,7 +59,13 @@ function loadFromStorage(): EvalStateData {
   } catch {
     // ignore
   }
-  return { scores: {}, matchHistory: [], presets: [], candidates: seedCandidates, matchCount: 0 };
+  return {
+    scores: {},
+    matchHistory: [],
+    presets: [],
+    candidates: seedCandidates,
+    matchCount: 0,
+  };
 }
 
 function saveToStorage(data: EvalStateData) {
@@ -57,11 +78,21 @@ function saveToStorage(data: EvalStateData) {
 }
 
 const initialData = loadFromStorage();
-const [scores, setScores] = createSignal<Record<string, EvalScore>>(initialData.scores);
-const [matchHistory, setMatchHistory] = createSignal<Array<{ a: string; b: string; winner: "a" | "b" | "draw"; ts: number }>>(initialData.matchHistory);
-const [presets, setPresets] = createSignal<SmoothingPreset[]>(initialData.presets);
-const [candidates, setCandidates] = createSignal<SmoothingCandidate[]>(initialData.candidates ?? seedCandidates);
-const [matchCount, setMatchCount] = createSignal<number>(initialData.matchCount ?? 0);
+const [scores, setScores] = createSignal<Record<string, EvalScore>>(
+  initialData.scores,
+);
+const [matchHistory, setMatchHistory] = createSignal<
+  Array<{ a: string; b: string; winner: "a" | "b" | "draw"; ts: number }>
+>(initialData.matchHistory);
+const [presets, setPresets] = createSignal<SmoothingPreset[]>(
+  initialData.presets,
+);
+const [candidates, setCandidates] = createSignal<SmoothingCandidate[]>(
+  initialData.candidates ?? seedCandidates,
+);
+const [matchCount, setMatchCount] = createSignal<number>(
+  initialData.matchCount ?? 0,
+);
 
 function persist() {
   saveToStorage({
@@ -73,7 +104,11 @@ function persist() {
   });
 }
 
-function calculateElo(eloA: number, eloB: number, actualA: number): [number, number] {
+function calculateElo(
+  eloA: number,
+  eloB: number,
+  actualA: number,
+): [number, number] {
   const expectedA = 1 / (1 + Math.pow(10, (eloB - eloA) / 400));
   const expectedB = 1 / (1 + Math.pow(10, (eloA - eloB) / 400));
 
@@ -136,7 +171,11 @@ export function recordResult(a: string, b: string, winner: "a" | "b" | "draw") {
   if (newMatchCount % MUTATION_INTERVAL === 0) {
     const currentCandidates = candidates();
     const currentScores = scores();
-    const newMutations = mutateCandidates(currentCandidates, TOP_N_FOR_MUTATION, currentScores);
+    const newMutations = mutateCandidates(
+      currentCandidates,
+      TOP_N_FOR_MUTATION,
+      currentScores,
+    );
     if (newMutations.length > 0) {
       setCandidates((prev) => [...prev, ...newMutations]);
     }
@@ -149,7 +188,11 @@ export function getPresets(): SmoothingPreset[] {
   return presets();
 }
 
-export function savePreset(name: string, chain: SmoothingType[], options: SmoothingOptions) {
+export function savePreset(
+  name: string,
+  chain: SmoothingType[],
+  options: SmoothingOptions,
+) {
   setPresets((prev) => [
     ...prev,
     { name, chain, options, createdAt: Date.now() },

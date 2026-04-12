@@ -112,7 +112,11 @@ const defaultSmoothingOptions: SmoothingOptions = {
   loess: { bandwidth: 0.3 },
   gaussian: { windowSize: 7, sigma: 2 },
   kalman: { processNoise: 0.1, measurementNoise: 1.0, initialVariance: 1.0 },
-  "kalman-causal": { processNoise: 0.1, measurementNoise: 1.0, initialVariance: 1.0 },
+  "kalman-causal": {
+    processNoise: 0.1,
+    measurementNoise: 1.0,
+    initialVariance: 1.0,
+  },
   henderson: { windowSize: 13 },
   "robust-loess": { bandwidth: 0.3, iterations: 3 },
 };
@@ -124,7 +128,11 @@ export function getBuiltInPresets(): SmoothingPreset[] {
 export function getDefaultPreset(): SmoothingPreset {
   const presets = getBuiltInPresets();
   if (presets.length > 0) return presets[0] as SmoothingPreset;
-  return { name: "Default", chain: [FALLBACK_SMOOTHER], options: defaultSmoothingOptions };
+  return {
+    name: "Default",
+    chain: [FALLBACK_SMOOTHER],
+    options: defaultSmoothingOptions,
+  };
 }
 
 const defaultPreset = getDefaultPreset();
@@ -231,7 +239,11 @@ function getInitialSettings(): Settings {
           settingsShowTargetLine = parsed.showTargetLine;
         }
         // Load lastSettingsTab from localStorage
-        if (parsed.lastSettingsTab === "display" || parsed.lastSettingsTab === "smoothing" || parsed.lastSettingsTab === "presets") {
+        if (
+          parsed.lastSettingsTab === "display" ||
+          parsed.lastSettingsTab === "smoothing" ||
+          parsed.lastSettingsTab === "presets"
+        ) {
           lastSettingsTab = parsed.lastSettingsTab;
         }
       } catch {

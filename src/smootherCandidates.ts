@@ -11,10 +11,10 @@ export interface SmoothingCandidate {
 }
 
 const defaultOptions: SmoothingOptions = {
-  median: { windowSize: 7 },
-  ema: { alpha: 0.2 },
+  median: { windowSize: 5 },
+  ema: { alpha: 0.15 },
   wma: { windowSize: 7 },
-  holt: { alpha: 0.2, beta: 0.02 },
+  holt: { alpha: 0.21, beta: 0.015 },
   "trimmed-mean": { windowSize: 7, trimCount: 1 },
   "savitzky-golay": { windowSize: 7, order: 2 },
   loess: { bandwidth: 0.3 },
@@ -26,7 +26,7 @@ const defaultOptions: SmoothingOptions = {
     initialVariance: 1.0,
   },
   henderson: { windowSize: 13 },
-  "robust-loess": { bandwidth: 0.3, iterations: 3 },
+  "robust-loess": { bandwidth: 0.2, iterations: 3 },
 };
 
 const singleSmoothers: SmoothingCandidate[] = [
@@ -329,6 +329,142 @@ const curatedChains: SmoothingCandidate[] = [
   },
 ];
 
+// Top 10 curated presets based on evaluation results
+const topPresets: SmoothingCandidate[] = [
+  {
+    id: "ema-kalman-median-7",
+    label: "EMA → Kalman → Median w=7",
+    chain: ["ema", "kalman", "median"],
+    options: {
+      ...defaultOptions,
+      ema: { alpha: 0.15 },
+      kalman: {
+        processNoise: 0.1,
+        measurementNoise: 1.0,
+        initialVariance: 1.0,
+      },
+      median: { windowSize: 7 },
+    },
+  },
+  {
+    id: "ema-kalman-median-5",
+    label: "EMA → Kalman → Median w=5",
+    chain: ["ema", "kalman", "median"],
+    options: {
+      ...defaultOptions,
+      ema: { alpha: 0.15 },
+      kalman: {
+        processNoise: 0.1,
+        measurementNoise: 1.0,
+        initialVariance: 1.0,
+      },
+      median: { windowSize: 5 },
+    },
+  },
+  {
+    id: "sg-ema",
+    label: "Savitzky-Golay → EMA",
+    chain: ["savitzky-golay", "ema"],
+    options: {
+      ...defaultOptions,
+      "savitzky-golay": { windowSize: 7, order: 2 },
+      ema: { alpha: 0.15 },
+    },
+  },
+  {
+    id: "kalman-ema-16",
+    label: "Kalman → EMA α=0.16",
+    chain: ["kalman", "ema"],
+    options: {
+      ...defaultOptions,
+      kalman: {
+        processNoise: 0.1,
+        measurementNoise: 1.0,
+        initialVariance: 1.0,
+      },
+      ema: { alpha: 0.16 },
+    },
+  },
+  {
+    id: "kalman-ema-wma-9",
+    label: "Kalman → EMA → WMA w=9",
+    chain: ["kalman", "ema", "wma"],
+    options: {
+      ...defaultOptions,
+      kalman: {
+        processNoise: 0.1,
+        measurementNoise: 1.0,
+        initialVariance: 1.0,
+      },
+      ema: { alpha: 0.15 },
+      wma: { windowSize: 9 },
+    },
+  },
+  {
+    id: "holt-21",
+    label: "Holt α=0.21 β=0.015",
+    chain: ["holt"],
+    options: {
+      ...defaultOptions,
+      holt: { alpha: 0.21, beta: 0.015 },
+    },
+  },
+  {
+    id: "kalman-ema-wma-11",
+    label: "Kalman → EMA → WMA w=11",
+    chain: ["kalman", "ema", "wma"],
+    options: {
+      ...defaultOptions,
+      kalman: {
+        processNoise: 0.1,
+        measurementNoise: 1.0,
+        initialVariance: 1.0,
+      },
+      ema: { alpha: 0.15 },
+      wma: { windowSize: 11 },
+    },
+  },
+  {
+    id: "trimmed-kalman-causal",
+    label: "Trimmed Mean → Kalman Causal",
+    chain: ["trimmed-mean", "kalman-causal"],
+    options: {
+      ...defaultOptions,
+      "trimmed-mean": { windowSize: 7, trimCount: 1 },
+      "kalman-causal": {
+        processNoise: 0.1,
+        measurementNoise: 1.0,
+        initialVariance: 1.0,
+      },
+    },
+  },
+  {
+    id: "gaussian-ema-holt",
+    label: "Gaussian → EMA → Holt",
+    chain: ["gaussian", "ema", "holt"],
+    options: {
+      ...defaultOptions,
+      gaussian: { windowSize: 7, sigma: 2 },
+      ema: { alpha: 0.15 },
+      holt: { alpha: 0.21, beta: 0.015 },
+    },
+  },
+  {
+    id: "kalman-ema",
+    label: "Kalman → EMA",
+    chain: ["kalman", "ema"],
+    options: {
+      ...defaultOptions,
+      kalman: {
+        processNoise: 0.1,
+        measurementNoise: 1.0,
+        initialVariance: 1.0,
+      },
+      ema: { alpha: 0.15 },
+    },
+  },
+];
+
 function seededRandom(seed: number): () => number {
   return () => {
     seed = (seed * 9301 + 49297) % 233280;
@@ -349,7 +485,6 @@ function generateRandomChains(
     "holt",
     "trimmed-mean",
     "savitzky-golay",
-    "loess",
     "gaussian",
     "kalman",
     "kalman-causal",
@@ -374,11 +509,12 @@ function generateRandomChains(
   return result;
 }
 
-const randomChains = generateRandomChains(42, 8);
+const randomChains = generateRandomChains(42, 4);
 
 export const seedCandidates: SmoothingCandidate[] = [
   ...singleSmoothers,
   ...curatedChains,
+  ...topPresets,
   ...randomChains,
 ];
 

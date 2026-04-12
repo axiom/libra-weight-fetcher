@@ -17,7 +17,7 @@ export default function LongestGainStreakKPI(props: Props) {
   const streak = createMemo(() => computeLongestGainStreak(entries()));
 
   const label = () => props.label ?? "Longest Gain Streak";
-  
+
   const meta = createMemo(() => {
     const s = streak();
     return s ? formatDate(s.endDate) : undefined;
@@ -45,15 +45,15 @@ export default function LongestGainStreakKPI(props: Props) {
   };
 
   return (
-     <WeightKPIView
-       label={label()}
-       value={formattedValue()}
-       unit={unit()}
-       sentiment={sentiment()}
-       icon="😬"
-       badgeText={badgeText()}
-       meta={meta()}
-       class={props.class}
-     />
-   );
+    <WeightKPIView
+      label={label()}
+      value={formattedValue()}
+      unit={unit()}
+      sentiment={sentiment()}
+      icon="😬"
+      badgeText={badgeText()}
+      meta={meta()}
+      class={props.class}
+    />
+  );
 }

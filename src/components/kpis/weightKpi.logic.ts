@@ -25,7 +25,9 @@ function getWeightsInPeriod(
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
 
-  return entries.filter((entry) => new Date(entry.date).getTime() >= cutoff.getTime());
+  return entries.filter(
+    (entry) => new Date(entry.date).getTime() >= cutoff.getTime(),
+  );
 }
 
 function getCurrentStreak(entries: WeightEntry[], isLoss: boolean): number {
@@ -131,7 +133,8 @@ export function computeDailyWeighInStreak(entries: WeightEntry[]): number {
 
   const now = new Date();
   const lastWeighIn = new Date(sorted[sorted.length - 1].date);
-  const hoursSinceLastWeighIn = (now.getTime() - lastWeighIn.getTime()) / (1000 * 60 * 60);
+  const hoursSinceLastWeighIn =
+    (now.getTime() - lastWeighIn.getTime()) / (1000 * 60 * 60);
 
   if (hoursSinceLastWeighIn > 30) return 0;
 
@@ -220,11 +223,16 @@ export function computeDaysSinceLastWeighIn(
   return { days, sentiment };
 }
 
-function getLinearTrendSlope(entries: WeightEntry[], days: number): number | null {
+function getLinearTrendSlope(
+  entries: WeightEntry[],
+  days: number,
+): number | null {
   const period = getWeightsInPeriod(entries, days);
   if (period.length < 2) return null;
 
-  const sorted = [...period].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const sorted = [...period].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
   const first = sorted[0];
   const last = sorted[sorted.length - 1];
   const firstDate = new Date(first.date).getTime();

@@ -51,16 +51,16 @@ export default function KgsToTargetKPI(props: Props) {
 
   const meta = () => `Target: ${targetWeightConfig.targetWeight}kg`;
 
-   return (
-     <WeightKPIView
-       label="Damage to Fix"
-       value={formattedValue()}
-       unit={unit()}
-       sentiment={sentiment()}
-       icon={icon()}
-       badgeText={badgeText()}
-       meta={meta()}
-       class={props.class}
-     />
-   );
+  return (
+    <WeightKPIView
+      label="Damage to Fix"
+      value={formattedValue()}
+      unit={unit()}
+      sentiment={sentiment()}
+      icon={icon()}
+      badgeText={badgeText()}
+      meta={meta()}
+      class={props.class}
+    />
+  );
 }

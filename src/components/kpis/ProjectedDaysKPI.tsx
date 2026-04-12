@@ -54,21 +54,23 @@ export default function ProjectedDaysKPI(props: Props) {
   const icon = createMemo(() => "🔮");
 
   const meta = createMemo(() => {
-    const entries = (props.weights ?? weightData());
+    const entries = props.weights ?? weightData();
     const lastEntry = entries[entries.length - 1];
-    return lastEntry ? `Assuming you keep up from ${formatDate(lastEntry.date)}` : undefined;
+    return lastEntry
+      ? `Assuming you keep up from ${formatDate(lastEntry.date)}`
+      : undefined;
   });
 
-   return (
-     <WeightKPIView
-       label="Days to Glory"
-       value={formattedValue()}
-       unit={unit()}
-       sentiment={sentiment()}
-       icon={icon()}
-       badgeText={badgeText()}
-       meta={meta()}
-       class={props.class}
-     />
-   );
+  return (
+    <WeightKPIView
+      label="Days to Glory"
+      value={formattedValue()}
+      unit={unit()}
+      sentiment={sentiment()}
+      icon={icon()}
+      badgeText={badgeText()}
+      meta={meta()}
+      class={props.class}
+    />
+  );
 }

@@ -22,7 +22,8 @@ export default function Navigation() {
 
   const cycleTheme = () => {
     const current = theme();
-    const next: Theme = current === "auto" ? "light" : current === "light" ? "dark" : "auto";
+    const next: Theme =
+      current === "auto" ? "light" : current === "light" ? "dark" : "auto";
     setTheme(next);
   };
 
@@ -36,7 +37,8 @@ export default function Navigation() {
                 href={item.href}
                 class="nav-link text-sm font-medium"
                 classList={{
-                  "bg-[var(--color-surface-elevated)] text-[var(--color-text)]": isActive(item.href),
+                  "bg-[var(--color-surface-elevated)] text-[var(--color-text)]":
+                    isActive(item.href),
                 }}
               >
                 <span class="text-base">{item.icon}</span>
@@ -58,14 +60,20 @@ export default function Navigation() {
                   <Show
                     when={resolvedTheme() === "dark"}
                     fallback={
-                      <span class="text-base" title="Light mode">☀</span>
+                      <span class="text-base" title="Light mode">
+                        ☀
+                      </span>
                     }
                   >
-                    <span class="text-base" title="Dark mode">☾</span>
+                    <span class="text-base" title="Dark mode">
+                      ☾
+                    </span>
                   </Show>
                 }
               >
-                <span class="text-base" title="Auto mode">🖥</span>
+                <span class="text-base" title="Auto mode">
+                  🖥
+                </span>
               </Show>
             </button>
             <SettingsModal />

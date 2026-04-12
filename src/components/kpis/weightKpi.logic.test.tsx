@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { WeightEntry } from "../../shared";
-import { computeDaysSinceLastWeighIn, computeDailyWeighInStreak } from "./weightKpi.logic";
+import {
+  computeDaysSinceLastWeighIn,
+  computeDailyWeighInStreak,
+} from "./weightKpi.logic";
 import {
   computeDaysToTargetDate,
   computeKgsToTarget,
@@ -173,7 +176,13 @@ describe("linearTrendProjection", () => {
   it("returns null when slope is positive (gaining weight)", () => {
     const baseDate = new Date();
     const weights: WeightEntry[] = [
-      { date: new Date(baseDate.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString(), weight: 95, trend: 95 },
+      {
+        date: new Date(
+          baseDate.getTime() - 14 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+        weight: 95,
+        trend: 95,
+      },
       { date: baseDate.toISOString(), weight: 100, trend: 100 },
     ];
     const result = linearTrendProjection(weights, 80);
@@ -188,7 +197,7 @@ describe("linearTrendProjection", () => {
     const result = linearTrendProjection(weights, 80);
     expect(result).not.toBeNull();
     expect(result?.days).toBeGreaterThan(0);
-      expect(result?.algorithm).toBe("If You Keep Going");
+    expect(result?.algorithm).toBe("If You Keep Going");
   });
 });
 

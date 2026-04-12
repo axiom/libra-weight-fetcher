@@ -21,9 +21,12 @@ function sentimentTextClass(sentiment: KPISentiment | undefined): string {
 }
 
 function sentimentBadgeClass(sentiment: KPISentiment | undefined): string {
-  if (sentiment === "bad") return "bg-[var(--color-danger-subtle)] text-[var(--color-danger)]";
-  if (sentiment === "good") return "bg-[var(--color-success-subtle)] text-[var(--color-success)]";
-  if (sentiment === "fair") return "bg-[var(--color-warning-subtle)] text-[var(--color-warning)]";
+  if (sentiment === "bad")
+    return "bg-[var(--color-danger-subtle)] text-[var(--color-danger)]";
+  if (sentiment === "good")
+    return "bg-[var(--color-success-subtle)] text-[var(--color-success)]";
+  if (sentiment === "fair")
+    return "bg-[var(--color-warning-subtle)] text-[var(--color-warning)]";
   return "bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)]";
 }
 
@@ -37,7 +40,9 @@ function SentimentValue(props: ParentProps & { sentiment?: KPISentiment }) {
 
 function Badge(props: ParentProps & { sentiment?: KPISentiment }) {
   return (
-    <span class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${sentimentBadgeClass(props.sentiment)}`}>
+    <span
+      class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${sentimentBadgeClass(props.sentiment)}`}
+    >
       {props.children}
     </span>
   );
@@ -51,7 +56,8 @@ export default function WeightKPIView(props: Props) {
       <div
         class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
         style={{
-          background: "radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 15%, transparent), transparent 50%)",
+          background:
+            "radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent) 15%, transparent), transparent 50%)",
         }}
       />
 
@@ -67,7 +73,9 @@ export default function WeightKPIView(props: Props) {
 
         <div class="flex items-baseline gap-1">
           <span class="text-4xl font-semibold font-mono-nums tracking-tight">
-            <SentimentValue sentiment={props.sentiment}>{props.value}</SentimentValue>
+            <SentimentValue sentiment={props.sentiment}>
+              {props.value}
+            </SentimentValue>
           </span>
           <Show when={props.unit}>
             <span class="text-lg text-[var(--color-text-muted)]">

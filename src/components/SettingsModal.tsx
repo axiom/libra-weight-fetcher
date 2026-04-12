@@ -321,7 +321,11 @@ export default function SettingsModal() {
                         : "bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
                     }`}
                   >
-                    {option === "auto" ? "Auto" : option === "light" ? "☀ Light" : "☾ Dark"}
+                    {option === "auto"
+                      ? "Auto"
+                      : option === "light"
+                        ? "☀ Light"
+                        : "☾ Dark"}
                   </button>
                 )}
               </For>
@@ -398,11 +402,7 @@ export default function SettingsModal() {
                 </For>
               </select>
             </div>
-            <button
-              type="button"
-              onClick={addSmoother}
-              class="btn-primary"
-            >
+            <button type="button" onClick={addSmoother} class="btn-primary">
               + Add
             </button>
           </div>
@@ -584,24 +584,14 @@ export default function SettingsModal() {
               </For>
             </nav>
 
-            <div class="flex-1 p-6 overflow-y-auto">
-              {renderTabContent()}
-            </div>
+            <div class="flex-1 p-6 overflow-y-auto">{renderTabContent()}</div>
           </div>
 
           <div class="flex justify-end gap-2 px-6 py-4 border-t border-[var(--color-border)]">
-            <button
-              type="button"
-              onClick={close}
-              class="btn-ghost"
-            >
+            <button type="button" onClick={close} class="btn-ghost">
               Cancel
             </button>
-            <button
-              type="button"
-              onClick={save}
-              class="btn-primary"
-            >
+            <button type="button" onClick={save} class="btn-primary">
               Save
             </button>
           </div>
