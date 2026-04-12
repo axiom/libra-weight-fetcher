@@ -17,7 +17,7 @@ describe("CurrentWeightKPI", () => {
       <CurrentWeightKPI weights={mockWeights} />
     ));
 
-    expect(getByText("Current Weight")).toBeDefined();
+    expect(getByText("How Heavy Right Now")).toBeDefined();
   });
 
   it("renders custom label correctly", () => {

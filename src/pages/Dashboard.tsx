@@ -18,6 +18,7 @@ import {
   WeightRangeKPI,
   YearToDateChangeKPI,
 } from "../components/kpis/presets";
+import { targetWeightConfig } from "../config";
 
 export default function Dashboard() {
   return (
@@ -38,8 +39,8 @@ export default function Dashboard() {
         </div>
 
         <DaysSinceWeighInKPI />
-        <CurrentWeightKPI />
-        <AverageWeightKPI days={30} label="30-Day Avg" />
+        <CurrentWeightKPI targetWeight={targetWeightConfig.targetWeight} />
+        <AverageWeightKPI days={30} label="30-Day Avg" targetWeight={targetWeightConfig.targetWeight} />
 
         <div class="col-span-full">
           <SectionHeading title="Trends" />

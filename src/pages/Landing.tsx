@@ -5,6 +5,7 @@ import {
   ProjectedDaysKPI,
   WeightChangeKPI,
 } from "../components/kpis/presets";
+import { targetWeightConfig } from "../config";
 
 export default function Landing() {
   return (
@@ -23,7 +24,7 @@ export default function Landing() {
         </div>
 
         <div class="grid grid-cols-2 gap-4 py-6">
-          <CurrentWeightKPI />
+          <CurrentWeightKPI targetWeight={targetWeightConfig.targetWeight} />
           <WeightChangeKPI days={30} label="Last 30 Days" />
           <KgsToTargetKPI />
           <ProjectedDaysKPI />
