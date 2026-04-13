@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { WeightEntry } from "../../shared";
 import {
+  computeMostRecentGainStreak,
+  computeMostRecentLossStreak,
   computeDaysSinceLastWeighIn,
   computeDailyWeighInStreak,
 } from "./weightKpi.logic";
@@ -109,6 +111,46 @@ describe("computeDaysToTargetDate", () => {
   it("returns positive number of days for future target date", () => {
     const result = computeDaysToTargetDate();
     expect(result).toBeGreaterThan(0);
+  });
+});
+
+describe("computeMostRecentStreak", () => {
+  it("returns previous gain streak when latest trend is loss", () => {
+    const weights: WeightEntry[] = [
+      { date: "2026-01-01", weight: 82, trend: 81 },
+      { date: "2026-01-02", weight: 83, trend: 82 },
+      { date: "2026-01-03", weight: 81, trend: 82 },
+    ];
+
+    const result = computeMostRecentGainStreak(weights);
+    expect(result).not.toBeNull();
+    expect(result?.days).toBe(2);
+    expect(result?.isActive).toBe(false);
+  });
+
+  it("returns previous loss streak when latest trend is gain", () => {
+    const weights: WeightEntry[] = [
+      { date: "2026-01-01", weight: 84, trend: 85 },
+      { date: "2026-01-02", weight: 83, trend: 84 },
+      { date: "2026-01-03", weight: 85, trend: 84 },
+    ];
+
+    const result = computeMostRecentLossStreak(weights);
+    expect(result).not.toBeNull();
+    expect(result?.days).toBe(2);
+    expect(result?.isActive).toBe(false);
+  });
+
+  it("never returns negative days", () => {
+    const weights: WeightEntry[] = [
+      { date: "2026-01-03", weight: 84, trend: 83 },
+      { date: "2026-01-01", weight: 82, trend: 81 },
+      { date: "2026-01-02", weight: 83, trend: 82 },
+    ];
+
+    const result = computeMostRecentGainStreak(weights);
+    expect(result).not.toBeNull();
+    expect(result?.days).toBeGreaterThanOrEqual(0);
   });
 });
 

@@ -41,9 +41,13 @@ function getLastNWeights(entries: WeightEntry[], count: number): WeightEntry[] {
 function getCurrentStreak(entries: WeightEntry[], isLoss: boolean): number {
   if (entries.length === 0) return 0;
 
+  const sorted = [...entries].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
+
   let startDate: Date | null = null;
-  for (let index = entries.length - 1; index >= 0; index -= 1) {
-    const entry = entries[index];
+  for (let index = sorted.length - 1; index >= 0; index -= 1) {
+    const entry = sorted[index];
     const isBelowTrend = entry.weight < entry.trend;
     if (isBelowTrend === isLoss) {
       if (!startDate) startDate = new Date(entry.date);
@@ -54,8 +58,49 @@ function getCurrentStreak(entries: WeightEntry[], isLoss: boolean): number {
 
   if (!startDate) return 0;
 
-  const latestDate = new Date(entries[entries.length - 1].date);
-  return Math.round((latestDate.getTime() - startDate.getTime()) / DAY_MS) + 1;
+  const latestDate = new Date(sorted[sorted.length - 1].date);
+  return Math.max(
+    0,
+    Math.round((latestDate.getTime() - startDate.getTime()) / DAY_MS) + 1,
+  );
+}
+
+function getMostRecentStreak(
+  entries: WeightEntry[],
+  isLoss: boolean,
+): { days: number; isActive: boolean } | null {
+  if (entries.length === 0) return null;
+
+  const sorted = [...entries].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
+
+  const matchesStreak = (entry: WeightEntry): boolean => {
+    const isBelowTrend = entry.weight < entry.trend;
+    return isBelowTrend === isLoss;
+  };
+
+  let endIndex = sorted.length - 1;
+  while (endIndex >= 0 && !matchesStreak(sorted[endIndex])) {
+    endIndex -= 1;
+  }
+
+  if (endIndex < 0) return null;
+
+  const isActive = endIndex === sorted.length - 1;
+  let startIndex = endIndex;
+
+  while (startIndex > 0 && matchesStreak(sorted[startIndex - 1])) {
+    startIndex -= 1;
+  }
+
+  const streakStartDate = new Date(sorted[startIndex].date);
+  const streakEndDate = new Date(sorted[endIndex].date);
+  const days =
+    Math.round((streakEndDate.getTime() - streakStartDate.getTime()) / DAY_MS) +
+    1;
+
+  return { days: Math.max(0, days), isActive };
 }
 
 function getLongestStreak(
@@ -118,6 +163,23 @@ export function computeLossStreak(entries: WeightEntry[]): number {
 
 export function computeGainStreak(entries: WeightEntry[]): number {
   return getCurrentStreak(entries, false);
+}
+
+export interface RecentStreakResult {
+  days: number;
+  isActive: boolean;
+}
+
+export function computeMostRecentLossStreak(
+  entries: WeightEntry[],
+): RecentStreakResult | null {
+  return getMostRecentStreak(entries, true);
+}
+
+export function computeMostRecentGainStreak(
+  entries: WeightEntry[],
+): RecentStreakResult | null {
+  return getMostRecentStreak(entries, false);
 }
 
 export function computeLongestLossStreak(

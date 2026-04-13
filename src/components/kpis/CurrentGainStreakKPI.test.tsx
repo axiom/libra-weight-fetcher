@@ -1,12 +1,12 @@
 import { render } from "@solidjs/testing-library";
 import { describe, expect, it } from "vitest";
 import type { WeightEntry } from "../../shared";
-import CurrentGainStreakKPI from "./CurrentGainStreakKPI";
+import LastGainStreakKPI from "./CurrentGainStreakKPI";
 
-describe("CurrentGainStreakKPI", () => {
+describe("LastGainStreakKPI", () => {
   it("renders default label correctly", () => {
     const { getByText } = render(() => (
-      <CurrentGainStreakKPI
+      <LastGainStreakKPI
         weights={[
           { date: "2025-01-01", weight: 80, trend: 80 },
           { date: "2025-06-01", weight: 82, trend: 81 },
@@ -17,12 +17,12 @@ describe("CurrentGainStreakKPI", () => {
       />
     ));
 
-    expect(getByText(/Current Gain Streak/)).toBeDefined();
+    expect(getByText(/Latest Gain Streak/)).toBeDefined();
   });
 
   it("renders custom label correctly", () => {
     const { getByText } = render(() => (
-      <CurrentGainStreakKPI
+      <LastGainStreakKPI
         weights={[
           { date: "2025-01-01", weight: 80, trend: 80 },
           { date: "2025-06-01", weight: 82, trend: 81 },
@@ -39,7 +39,7 @@ describe("CurrentGainStreakKPI", () => {
 
   it("renders streak days value", () => {
     const { getByText } = render(() => (
-      <CurrentGainStreakKPI
+      <LastGainStreakKPI
         weights={[
           { date: "2025-01-01", weight: 80, trend: 80 },
           { date: "2025-06-01", weight: 82, trend: 81 },
@@ -50,13 +50,13 @@ describe("CurrentGainStreakKPI", () => {
       />
     ));
 
-    expect(getByText("1")).toBeDefined();
+    expect(getByText("425")).toBeDefined();
     expect(getByText("days")).toBeDefined();
   });
 
-  it("renders badge when streak exists", () => {
+  it("renders Active badge when streak is active", () => {
     const { getByText } = render(() => (
-      <CurrentGainStreakKPI
+      <LastGainStreakKPI
         weights={[
           { date: "2025-01-01", weight: 80, trend: 80 },
           { date: "2025-06-01", weight: 82, trend: 81 },
@@ -72,7 +72,7 @@ describe("CurrentGainStreakKPI", () => {
 
   it("renders chart icon when streak exists", () => {
     const { getByText } = render(() => (
-      <CurrentGainStreakKPI
+      <LastGainStreakKPI
         weights={[
           { date: "2025-01-01", weight: 80, trend: 80 },
           { date: "2025-06-01", weight: 82, trend: 81 },
@@ -88,7 +88,7 @@ describe("CurrentGainStreakKPI", () => {
 
   it("renders bad sentiment when streak exists", () => {
     const { container } = render(() => (
-      <CurrentGainStreakKPI
+      <LastGainStreakKPI
         weights={[
           { date: "2025-01-01", weight: 80, trend: 80 },
           { date: "2025-06-01", weight: 82, trend: 81 },

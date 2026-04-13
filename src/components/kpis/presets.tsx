@@ -1,6 +1,6 @@
 export { default as AverageWeightKPI } from "./AverageWeightKPI";
-export { default as CurrentGainStreakKPI } from "./CurrentGainStreakKPI";
-export { default as CurrentLossStreakKPI } from "./CurrentLossStreakKPI";
+export { default as LastGainStreakKPI } from "./CurrentGainStreakKPI";
+export { default as LastLossStreakKPI } from "./CurrentLossStreakKPI";
 export { default as CurrentWeightKPI } from "./CurrentWeightKPI";
 export { default as DailyWeighInStreakKPI } from "./DailyWeighInStreakKPI";
 export { default as DaysSinceWeighInKPI } from "./DaysSinceWeighInKPI";

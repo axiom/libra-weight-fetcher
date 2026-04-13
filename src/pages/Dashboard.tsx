@@ -1,8 +1,8 @@
 import Chart from "../components/Chart";
 import {
   AverageWeightKPI,
-  CurrentGainStreakKPI,
-  CurrentLossStreakKPI,
+  LastGainStreakKPI,
+  LastLossStreakKPI,
   CurrentWeightKPI,
   DailyWeighInStreakKPI,
   DaysSinceWeighInKPI,
@@ -94,8 +94,8 @@ export default function Dashboard() {
           <SectionHeading title="Streaks" />
         </div>
 
-        <CurrentLossStreakKPI />
-        <CurrentGainStreakKPI />
+        <LastLossStreakKPI />
+        <LastGainStreakKPI />
         <DailyWeighInStreakKPI />
 
         <div class="col-span-full">

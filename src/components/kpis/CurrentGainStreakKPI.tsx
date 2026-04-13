@@ -2,7 +2,7 @@ import { createMemo } from "solid-js";
 import type { WeightEntry } from "../../shared";
 import { useWeightData } from "../../stores/weightData";
 import WeightKPIView from "./WeightKPIView";
-import { computeGainStreak } from "./weightKpi.logic";
+import { computeMostRecentGainStreak } from "./weightKpi.logic";
 
 interface Props {
   weights?: WeightEntry[];
@@ -10,17 +10,20 @@ interface Props {
   class?: string;
 }
 
-export default function CurrentGainStreakKPI(props: Props) {
+export default function LastGainStreakKPI(props: Props) {
   const weightData = useWeightData();
   const entries = () => props.weights ?? weightData();
 
-  const days = createMemo(() => computeGainStreak(entries()));
+  const streak = createMemo(() => computeMostRecentGainStreak(entries()));
 
-  const badgeText = () => (days() > 0 ? "Active" : "Idle");
+  const days = () => streak()?.days ?? 0;
+  const isActive = () => streak()?.isActive ?? false;
+
+  const badgeText = () => (isActive() ? "Active" : "Ended");
 
   return (
     <WeightKPIView
-      label={props.label ?? "Current Gain Streak"}
+      label={props.label ?? "Latest Gain Streak"}
       value={`${days()}`}
       unit="days"
       sentiment={days() > 0 ? "bad" : "neutral"}
