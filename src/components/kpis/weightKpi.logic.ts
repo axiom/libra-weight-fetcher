@@ -30,6 +30,14 @@ function getWeightsInPeriod(
   );
 }
 
+function getLastNWeights(entries: WeightEntry[], count: number): WeightEntry[] {
+  if (count <= 0 || entries.length === 0) return [];
+  const sorted = [...entries].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+  return sorted.slice(0, count);
+}
+
 function getCurrentStreak(entries: WeightEntry[], isLoss: boolean): number {
   if (entries.length === 0) return 0;
 
@@ -225,9 +233,9 @@ export function computeDaysSinceLastWeighIn(
 
 function getLinearTrendSlope(
   entries: WeightEntry[],
-  days: number,
+  count: number,
 ): number | null {
-  const period = getWeightsInPeriod(entries, days);
+  const period = getLastNWeights(entries, count);
   if (period.length < 2) return null;
 
   const sorted = [...period].sort(
