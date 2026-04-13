@@ -5,12 +5,14 @@ import { updateTrend } from "../shared";
 import { useTheme } from "../context/ThemeContext";
 import { useWeightData } from "../stores/weightData";
 
+const MAX_VISUAL_DIFF_KG = 2.0;
+
 const computeMaxDiff = (w: WeightEntry[]): number => {
   let maxDiff = 0;
   for (const entry of w) {
     maxDiff = Math.max(maxDiff, Math.abs(entry.weight - entry.trend));
   }
-  return maxDiff;
+  return Math.min(maxDiff, MAX_VISUAL_DIFF_KG);
 };
 
 const extractRecentYears = (
@@ -67,8 +69,24 @@ export default function Calendar() {
         realtime: true,
         inRange: {
           color: darkMode
-            ? ["#3ad603", "#a7d852", "#2d2d2d", "#d87a52", "#f42f2f"]
-            : ["#3ad603", "#a7d852", "#ffffff", "#d87652", "#f42f2f"],
+            ? [
+                "#1E8E78",
+                "#66BFAE",
+                "#9BD8CD",
+                "#35506A",
+                "#E2B48E",
+                "#C97B4B",
+                "#8D4A23",
+              ]
+            : [
+                "#0B775E",
+                "#6FB7A8",
+                "#CBE7E1",
+                "#DCEBFF",
+                "#EFC9A8",
+                "#D98C5F",
+                "#A65628",
+              ],
         },
       },
       tooltip: {
