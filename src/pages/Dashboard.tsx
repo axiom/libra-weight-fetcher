@@ -19,8 +19,14 @@ import {
   YearToDateChangeKPI,
 } from "../components/kpis/presets";
 import { targetWeightConfig } from "../config";
+import { computeRequiredChangePerWeek } from "../components/kpis/weightKpi.logic";
+import { useWeightData } from "../stores/weightData";
+import { createMemo } from "solid-js";
 
 export default function Dashboard() {
+  const weightData = useWeightData();
+  const requiredRate = createMemo(() => computeRequiredChangePerWeek(weightData()));
+
   return (
     <div class="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6">
       <h1 class="text-2xl font-semibold text-[var(--color-text)] mb-6">
@@ -50,9 +56,9 @@ export default function Dashboard() {
           <SectionHeading title="Trends" />
         </div>
 
-        <WeightChangeKPI days={7} label="Last 7 Days" />
-        <WeightChangeKPI days={30} label="Last 30 Days" />
-        <WeightChangeKPI days={90} label="Last 90 Days" />
+        <WeightChangeKPI days={7} label="Last 7 Days" requiredRate={requiredRate() ?? 0} />
+        <WeightChangeKPI days={30} label="Last 30 Days" requiredRate={requiredRate() ?? 0} />
+        <WeightChangeKPI days={90} label="Last 90 Days" requiredRate={requiredRate() ?? 0} />
 
         <div class="col-span-full">
           <SectionHeading title="Streaks" />
@@ -75,15 +81,15 @@ export default function Dashboard() {
           <SectionHeading title="Monthly" />
         </div>
 
-        <WeightChangeKPI days={30} label="This Month" />
+        <WeightChangeKPI days={30} label="This Month" requiredRate={requiredRate() ?? 0} />
 
         <div class="col-span-full">
           <SectionHeading title="Long Term" />
         </div>
 
-        <WeightChangeKPI days={180} label="Last 180 Days" />
-        <WeightChangeKPI days={365} label="Last 365 Days" />
-        <YearToDateChangeKPI />
+        <WeightChangeKPI days={180} label="Last 180 Days" requiredRate={requiredRate() ?? 0} />
+        <WeightChangeKPI days={365} label="Last 365 Days" requiredRate={requiredRate() ?? 0} />
+        <YearToDateChangeKPI requiredRate={requiredRate() ?? 0} />
 
         <div class="col-span-full">
           <SectionHeading title="Ranges" />

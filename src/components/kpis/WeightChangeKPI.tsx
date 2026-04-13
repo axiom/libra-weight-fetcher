@@ -8,6 +8,7 @@ interface Props {
   weights?: WeightEntry[];
   days: number;
   label: string;
+  requiredRate: number;
   class?: string;
 }
 
@@ -16,6 +17,12 @@ export default function WeightChangeKPI(props: Props) {
   const entries = () => props.weights ?? weightData();
 
   const value = createMemo(() => computeWeightChange(entries(), props.days));
+
+  const actualRatePerWeek = createMemo(() => {
+    const v = value();
+    if (v === null) return null;
+    return v / (props.days / 7);
+  });
 
   const formattedValue = createMemo(() => {
     const v = value();
@@ -30,20 +37,22 @@ export default function WeightChangeKPI(props: Props) {
     return "kg";
   });
 
-  const sentiment = createMemo((): "good" | "bad" | "neutral" => {
-    const v = value();
-    if (v === null) return "neutral";
-    if (v < 0) return "good";
-    if (v > 0) return "bad";
-    return "neutral";
+  const sentiment = createMemo((): "good" | "bad" | "fair" | "neutral" => {
+    const v = actualRatePerWeek();
+    const required = props.requiredRate;
+    if (v === null || required === 0) return "neutral";
+    if (Math.sign(v) !== Math.sign(required)) return "bad";
+    if (Math.abs(v) >= Math.abs(required)) return "good";
+    return "fair";
   });
 
   const badgeText = createMemo(() => {
-    const v = value();
+    const v = actualRatePerWeek();
+    const required = props.requiredRate;
     if (v === null) return "No data";
-    if (v < 0) return "Suffering";
-    if (v > 0) return "Yolo Mode";
-    return "Treading Water";
+    if (Math.sign(v) !== Math.sign(required)) return "Off Track";
+    if (Math.abs(v) >= Math.abs(required)) return "On Track";
+    return "Behind";
   });
 
   const icon = createMemo(() => {
@@ -54,6 +63,15 @@ export default function WeightChangeKPI(props: Props) {
     return "➖";
   });
 
+  const meta = createMemo(() => {
+    const v = actualRatePerWeek();
+    const required = props.requiredRate;
+    if (v === null) return "No data";
+    if (Math.sign(v) !== Math.sign(required)) return "Really? Wrong way!";
+    const percentage = ((v / required) * 100).toFixed(0);
+    return `${v.toFixed(2)} kg/week · ${percentage}% of required rate`;
+  });
+
   return (
     <WeightKPIView
       label={props.label}
@@ -62,7 +80,7 @@ export default function WeightChangeKPI(props: Props) {
       sentiment={sentiment()}
       icon={icon()}
       badgeText={badgeText()}
-      meta={`${props.days}-day window`}
+      meta={meta()}
       class={props.class}
     />
   );

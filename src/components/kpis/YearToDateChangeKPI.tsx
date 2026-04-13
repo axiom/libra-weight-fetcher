@@ -4,6 +4,7 @@ import WeightChangeKPI from "./WeightChangeKPI";
 interface Props {
   weights?: WeightEntry[];
   label?: string;
+  requiredRate: number;
   class?: string;
 }
 
@@ -17,6 +18,7 @@ export default function YearToDateChangeKPI(props: Props) {
       days={days}
       label={props.label ?? "Year to Date"}
       weights={props.weights}
+      requiredRate={props.requiredRate}
       class={props.class}
     />
   );

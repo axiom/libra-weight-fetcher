@@ -6,8 +6,14 @@ import {
   WeightChangeKPI,
 } from "../components/kpis/presets";
 import { targetWeightConfig } from "../config";
+import { computeRequiredChangePerWeek } from "../components/kpis/weightKpi.logic";
+import { useWeightData } from "../stores/weightData";
+import { createMemo } from "solid-js";
 
 export default function Landing() {
+  const weightData = useWeightData();
+  const requiredRate = createMemo(() => computeRequiredChangePerWeek(weightData()));
+
   return (
     <div class="min-h-[calc(100vh-5.5rem)] flex flex-col items-center justify-center px-4 py-12">
       <div class="max-w-2xl w-full text-center space-y-8">
@@ -25,7 +31,7 @@ export default function Landing() {
 
         <div class="grid grid-cols-2 gap-4 py-6">
           <CurrentWeightKPI targetWeight={targetWeightConfig.targetWeight} />
-          <WeightChangeKPI days={30} label="Last 30 Days" />
+          <WeightChangeKPI days={30} label="Last 30 Days" requiredRate={requiredRate() ?? 0} />
           <KgsToTargetKPI />
           <ProjectedDaysKPI />
         </div>

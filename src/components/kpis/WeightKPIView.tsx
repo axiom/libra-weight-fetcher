@@ -9,7 +9,7 @@ interface Props {
   icon: string;
   sentiment?: KPISentiment;
   badgeText?: string;
-  meta?: string | null;
+  meta?: string | number | null;
   class?: string;
 }
 
