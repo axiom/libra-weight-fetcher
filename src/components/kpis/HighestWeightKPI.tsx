@@ -22,7 +22,7 @@ export default function HighestWeightKPI(props: Props) {
 
   const meta = () => {
     const r = result();
-    return r ? formatDate(r.date) : undefined;
+    return r ? <strong>{formatDate(r.date)}</strong> : undefined;
   };
 
   const formattedValue = () => {

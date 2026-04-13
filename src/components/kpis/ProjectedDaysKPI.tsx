@@ -1,5 +1,5 @@
 import { createMemo } from "solid-js";
-import { formatDate, type WeightEntry } from "../../shared";
+import { type WeightEntry } from "../../shared";
 import { useWeightData } from "../../stores/weightData";
 import WeightKPIView from "./WeightKPIView";
 import {
@@ -56,9 +56,7 @@ export default function ProjectedDaysKPI(props: Props) {
   const meta = createMemo(() => {
     const entries = props.weights ?? weightData();
     const lastEntry = entries[entries.length - 1];
-    return lastEntry
-      ? `Assuming you keep up from ${formatDate(lastEntry.date)}`
-      : undefined;
+    return lastEntry ? "Assuming you keep same change rate" : undefined;
   });
 
   return (

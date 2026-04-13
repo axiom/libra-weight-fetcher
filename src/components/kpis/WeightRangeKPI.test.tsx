@@ -57,7 +57,7 @@ describe("WeightRangeKPI", () => {
   });
 
   it("renders meta with day window", () => {
-    const { getByText } = render(() => (
+    const { container } = render(() => (
       <WeightRangeKPI
         days={365}
         label="Range"
@@ -68,7 +68,8 @@ describe("WeightRangeKPI", () => {
       />
     ));
 
-    expect(getByText("365-day window")).toBeDefined();
+    expect(container.textContent).toContain("365");
+    expect(container.textContent).toContain("day window");
   });
 
   it("renders arrows icon", () => {

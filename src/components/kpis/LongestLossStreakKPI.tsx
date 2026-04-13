@@ -20,7 +20,11 @@ export default function LongestLossStreakKPI(props: Props) {
 
   const meta = createMemo(() => {
     const s = streak();
-    return s ? formatDate(s.endDate) : undefined;
+    return s ? (
+      <>
+        Ended: <strong>{formatDate(s.endDate)}</strong>
+      </>
+    ) : undefined;
   });
 
   const formattedValue = () => {

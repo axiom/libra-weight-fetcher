@@ -47,9 +47,11 @@ export default function CurrentWeightKPI(props: Props) {
   const meta = createMemo(() => {
     const entries = props.weights ?? weightData();
     const lastEntry = entries[entries.length - 1];
-    return lastEntry
-      ? `Last weighed in: ${formatDate(lastEntry.date)}`
-      : undefined;
+    return lastEntry ? (
+      <>
+        Last weighed in: <strong>{formatDate(lastEntry.date)}</strong>
+      </>
+    ) : undefined;
   });
 
   return (

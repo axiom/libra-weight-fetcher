@@ -49,7 +49,11 @@ export default function KgsToTargetKPI(props: Props) {
     return "📏";
   });
 
-  const meta = () => `Target: ${targetWeightConfig.targetWeight}kg`;
+  const meta = () => (
+    <>
+      Target: <strong>{targetWeightConfig.targetWeight}kg</strong>
+    </>
+  );
 
   return (
     <WeightKPIView

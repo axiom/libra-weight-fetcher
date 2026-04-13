@@ -1,4 +1,4 @@
-import { Show, type ParentProps } from "solid-js";
+import { Show, type JSX, type ParentProps } from "solid-js";
 
 export type KPISentiment = "good" | "bad" | "fair" | "neutral";
 
@@ -9,7 +9,7 @@ interface Props {
   icon: string;
   sentiment?: KPISentiment;
   badgeText?: string;
-  meta?: string | number | null;
+  meta?: JSX.Element | string | number | null;
   class?: string;
 }
 
