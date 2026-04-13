@@ -29,22 +29,21 @@ export default function RequiredChangePerWeekKPI(props: Props) {
     return "kg/week";
   });
 
-  const sentiment = createMemo((): "good" | "bad" | "neutral" => {
+  const sentiment = createMemo((): "good" | "bad" | "fair" | "neutral" => {
     const v = value();
     if (v === null) return "neutral";
     const absV = Math.abs(v);
     if (absV <= 0.5) return "good";
-    if (absV <= 1.0) return "neutral";
+    if (absV <= 1.0) return "fair";
     return "bad";
   });
 
   const badgeText = createMemo(() => {
-    const v = value();
-    if (v === null) return "No data";
-    const absV = Math.abs(v);
-    if (absV <= 0.5) return "Doable";
-    if (absV <= 1.0) return "Challenging";
-    return "Hard";
+    const s = sentiment();
+    if (s === "good") return "Doable";
+    if (s === "fair") return "Challenging";
+    if (s === "bad") return "Hard";
+    return "No data";
   });
 
   const icon = createMemo(() => "⏱️");
