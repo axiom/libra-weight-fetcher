@@ -72,16 +72,14 @@ export default function WeightKPIView(props: Props) {
         </div>
 
         <div class="flex items-baseline gap-1">
-          <span class="text-4xl font-semibold font-mono-nums tracking-tight">
+          <span class="text-5xl font-semibold font-mono-nums tracking-tight text-end grow-5">
             <SentimentValue sentiment={props.sentiment}>
               {props.value}
             </SentimentValue>
           </span>
-          <Show when={props.unit}>
-            <span class="text-lg text-[var(--color-text-muted)]">
-              {props.unit}
-            </span>
-          </Show>
+          <span class="text-lg text-[var(--color-text-muted)] grow-4">
+            <Show when={props.unit}>{props.unit}</Show>
+          </span>
         </div>
 
         <Show when={props.meta}>
@@ -91,7 +89,7 @@ export default function WeightKPIView(props: Props) {
         </Show>
       </div>
 
-      <div class="absolute -bottom-2 -right-2 text-8xl opacity-[0.06] select-none pointer-events-none leading-none font-mono-nums">
+      <div class="absolute rotate-348 -bottom-3 -right-3 text-9xl opacity-[0.06] select-none pointer-events-none leading-none font-mono-nums">
         {props.icon}
       </div>
     </div>

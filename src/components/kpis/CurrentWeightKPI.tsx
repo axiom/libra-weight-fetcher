@@ -49,7 +49,7 @@ export default function CurrentWeightKPI(props: Props) {
     const lastEntry = entries[entries.length - 1];
     return lastEntry ? (
       <>
-        Last weighed in: <strong>{formatDate(lastEntry.date)}</strong>
+        Last weighed in <strong>{formatDate(lastEntry.date)}</strong>
       </>
     ) : undefined;
   });

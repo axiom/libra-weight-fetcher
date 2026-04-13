@@ -22,7 +22,7 @@ export default function LongestGainStreakKPI(props: Props) {
     const s = streak();
     return s ? (
       <>
-        Ended: <strong>{formatDate(s.endDate)}</strong>
+        Ended <strong>{formatDate(s.endDate)}</strong>
       </>
     ) : undefined;
   });

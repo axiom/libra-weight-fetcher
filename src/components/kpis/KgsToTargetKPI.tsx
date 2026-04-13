@@ -51,7 +51,7 @@ export default function KgsToTargetKPI(props: Props) {
 
   const meta = () => (
     <>
-      Target: <strong>{targetWeightConfig.targetWeight}kg</strong>
+      Target <strong>{targetWeightConfig.targetWeight}kg</strong>
     </>
   );
 
