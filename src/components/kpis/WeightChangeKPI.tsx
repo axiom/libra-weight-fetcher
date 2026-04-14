@@ -27,9 +27,9 @@ export default function WeightChangeKPI(props: Props) {
   const formattedValue = createMemo(() => {
     const v = value();
     if (v === null) return "N/A";
-    if (v > 0) return `↑ ${v.toFixed(1)}`;
-    if (v < 0) return `↓ ${Math.abs(v).toFixed(1)}`;
-    return "→ 0.0";
+    if (v > 0) return `↑ ${v.toFixed(1)}`;
+    if (v < 0) return `↓ ${Math.abs(v).toFixed(1)}`;
+    return "→ 0.0";
   });
 
   const unit = createMemo(() => {
