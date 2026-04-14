@@ -41,8 +41,13 @@ function getSystemTheme(): "light" | "dark" {
 
 function applyTheme(theme: Theme) {
   if (typeof document === "undefined") return;
+  const resolved = theme === "auto" ? getSystemTheme() : theme;
+  const isDark = resolved === "dark";
+
+  document.body?.classList.toggle("dark", isDark);
+
   if (theme === "auto") {
-    // Remove inline override — CSS light-dark() follows OS automatically
+    // Remove inline override so browser chrome follows system in auto mode
     document.documentElement.style.removeProperty("color-scheme");
   } else {
     document.documentElement.style.colorScheme = theme;
@@ -78,7 +83,7 @@ export function ThemeProvider(props: ParentProps) {
     const handler = () => {
       if (theme() === "auto") {
         setResolvedTheme(getSystemTheme());
-        // No DOM update needed — CSS handles it automatically in auto mode
+        applyTheme("auto");
       }
     };
     mediaQuery.addEventListener("change", handler);

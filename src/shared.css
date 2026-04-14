@@ -1,36 +1,36 @@
 :root {
   color-scheme: light dark;
 
-  /* Base colors — automatically switch with OS preference */
-  --color-bg: light-dark(#fafafa, #0a0a0a);
-  --color-surface: light-dark(#ffffff, #171717);
-  --color-surface-elevated: light-dark(#ffffff, #1f1f1f);
-  --color-border: light-dark(#e5e5e5, #262626);
-  --color-border-subtle: light-dark(#f0f0f0, #171717);
+  /* Base colors */
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-border: #e5e5e5;
+  --color-border-subtle: #f0f0f0;
 
-  --color-text: light-dark(#171717, #fafafa);
-  --color-text-secondary: light-dark(#525252, #d4d4d4);
-  --color-text-muted: light-dark(#737373, #a3a3a3);
+  --color-text: #171717;
+  --color-text-secondary: #525252;
+  --color-text-muted: #737373;
 
   /* Accent colors — teal + orange theme */
-  --color-accent: light-dark(#14b8a6, #2dd4bf);
-  --color-accent-hover: light-dark(#0d9488, #5eead4);
-  --color-accent-subtle: light-dark(#f0fdfa, #134e4a);
-  --color-accent-muted: light-dark(#ccfbf1, #042f2e);
+  --color-accent: #14b8a6;
+  --color-accent-hover: #0d9488;
+  --color-accent-subtle: #f0fdfa;
+  --color-accent-muted: #ccfbf1;
 
   /* Secondary accent — orange */
-  --color-accent-2: light-dark(#f97316, #fb923c);
-  --color-accent-2-hover: light-dark(#ea580c, #fdba74);
-  --color-accent-2-subtle: light-dark(#fff7ed, #431407);
-  --color-accent-2-muted: light-dark(#ffedd5, #7c2d12);
+  --color-accent-2: #f97316;
+  --color-accent-2-hover: #ea580c;
+  --color-accent-2-subtle: #fff7ed;
+  --color-accent-2-muted: #ffedd5;
 
   /* Status colors */
-  --color-success: light-dark(#16a34a, #22c55e);
-  --color-success-subtle: light-dark(#dcfce7, #14532d);
-  --color-warning: light-dark(#eab308, #facc15);
-  --color-warning-subtle: light-dark(#fef9c3, #713f12);
-  --color-danger: light-dark(#dc2626, #ef4444);
-  --color-danger-subtle: light-dark(#fee2e2, #7f1d1d);
+  --color-success: #16a34a;
+  --color-success-subtle: #dcfce7;
+  --color-warning: #eab308;
+  --color-warning-subtle: #fef9c3;
+  --color-danger: #dc2626;
+  --color-danger-subtle: #fee2e2;
 
   /* Typography */
   --font-sans:
@@ -58,18 +58,38 @@
   --transition-slow: 350ms ease;
 }
 
+body.dark {
+  --color-bg: #0a0a0a;
+  --color-surface: #171717;
+  --color-surface-elevated: #1f1f1f;
+  --color-border: #262626;
+  --color-border-subtle: #171717;
+
+  --color-text: #fafafa;
+  --color-text-secondary: #d4d4d4;
+  --color-text-muted: #a3a3a3;
+
+  --color-accent: #2dd4bf;
+  --color-accent-hover: #5eead4;
+  --color-accent-subtle: #134e4a;
+  --color-accent-muted: #042f2e;
+
+  --color-accent-2: #fb923c;
+  --color-accent-2-hover: #fdba74;
+  --color-accent-2-subtle: #431407;
+  --color-accent-2-muted: #7c2d12;
+
+  --color-success: #22c55e;
+  --color-success-subtle: #14532d;
+  --color-warning: #facc15;
+  --color-warning-subtle: #713f12;
+  --color-danger: #ef4444;
+  --color-danger-subtle: #7f1d1d;
+}
+
 html {
   font-family: var(--font-sans);
   font-size: 16px;
-  background: var(--color-bg);
-  background-image:
-    linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px);
-  background-size: 12px 12px;
-  color: var(--color-text);
-  transition:
-    background var(--transition-normal),
-    color var(--transition-normal);
 }
 
 body {
@@ -79,6 +99,15 @@ body {
   display: flex;
   flex-direction: column;
   line-height: 1.6;
+  background: var(--color-bg);
+  background-image:
+    linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px);
+  background-size: 12px 12px;
+  color: var(--color-text);
+  transition:
+    background var(--transition-normal),
+    color var(--transition-normal);
 }
 
 /* Typography utilities */
@@ -169,18 +198,7 @@ body {
   outline-offset: 2px;
 }
 
-/* Stronger shadows in dark mode — can't use light-dark() for multi-value properties */
-@media (prefers-color-scheme: dark) {
-  :root:not([style*="color-scheme: light"]) {
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow-md:
-      0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-    --shadow-lg:
-      0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
-  }
-}
-
-:root[style*="color-scheme: dark"] {
+body.dark {
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
   --shadow-lg:
@@ -189,7 +207,7 @@ body {
 
 /* Trend background */
 #trend {
-  color: light-dark(rgba(59, 130, 246, 0.08), rgba(96, 165, 250, 0.06));
+  color: rgba(59, 130, 246, 0.08);
   position: absolute;
   top: 50%;
   left: 50%;
@@ -200,4 +218,8 @@ body {
   font-size: min(80vh, 40vw);
   pointer-events: none;
   user-select: none;
+}
+
+body.dark #trend {
+  color: rgba(96, 165, 250, 0.06);
 }

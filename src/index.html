@@ -18,20 +18,33 @@
     <meta property="twitter:description" content="A saga where the scale strikes back and I attempt to tip the balance in my favor." />
     <meta property="twitter:image" content="https://vikt.skev.se/socially-fat.png" />
     <script>
-      // Apply dark class based on system preference for Wind4 class-based dark mode
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');
-      }
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        if (e.matches) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
+      (() => {
+        let theme = 'auto';
+        try {
+          const stored = localStorage.getItem('libra-theme');
+          if (stored === 'auto' || stored === 'light' || stored === 'dark') {
+            theme = stored;
+          }
+        } catch {
+          // ignore
         }
-      });
+
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = theme === 'dark' || (theme === 'auto' && systemDark);
+
+        window.__libraThemeIsDark = isDark;
+        if (theme === 'auto') {
+          document.documentElement.style.removeProperty('color-scheme');
+        } else {
+          document.documentElement.style.colorScheme = theme;
+        }
+      })();
     </script>
   </head>
   <body>
+    <script>
+      document.body.classList.toggle('dark', window.__libraThemeIsDark === true);
+    </script>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
