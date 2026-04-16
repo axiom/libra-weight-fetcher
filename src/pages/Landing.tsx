@@ -1,14 +1,15 @@
 import { A } from "@solidjs/router";
+import { createMemo } from "solid-js";
+import DailyAdvice from "../components/DailyAdvice";
 import {
   CurrentWeightKPI,
   KgsToTargetKPI,
   ProjectedDaysKPI,
   WeightChangeKPI,
 } from "../components/kpis/presets";
-import { targetWeightConfig } from "../config";
 import { computeRequiredChangePerWeek } from "../components/kpis/weightKpi.logic";
+import { targetWeightConfig } from "../config";
 import { useWeightData } from "../stores/weightData";
-import { createMemo } from "solid-js";
 
 export default function Landing() {
   const weightData = useWeightData();
@@ -41,6 +42,8 @@ export default function Landing() {
           <KgsToTargetKPI />
           <ProjectedDaysKPI />
         </div>
+
+        <DailyAdvice />
       </div>
     </div>
   );
