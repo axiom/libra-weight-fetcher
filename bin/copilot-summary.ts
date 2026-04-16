@@ -61,6 +61,18 @@ try {
     );
   } else {
     console.error("Error running copilot:", message);
+    const stderr =
+      err != null &&
+      typeof err === "object" &&
+      "stderr" in err &&
+      err.stderr != null
+        ? Buffer.isBuffer(err.stderr)
+          ? err.stderr.toString()
+          : String(err.stderr)
+        : null;
+    if (stderr) {
+      console.error("Copilot stderr:", stderr);
+    }
   }
   process.exit(1);
 }
