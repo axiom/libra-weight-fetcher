@@ -4,6 +4,12 @@ export interface WeightEntry {
   trend: number;
 }
 
+export interface DemotivationalSummary {
+  headline: string;
+  summary: string;
+  details: string;
+}
+
 export const DAY_MS = 86_400_000;
 
 export const formatDate = (dateStr: string): string =>

@@ -8,3 +8,8 @@ declare module "*presets.json" {
   const value: SmoothingPreset[];
   export default value;
 }
+
+declare module "*advice.json" {
+  const value: import("./shared").DemotivationalSummary;
+  export default value;
+}
