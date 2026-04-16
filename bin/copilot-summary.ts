@@ -44,7 +44,7 @@ if (promptOnly) {
 let parsed: DemotivationalSummary;
 
 try {
-  const result = await $`copilot -p ${prompt}`.text();
+  const result = await $`copilot -p ${prompt} --model claude-haiku-4.5`.text();
   const maybeValid = parseCoilotResponse(result);
   if (!maybeValid) {
     console.error("Error: Copilot response was not valid JSON.");
