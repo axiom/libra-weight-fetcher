@@ -11,7 +11,10 @@ import {
 } from "../src/components/kpis/weightKpi.logic";
 import { targetWeightConfig } from "../src/config";
 import presets from "../src/presets.json";
-import type { WeightEntry } from "../src/shared";
+import type { DemotivationalSummary, WeightEntry } from "../src/shared";
+
+export type { DemotivationalSummary };
+
 import { createSmootherByType } from "../src/smootherRegistry";
 import { composeSmoothers } from "../src/smoothing";
 import type { SmoothingPreset } from "../src/stores/settings";
@@ -31,12 +34,6 @@ export interface KpiData {
   projectedDaysToTarget: ProjectionResult | null;
   targetWeight: number;
   targetDate: string;
-}
-
-export interface DemotivationalSummary {
-  headline: string;
-  summary: string;
-  details: string;
 }
 
 // --- Smoothing ---
@@ -121,16 +118,6 @@ function formatKg(kg: number | null): string {
   return `${sign}${kg.toFixed(1)} kg`;
 }
 
-function formatProjection(kpiData: KpiData): string {
-  const { projectedDaysToTarget, daysToTargetDate } = kpiData;
-  if (!projectedDaysToTarget) {
-    return "unable to project (trend is not moving toward target)";
-  }
-  const deviation = projectedDaysToTarget.days - daysToTargetDate;
-  const direction = deviation <= 0 ? "ahead of" : "behind";
-  return `${projectedDaysToTarget.days} days (${Math.abs(deviation)} days ${direction} schedule)`;
-}
-
 // --- Prompt building ---
 
 /**
@@ -158,14 +145,8 @@ function getTodayInfo(): { date: string; weekday: string } {
  * no side effects, suitable for `--prompt-only` inspection and unit testing.
  */
 export function buildPrompt(kpiData: KpiData): string {
-  const {
-    daysSinceLastWeighIn,
-    currentWeight,
-    kgsToTarget,
-    daysToTargetDate,
-    targetWeight,
-    targetDate,
-  } = kpiData;
+  const { daysSinceLastWeighIn, currentWeight, targetWeight, targetDate } =
+    kpiData;
 
   const { date: todayDate, weekday } = getTodayInfo();
 
@@ -175,9 +156,6 @@ export function buildPrompt(kpiData: KpiData): string {
 
   const currentWeightStr =
     currentWeight !== null ? `${currentWeight.toFixed(1)} kg` : "unknown";
-
-  const kgsToTargetStr =
-    kgsToTarget !== null ? `${kgsToTarget.toFixed(1)} kg` : "unknown";
 
   const isWeekend = ["Friday", "Saturday", "Sunday"].includes(weekday);
   const snackingContext = isWeekend
@@ -220,13 +198,19 @@ export function buildPrompt(kpiData: KpiData): string {
 
 /**
  * Attempts to parse JSON from the raw Copilot response string.
- * Returns null if parsing fails (so the caller can handle the error gracefully).
+ * Extracts the first {...} block to handle trailing usage metadata that the
+ * CLI appends after the response text.
+ * Returns null if no valid DemotivationalSummary JSON is found.
  */
 export function parseCoilotResponse(
   response: string,
 ): DemotivationalSummary | null {
+  const start = response.indexOf("{");
+  const end = response.lastIndexOf("}");
+  if (start === -1 || end === -1 || end < start) return null;
+
   try {
-    const json = JSON.parse(response);
+    const json = JSON.parse(response.slice(start, end + 1));
     if (
       typeof json === "object" &&
       json !== null &&

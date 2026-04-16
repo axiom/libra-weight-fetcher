@@ -1,29 +1,28 @@
 /**
- * Generates a demotivational weight-tracking summary via GitHub Copilot CLI.
+ * Generates a daily accountability summary via GitHub Copilot CLI.
  *
  * Usage:
- *   bun run bin/copilot-summary.ts              # call Copilot and print summary
- *   bun run bin/copilot-summary.ts --prompt-only # print prompt text and exit
- *   bun run bin/copilot-summary.ts --json       # print raw JSON output
+ *   bun run bin/copilot-summary.ts              # call Copilot and pretty-print summary
+ *   bun run bin/copilot-summary.ts --prompt-only # print prompt text and exit (no token needed)
+ *   bun run bin/copilot-summary.ts --json       # output clean validated JSON (for writing to advice.json)
  *
  * Requires COPILOT_GITHUB_TOKEN to be set (a GitHub PAT with "Copilot Requests"
  * permission) unless --prompt-only is given.
  */
 import { $ } from "bun";
-import type { WeightEntry } from "../src/shared";
+import type { DemotivationalSummary, WeightEntry } from "../src/shared";
 import rawWeights from "../src/weights.json";
 import {
   applyDefaultSmoothing,
   buildKpiData,
   buildPrompt,
-  type DemotivationalSummary,
   parseCoilotResponse,
 } from "./copilot-summary.logic";
 
 const promptOnly = process.argv.includes("--prompt-only");
 const jsonOutput = process.argv.includes("--json");
 
-if (!promptOnly && !jsonOutput && !process.env.COPILOT_GITHUB_TOKEN) {
+if (!promptOnly && !process.env.COPILOT_GITHUB_TOKEN) {
   console.error(
     "Error: COPILOT_GITHUB_TOKEN is not set.\n" +
       "Create a GitHub PAT with the 'Copilot Requests' permission and export it:\n" +
@@ -42,22 +41,17 @@ if (promptOnly) {
   process.exit(0);
 }
 
+let parsed: DemotivationalSummary;
+
 try {
-  const result = await $`copilot -p ${prompt} -s --no-ask-user`.text();
-
-  if (jsonOutput) {
-    console.log(result);
-    process.exit(0);
-  }
-
-  const parsed = parseCoilotResponse(result);
-  if (!parsed) {
+  const result = await $`copilot -p ${prompt}`.text();
+  const maybeValid = parseCoilotResponse(result);
+  if (!maybeValid) {
     console.error("Error: Copilot response was not valid JSON.");
     console.error("Raw response:", result);
     process.exit(1);
   }
-
-  printSummary(parsed);
+  parsed = maybeValid;
 } catch (err) {
   const message = err instanceof Error ? err.message : String(err);
   if (message.includes("not found") || message.includes("No such file")) {
@@ -71,8 +65,16 @@ try {
   process.exit(1);
 }
 
+if (jsonOutput) {
+  // Output clean re-stringified JSON (not raw copilot output) for piping to advice.json
+  console.log(JSON.stringify(parsed, null, 2));
+  process.exit(0);
+}
+
+printSummary(parsed);
+
 /**
- * Pretty-prints a demotivational summary to stdout.
+ * Pretty-prints a summary to stdout.
  */
 function printSummary(summary: DemotivationalSummary): void {
   console.log("");
