@@ -7,6 +7,7 @@
     "preview": "vite preview",
     "fetch": "bun run bin/fetch-weights.ts",
     "write-json": "bun run bin/write-json.ts",
+    "summary": "bun run bin/copilot-summary.ts",
     "test": "vitest run",
     "check": "tsc --noEmit"
   },
