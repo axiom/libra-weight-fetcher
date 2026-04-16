@@ -28,6 +28,7 @@ export interface KpiData {
   /** kg/week needed from today to hit target on time. Negative = loss required. */
   requiredRatePerWeek: number | null;
   weightChangeLast7Days: number | null;
+  weightChangeLast30Days: number | null;
   currentWeight: number | null;
   kgsToTarget: number | null;
   daysToTargetDate: number;
@@ -92,6 +93,7 @@ export function buildKpiData(entries: WeightEntry[]): KpiData {
     currentRatePerWeek: computeCurrentRatePerWeek(entries),
     requiredRatePerWeek: computeRequiredChangePerWeek(entries),
     weightChangeLast7Days: computeWeightChange(entries, 7),
+    weightChangeLast30Days: computeWeightChange(entries, 30),
     currentWeight: computeCurrentWeight(entries),
     kgsToTarget: computeKgsToTarget(entries),
     daysToTargetDate: computeDaysToTargetDate(),
@@ -163,7 +165,7 @@ export function buildPrompt(kpiData: KpiData): string {
     : `Note: They typically struggle with snacking Friday–Sunday; maintain discipline today.`;
 
   return [
-    `You are a direct, no-nonsense accountability coach writing for a personal fitness tracking project.`,
+    `You are a direct, no-nonsense accountability coach writing for a personal weight tracking project.`,
     `This is private daily feedback consumed only by the user for their own goal tracking and motivation.`,
     `A user is trying to reach ${targetWeight} kg by ${targetDate} and is currently behind their target pace.`,
     `Today is ${weekday}, ${todayDate}.`,
@@ -173,6 +175,8 @@ export function buildPrompt(kpiData: KpiData): string {
     `- Uses food as a crutch; needs redirection toward goals`,
     `- Available resources: rowing machine, treadmill, gym membership`,
     `- Sedentary work (programming); needs intentional daily movement`,
+    `- Vegan, access to Huel pre-portioned meals`,
+    `- Uses proper kilo joules not calories or kilocalories`,
     `- ${snackingContext}`,
     ``,
     `TODAY'S TRACKING:`,
@@ -181,18 +185,19 @@ export function buildPrompt(kpiData: KpiData): string {
     `- Current pace: ${formatRate(kpiData.currentRatePerWeek)} (need: ${formatRate(kpiData.requiredRatePerWeek)})`,
     `- Days behind schedule: ${kpiData.projectedDaysToTarget?.days && kpiData.daysToTargetDate ? kpiData.projectedDaysToTarget.days - kpiData.daysToTargetDate : "unknown"}`,
     `- Last 7 days: ${formatKg(kpiData.weightChangeLast7Days)}`,
+    `- Last 30 days: ${formatKg(kpiData.weightChangeLast30Days)}`,
     ``,
     `TASK:`,
     `Write a direct, focused daily action plan and respond with ONLY valid JSON (no markdown, no extras).`,
-    `Focus on what to do TODAY to stay on pace.`,
+    `Focus on what to do TODAY to stay on pace, or catch up.`,
     `Use this exact structure:`,
     `{`,
-    `  "headline": "A short, punchy 6-10 word call to action for TODAY (e.g., 'Stay Disciplined, Move Your Body, Win Today')",`,
+    `  "headline": "A short, punchy 6-10 word call to action for TODAY (e.g., 'Do not be a slop, practice disipline!')",`,
     `  "summary": "One powerful sentence (15-25 words) that focuses on TODAY's specific actions needed, referencing the pace gap.",`,
     `  "details": "A direct 2-3 sentence action plan for TODAY with: (1) what to focus on eating/avoiding TODAY, (2) specific exercise action for TODAY (duration and equipment), (3) why TODAY matters in the context of their goal."`,
     `}`,
     ``,
-    `Tone: Direct, honest, factual, motivating. Focus on TODAY's actions and choices. Avoid shame or insults. Be specific with numbers. Address the user as 'you'. Return ONLY the JSON object, no other text.`,
+    `Tone: Direct, honest, factual, motivating. Focus on TODAY's actions and choices. Be specific with numbers. Address the user as 'you'. Return ONLY the JSON object, no other text.`,
   ].join("\n");
 }
 
