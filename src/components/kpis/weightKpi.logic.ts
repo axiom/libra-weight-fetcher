@@ -287,8 +287,7 @@ export function computeDaysSinceLastWeighIn(
   const lastDate = new Date(lastEntry.date);
   const days = Math.floor((now.getTime() - lastDate.getTime()) / DAY_MS);
 
-  const sentiment =
-    days <= 2 ? "good" : days <= 7 ? "fair" : "bad";
+  const sentiment = days <= 2 ? "good" : days <= 7 ? "fair" : "bad";
 
   return { days, sentiment };
 }

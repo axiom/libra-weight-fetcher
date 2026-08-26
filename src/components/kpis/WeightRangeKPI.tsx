@@ -30,7 +30,11 @@ export default function WeightRangeKPI(props: Props) {
       value={formattedValue()}
       unit={unit()}
       icon="↔️"
-      meta={<><strong>{props.days}</strong>-day window</>}
+      meta={
+        <>
+          <strong>{props.days}</strong>-day window
+        </>
+      }
       class={props.class}
     />
   );
