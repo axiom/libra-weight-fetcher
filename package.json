@@ -8,7 +8,7 @@
     "fetch": "bun run bin/fetch-weights.ts",
     "write-json": "bun run bin/write-json.ts",
     "test": "vitest run",
-    "check": "tsc --noEmit"
+    "check": "tsgo"
   },
   "devDependencies": {
     "@solidjs/router": "^0.16.1",
