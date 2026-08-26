@@ -1,9 +1,18 @@
 import { render } from "@solidjs/testing-library";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WeightEntry } from "../../shared";
 import WeightChangeKPI from "./WeightChangeKPI";
 
 describe("WeightChangeKPI", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-02-01"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("renders label correctly", () => {
     const { getByText } = render(() => (
       <WeightChangeKPI
@@ -25,7 +34,12 @@ describe("WeightChangeKPI", () => {
       { date: "2026-01-01", weight: 90, trend: 90 },
     ];
     const { getAllByText } = render(() => (
-      <WeightChangeKPI days={365} label="Change" requiredRate={-0.5} weights={singleWeight} />
+      <WeightChangeKPI
+        days={365}
+        label="Change"
+        requiredRate={-0.5}
+        weights={singleWeight}
+      />
     ));
 
     expect(getAllByText("No data")).toHaveLength(2);
@@ -36,7 +50,12 @@ describe("WeightChangeKPI", () => {
       { date: "2026-01-01", weight: 90, trend: 90 },
     ];
     const { getByText } = render(() => (
-      <WeightChangeKPI days={365} label="Change" requiredRate={-0.5} weights={singleWeight} />
+      <WeightChangeKPI
+        days={365}
+        label="Change"
+        requiredRate={-0.5}
+        weights={singleWeight}
+      />
     ));
 
     expect(getByText("N/A")).toBeDefined();

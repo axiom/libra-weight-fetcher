@@ -1,9 +1,18 @@
 import { render } from "@solidjs/testing-library";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WeightEntry } from "../../shared";
 import AverageWeightKPI from "./AverageWeightKPI";
 
 describe("AverageWeightKPI", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-02-01"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("renders label correctly", () => {
     const { getByText } = render(() => (
       <AverageWeightKPI

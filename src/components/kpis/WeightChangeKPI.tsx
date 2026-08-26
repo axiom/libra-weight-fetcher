@@ -67,8 +67,7 @@ export default function WeightChangeKPI(props: Props) {
     const v = actualRatePerWeek();
     const required = props.requiredRate;
     if (v === null) return "No data";
-    if (Math.sign(v) !== Math.sign(required))
-      return "Really? Wrong way!";
+    if (Math.sign(v) !== Math.sign(required)) return "Really? Wrong way!";
     const percentage = ((v / required) * 100).toFixed(0);
     return (
       <>
