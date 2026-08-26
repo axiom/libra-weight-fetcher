@@ -1,6 +1,5 @@
 import { A } from "@solidjs/router";
 import { createMemo } from "solid-js";
-import DailyAdvice from "../components/DailyAdvice";
 import {
   CurrentWeightKPI,
   KgsToTargetKPI,
@@ -42,8 +41,6 @@ export default function Landing() {
           <KgsToTargetKPI />
           <ProjectedDaysKPI />
         </div>
-
-        <DailyAdvice />
       </div>
     </div>
   );
