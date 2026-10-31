@@ -1,7 +1,11 @@
 import { render } from "@solidjs/testing-library";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { WeightEntry } from "../../shared";
 import WeightRangeKPI from "./WeightRangeKPI";
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("WeightRangeKPI", () => {
   it("renders label correctly", () => {
@@ -20,6 +24,9 @@ describe("WeightRangeKPI", () => {
   });
 
   it("renders range value formatted correctly", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-01T12:00:00Z"));
+
     const { getByText } = render(() => (
       <WeightRangeKPI
         days={365}
